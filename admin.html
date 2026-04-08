@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder Dogs — Admin Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #181818;
+    --border: rgba(249,115,22,0.15);
+    --orange: #f97316;
+    --orange-dim: #c45a0f;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* LOGIN */
+  .login-screen {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+  }
+
+  .login-box {
+    width: 380px;
+    padding: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--orange);
+  }
+
+  .login-logo {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 22px;
+    color: var(--orange);
+    margin-bottom: 4px;
+  }
+
+  .login-logo span { color: var(--white); }
+
+  .login-sub {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border 0.2s;
+  }
+
+  .field input:focus { border-color: var(--orange); }
+
+  .btn-login {
+    width: 100%;
+    background: var(--orange);
+    color: #0a0a0a;
+    border: none;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+
+  .btn-login:hover { background: var(--orange-dim); }
+
+  .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 12px;
+    letter-spacing: 1px;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo-text {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 16px;
+    color: var(--orange);
+  }
+
+  .sidebar-logo-text span { color: var(--white); }
+
+  .sidebar-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .sidebar-nav {
+    padding: 20px 0;
+    flex: 1;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover { color: var(--white); background: var(--surface2); }
+  .nav-item.active { color: var(--orange); border-left-color: var(--orange); background: var(--surface2); }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--orange);
+    color: #0a0a0a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 0;
+  }
+
+  .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-logout {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* MAIN */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    padding: 32px;
+  }
+
+  .page-header {
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .page-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 28px;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .page-title span { color: var(--orange); }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: var(--border);
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    padding: 20px 24px;
+  }
+
+  .stat-val {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--orange); color: var(--white); }
+  .filter-btn.active { background: var(--orange); color: #0a0a0a; border-color: var(--orange); }
+
+  .search-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    padding: 8px 14px;
+    outline: none;
+    width: 220px;
+    margin-left: auto;
+    transition: border 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--orange); }
+  .search-input::placeholder { color: var(--muted); }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  td {
+    padding: 14px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .name-cell {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--white);
+  }
+
+  .name-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+  }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+  }
+
+  .badge-pending { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .badge-approved { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-rejected { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .badge-holder { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+  .badge-override { background: rgba(249,115,22,0.15); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+
+  /* ACTION BUTTONS */
+  .actions { display: flex; gap: 6px; }
+
+  .btn-action {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-approve { border-color: rgba(34,197,94,0.3); color: var(--green); }
+  .btn-approve:hover { background: var(--green); color: #0a0a0a; }
+  .btn-reject { border-color: rgba(239,68,68,0.3); color: var(--red); }
+  .btn-reject:hover { background: var(--red); color: var(--white); }
+  .btn-override { border-color: rgba(249,115,22,0.3); color: var(--orange); }
+  .btn-override:hover { background: var(--orange); color: #0a0a0a; }
+  .btn-view { border-color: var(--border); color: var(--muted); }
+  .btn-view:hover { border-color: var(--white); color: var(--white); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--orange);
+    width: 100%;
+    max-width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  .modal-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 18px;
+  }
+
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover { color: var(--white); }
+
+  .modal-body { padding: 28px; }
+
+  .detail-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 14px;
+  }
+
+  .detail-row:last-child { border-bottom: none; }
+
+  .detail-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .detail-val { color: var(--white); font-weight: 500; }
+
+  .modal-actions {
+    padding: 20px 28px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    background: var(--surface2);
+  }
+
+  .notes-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 70px;
+    margin-bottom: 12px;
+    transition: border 0.2s;
+  }
+
+  .notes-input:focus { border-color: var(--orange); }
+  .notes-input::placeholder { color: var(--muted); }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 16px; }
+  .empty-text { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+  }
+
+  .toast.error { border-left-color: var(--red); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { createClient } = window.supabase;
+const { useState, useEffect, useCallback } = React;
+
+const SUPABASE_URL = 'https://hhscynnazxzwdicobpkl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI';
+const ADMIN_PASSWORD = 'builderdogs2024'; // change this
+
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── TOAST ──
+function Toast({ msg, type, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000);
+    return () => clearTimeout(t);
+  }, []);
+  return <div className={`toast ${type === 'error' ? 'error' : ''}`}>{msg}</div>;
+}
+
+// ── LOGIN ──
+function Login({ onLogin }) {
+  const [pw, setPw] = useState('');
+  const [err, setErr] = useState('');
+
+  const handle = () => {
+    if (pw === ADMIN_PASSWORD) {
+      onLogin();
+    } else {
+      setErr('Incorrect password.');
+    }
+  };
+
+  return (
+    <div className="login-screen">
+      <div className="login-box">
+        <div className="login-logo">BUILDER<span>DOGS</span></div>
+        <div className="login-sub">Admin Dashboard</div>
+        <div className="field">
+          <label>Password</label>
+          <input
+            type="password"
+            value={pw}
+            onChange={e => setPw(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handle()}
+            placeholder="Enter admin password"
+          />
+        </div>
+        <button className="btn-login" onClick={handle}>ENTER</button>
+        {err && <div className="error-msg">⚠ {err}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ── PROFILE MODAL ──
+function ProfileModal({ profile, onClose, onAction, toast }) {
+  const [notes, setNotes] = useState(profile.admin_notes || '');
+  const [saving, setSaving] = useState(false);
+
+  const act = async (status, override = false) => {
+    setSaving(true);
+    await onAction(profile.id, status, notes, override);
+    setSaving(false);
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">{profile.full_name}</div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body">
+          <div className="detail-row">
+            <div className="detail-label">Status</div>
+            <div className="detail-val">
+              <span className={`badge badge-${profile.status}`}>{profile.status}</span>
+              {profile.admin_override && <span className="badge badge-override" style={{marginLeft:8}}>Admin Override</span>}
+            </div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Holder</div>
+            <div className="detail-val">
+              {profile.is_holder
+                ? <span className="badge badge-holder">✓ Doginal Dogs Holder</span>
+                : <span style={{color:'var(--muted)'}}>Not a holder</span>}
+            </div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Trade</div>
+            <div className="detail-val">{profile.trade_type || '—'}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Email</div>
+            <div className="detail-val">{profile.email}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Phone</div>
+            <div className="detail-val">{profile.phone || '—'}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Location</div>
+            <div className="detail-val">{profile.location || '—'}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Wallet</div>
+            <div className="detail-val" style={{fontFamily:'monospace', fontSize:12, wordBreak:'break-all'}}>
+              {profile.wallet_address || '—'}
+            </div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Bio</div>
+            <div className="detail-val">{profile.bio || '—'}</div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Resume</div>
+            <div className="detail-val">
+              {profile.resume_url
+                ? <a href={profile.resume_url} target="_blank" style={{color:'var(--orange)'}}>View Resume ↗</a>
+                : '—'}
+            </div>
+          </div>
+          <div className="detail-row">
+            <div className="detail-label">Submitted</div>
+            <div className="detail-val">{new Date(profile.created_at).toLocaleDateString()}</div>
+          </div>
+
+          <div style={{marginTop:20}}>
+            <div style={{fontSize:10, letterSpacing:2, textTransform:'uppercase', color:'var(--muted)', marginBottom:8}}>Admin Notes</div>
+            <textarea
+              className="notes-input"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Add notes about this applicant..."
+            />
+          </div>
+        </div>
+
+        <div className="modal-actions">
+          <button className="btn-action btn-approve" onClick={() => act('approved')} disabled={saving}>
+            ✓ Approve
+          </button>
+          <button className="btn-action btn-reject" onClick={() => act('rejected')} disabled={saving}>
+            ✕ Reject
+          </button>
+          {!profile.is_holder && (
+            <button className="btn-action btn-override" onClick={() => act('approved', true)} disabled={saving}>
+              ⚡ Override & Approve
+            </button>
+          )}
+          <button className="btn-action btn-view" onClick={onClose} style={{marginLeft:'auto'}}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN DASHBOARD ──
+function Dashboard({ onLogout }) {
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('pending');
+  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+  };
+
+  const fetchProfiles = useCallback(async () => {
+    setLoading(true);
+    let query = db.from('profiles').select('*').order('created_at', { ascending: false });
+    if (filter !== 'all') query = query.eq('status', filter);
+    const { data, error } = await query;
+    if (error) showToast('Error loading profiles', 'error');
+    else setProfiles(data || []);
+    setLoading(false);
+  }, [filter]);
+
+  useEffect(() => { fetchProfiles(); }, [fetchProfiles]);
+
+  const handleAction = async (id, status, notes, override = false) => {
+    const { error } = await db.from('profiles').update({
+      status,
+      admin_notes: notes,
+      admin_override: override,
+      reviewed_at: new Date().toISOString()
+    }).eq('id', id);
+
+    if (error) {
+      showToast('Error updating profile', 'error');
+    } else {
+      showToast(`Profile ${status} successfully`);
+      fetchProfiles();
+    }
+  };
+
+  const filtered = profiles.filter(p =>
+    p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.email?.toLowerCase().includes(search.toLowerCase()) ||
+    p.trade_type?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const counts = {
+    all: profiles.length,
+    pending: profiles.filter(p => p.status === 'pending').length,
+    approved: profiles.filter(p => p.status === 'approved').length,
+    rejected: profiles.filter(p => p.status === 'rejected').length,
+  };
+
+  // Load all for stats
+  const [allStats, setAllStats] = useState({ total: 0, holders: 0, overrides: 0 });
+  useEffect(() => {
+    db.from('profiles').select('is_holder, admin_override, status').then(({ data }) => {
+      if (data) setAllStats({
+        total: data.length,
+        pending: data.filter(p => p.status === 'pending').length,
+        holders: data.filter(p => p.is_holder).length,
+        overrides: data.filter(p => p.admin_override).length,
+      });
+    });
+  }, [profiles]);
+
+  return (
+    <div className="app">
+      {/* SIDEBAR */}
+      <div className="sidebar">
+        <div className="sidebar-logo">
+          <div className="sidebar-logo-text">BUILDER<span>DOGS</span></div>
+          <div className="sidebar-label">Admin Panel</div>
+        </div>
+        <nav className="sidebar-nav">
+          {['pending','approved','rejected','all'].map(f => (
+            <div
+              key={f}
+              className={`nav-item ${filter === f ? 'active' : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {f === 'pending' && '⏳'}
+              {f === 'approved' && '✓'}
+              {f === 'rejected' && '✕'}
+              {f === 'all' && '☰'}
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {counts[f] > 0 && f === 'pending' && (
+                <span className="nav-badge">{counts[f]}</span>
+              )}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <button className="btn-logout" onClick={onLogout}>Sign Out</button>
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div className="main">
+        <div className="page-header">
+          <div>
+            <div className="page-title">
+              {filter.charAt(0).toUpperCase() + filter.slice(1)} <span>Submissions</span>
+            </div>
+            <div className="page-sub">Manage Builder Dogs trade profiles</div>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="stats-row">
+          <div className="stat-card">
+            <div className="stat-val" style={{color:'var(--white)'}}>{allStats.total}</div>
+            <div className="stat-lbl">Total Submissions</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-val" style={{color:'var(--yellow)'}}>{allStats.pending}</div>
+            <div className="stat-lbl">Pending Review</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-val" style={{color:'var(--gold)'}}>{allStats.holders}</div>
+            <div className="stat-lbl">Doginal Holders</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-val" style={{color:'var(--orange)'}}>{allStats.overrides}</div>
+            <div className="stat-lbl">Admin Overrides</div>
+          </div>
+        </div>
+
+        {/* FILTERS */}
+        <div className="filters">
+          <button className={`filter-btn ${!search ? '' : ''}`} onClick={() => setSearch('')}>
+            All Trades
+          </button>
+          {['Mechanical','Electrical','Fabrication','Home & DIY','Creative'].map(t => (
+            <button
+              key={t}
+              className={`filter-btn ${search === t ? 'active' : ''}`}
+              onClick={() => setSearch(t)}
+            >
+              {t}
+            </button>
+          ))}
+          <input
+            className="search-input"
+            placeholder="Search name, email, trade..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* TABLE */}
+        <div className="table-wrap">
+          {loading ? (
+            <div className="loading">Loading submissions...</div>
+          ) : filtered.length === 0 ? (
+            <div className="empty">
+              <div className="empty-icon">📭</div>
+              <div className="empty-text">No {filter} submissions</div>
+            </div>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Applicant</th>
+                  <th>Trade</th>
+                  <th>Holder</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(p => (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="name-cell">{p.full_name}</div>
+                      <div className="name-sub">{p.email}</div>
+                    </td>
+                    <td style={{color:'var(--muted)', fontSize:13}}>{p.trade_type || '—'}</td>
+                    <td>
+                      {p.is_holder
+                        ? <span className="badge badge-holder">✓ Holder</span>
+                        : <span style={{color:'var(--muted)', fontSize:12}}>—</span>}
+                    </td>
+                    <td>
+                      <span className={`badge badge-${p.status}`}>{p.status}</span>
+                      {p.admin_override && <span className="badge badge-override" style={{marginLeft:4}}>Override</span>}
+                    </td>
+                    <td style={{color:'var(--muted)', fontSize:13}}>
+                      {new Date(p.created_at).toLocaleDateString()}
+                    </td>
+                    <td>
+                      <div className="actions">
+                        <button className="btn-action btn-view" onClick={() => setSelected(p)}>View</button>
+                        {p.status === 'pending' && (
+                          <>
+                            <button className="btn-action btn-approve" onClick={() => handleAction(p.id, 'approved', p.admin_notes || '', false)}>✓</button>
+                            <button className="btn-action btn-reject" onClick={() => handleAction(p.id, 'rejected', p.admin_notes || '', false)}>✕</button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* MODAL */}
+      {selected && (
+        <ProfileModal
+          profile={selected}
+          onClose={() => setSelected(null)}
+          onAction={handleAction}
+          toast={showToast}
+        />
+      )}
+
+      {/* TOAST */}
+      {toast && <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
+    </div>
+  );
+}
+
+// ── ROOT ──
+function App() {
+  const [authed, setAuthed] = useState(false);
+  return authed
+    ? <Dashboard onLogout={() => setAuthed(false)} />
+    : <Login onLogin={() => setAuthed(true)} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
