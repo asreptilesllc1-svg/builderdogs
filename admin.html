@@ -542,6 +542,115 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+
+  /* MEDIA GRID */
+  .media-section {
+    margin-top: 20px;
+    border-top: 1px solid rgba(249,115,22,0.1);
+    padding-top: 20px;
+  }
+
+  .media-section-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .media-thumb {
+    aspect-ratio: 1;
+    object-fit: cover;
+    width: 100%;
+    cursor: pointer;
+    border: 1px solid rgba(249,115,22,0.1);
+    transition: border 0.2s;
+    background: var(--surface2);
+  }
+
+  .media-thumb:hover { border-color: var(--orange); }
+
+  .media-video-card {
+    aspect-ratio: 1;
+    background: var(--surface2);
+    border: 1px solid rgba(249,115,22,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .media-video-card:hover { border-color: var(--orange); color: var(--orange); }
+  .media-video-icon { font-size: 24px; }
+
+  .media-empty {
+    font-size: 12px;
+    color: rgba(102,102,102,0.5);
+    font-style: italic;
+    letter-spacing: 0.5px;
+  }
+
+  .social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .social-link {
+    font-size: 11px;
+    color: var(--orange);
+    text-decoration: none;
+    border: 1px solid rgba(249,115,22,0.2);
+    padding: 4px 10px;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .social-link:hover { background: var(--orange); color: #0a0a0a; }
+
+  /* LIGHTBOX */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-size: 28px;
+    cursor: pointer;
+  }
+
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -606,9 +715,19 @@ function Login({ onLogin }) {
 }
 
 // ── PROFILE MODAL ──
-function ProfileModal({ profile, onClose, onAction, toast }) {
+function ProfileModal({ profile, onClose, onAction }) {
   const [notes, setNotes] = useState(profile.admin_notes || '');
   const [saving, setSaving] = useState(false);
+  const [media, setMedia] = useState([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
+  const [lightbox, setLightbox] = useState(null);
+
+  useEffect(() => {
+    db.from('profile_media').select('*').eq('profile_id', profile.id).then(({ data }) => {
+      setMedia(data || []);
+      setLoadingMedia(false);
+    });
+  }, [profile.id]);
 
   const act = async (status, override = false) => {
     setSaving(true);
@@ -617,97 +736,203 @@ function ProfileModal({ profile, onClose, onAction, toast }) {
     onClose();
   };
 
+  const photos = media.filter(m => m.media_type === 'image');
+  const videos = media.filter(m => m.media_type === 'video');
+
+  const socialLinks = [
+    { label: 'YouTube', url: profile.youtube_url },
+    { label: 'X / Twitter', url: profile.twitter_url },
+    { label: 'Instagram', url: profile.instagram_url },
+    { label: 'Website', url: profile.website_url },
+  ].filter(s => s.url);
+
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-header">
-          <div className="modal-title">{profile.full_name}</div>
-          <button className="modal-close" onClick={onClose}>✕</button>
+    <>
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <button className="lightbox-close" onClick={() => setLightbox(null)}>✕</button>
+          <img src={lightbox} alt="Hard Proof" onClick={e => e.stopPropagation()} />
         </div>
-        <div className="modal-body">
-          <div className="detail-row">
-            <div className="detail-label">Status</div>
-            <div className="detail-val">
-              <span className={`badge badge-${profile.status}`}>{profile.status}</span>
-              {profile.admin_override && <span className="badge badge-override" style={{marginLeft:8}}>Admin Override</span>}
+      )}
+      <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="modal">
+          <div className="modal-header">
+            <div>
+              <div className="modal-title">{profile.full_name}</div>
+              <div style={{fontSize:12, color:'var(--muted)', marginTop:4, letterSpacing:1}}>{profile.trade_type}</div>
             </div>
+            <button className="modal-close" onClick={onClose}>✕</button>
           </div>
-          <div className="detail-row">
-            <div className="detail-label">Holder</div>
-            <div className="detail-val">
-              {profile.is_holder
-                ? <span className="badge badge-holder">✓ Doginal Dogs Holder</span>
-                : <span style={{color:'var(--muted)'}}>Not a holder</span>}
+          <div className="modal-body">
+
+            {/* STATUS & HOLDER */}
+            <div className="detail-row">
+              <div className="detail-label">Status</div>
+              <div className="detail-val">
+                <span className={`badge badge-${profile.status}`}>{profile.status}</span>
+                {profile.admin_override && <span className="badge badge-override" style={{marginLeft:8}}>Override</span>}
+              </div>
             </div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Trade</div>
-            <div className="detail-val">{profile.trade_type || '—'}</div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Email</div>
-            <div className="detail-val">{profile.email}</div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Phone</div>
-            <div className="detail-val">{profile.phone || '—'}</div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Location</div>
-            <div className="detail-val">{profile.location || '—'}</div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Wallet</div>
-            <div className="detail-val" style={{fontFamily:'monospace', fontSize:12, wordBreak:'break-all'}}>
-              {profile.wallet_address || '—'}
+            <div className="detail-row">
+              <div className="detail-label">Holder</div>
+              <div className="detail-val">
+                {profile.is_holder
+                  ? <span className="badge badge-holder">✓ Doginal Dogs Holder</span>
+                  : <span style={{color:'var(--muted)'}}>Not a holder</span>}
+              </div>
             </div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Bio</div>
-            <div className="detail-val">{profile.bio || '—'}</div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Resume</div>
-            <div className="detail-val">
-              {profile.resume_url
-                ? <a href={profile.resume_url} target="_blank" style={{color:'var(--orange)'}}>View Resume ↗</a>
-                : '—'}
+
+            {/* CONTACT */}
+            <div className="detail-row">
+              <div className="detail-label">Email</div>
+              <div className="detail-val"><a href={`mailto:${profile.email}`} style={{color:'var(--orange)'}}>{profile.email}</a></div>
             </div>
-          </div>
-          <div className="detail-row">
-            <div className="detail-label">Submitted</div>
-            <div className="detail-val">{new Date(profile.created_at).toLocaleDateString()}</div>
+            <div className="detail-row">
+              <div className="detail-label">Phone</div>
+              <div className="detail-val">{profile.phone || '—'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Location</div>
+              <div className="detail-val">{profile.location || '—'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Experience</div>
+              <div className="detail-val">{profile.years_exp || '—'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Availability</div>
+              <div className="detail-val">{profile.availability || '—'}</div>
+            </div>
+
+            {/* BIO */}
+            <div className="detail-row">
+              <div className="detail-label">Bio</div>
+              <div className="detail-val" style={{lineHeight:1.6}}>{profile.bio || '—'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Specialties</div>
+              <div className="detail-val">{profile.specialties || '—'}</div>
+            </div>
+            <div className="detail-row">
+              <div className="detail-label">Certifications</div>
+              <div className="detail-val">{profile.certifications || '—'}</div>
+            </div>
+
+            {/* WALLET */}
+            <div className="detail-row">
+              <div className="detail-label">Wallet</div>
+              <div className="detail-val" style={{fontFamily:'monospace', fontSize:11, wordBreak:'break-all', opacity:0.7}}>
+                {profile.wallet_address || '—'}
+              </div>
+            </div>
+
+            {/* SOCIAL LINKS */}
+            {socialLinks.length > 0 && (
+              <div className="detail-row">
+                <div className="detail-label">Socials</div>
+                <div className="detail-val">
+                  <div className="social-links">
+                    {socialLinks.map(s => (
+                      <a key={s.label} href={s.url} target="_blank" className="social-link">{s.label} ↗</a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* RESUME */}
+            <div className="detail-row">
+              <div className="detail-label">Resume</div>
+              <div className="detail-val">
+                {profile.resume_url
+                  ? <a href={profile.resume_url} target="_blank" style={{color:'var(--orange)', fontWeight:700}}>📄 Download Resume ↗</a>
+                  : <span style={{color:'var(--muted)'}}>Not uploaded</span>}
+              </div>
+            </div>
+
+            {/* VIDEO LINKS */}
+            {profile.video_links && (
+              <div className="detail-row">
+                <div className="detail-label">Video Links</div>
+                <div className="detail-val">
+                  {profile.video_links.split('\n').filter(Boolean).map((link, i) => (
+                    <div key={i}><a href={link.trim()} target="_blank" style={{color:'var(--orange)', fontSize:12}}>{link.trim()} ↗</a></div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SUBMITTED */}
+            <div className="detail-row">
+              <div className="detail-label">Submitted</div>
+              <div className="detail-val">{new Date(profile.created_at).toLocaleString()}</div>
+            </div>
+
+            {/* HARD PROOF — PHOTOS */}
+            <div className="media-section">
+              <div className="media-section-title">📸 Hard Proof — Photos ({photos.length})</div>
+              {loadingMedia ? (
+                <div className="media-empty">Loading media...</div>
+              ) : photos.length === 0 ? (
+                <div className="media-empty">No photos uploaded</div>
+              ) : (
+                <div className="media-grid">
+                  {photos.map(m => (
+                    <img
+                      key={m.id}
+                      src={m.media_url}
+                      className="media-thumb"
+                      alt="Work photo"
+                      onClick={() => setLightbox(m.media_url)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* HARD PROOF — VIDEOS */}
+            <div className="media-section">
+              <div className="media-section-title">🎬 Hard Proof — Videos ({videos.length})</div>
+              {loadingMedia ? (
+                <div className="media-empty">Loading media...</div>
+              ) : videos.length === 0 ? (
+                <div className="media-empty">No videos uploaded</div>
+              ) : (
+                <div className="media-grid">
+                  {videos.map(m => (
+                    <a key={m.id} href={m.media_url} target="_blank" className="media-video-card">
+                      <span className="media-video-icon">▶</span>
+                      <span>Play Video</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ADMIN NOTES */}
+            <div className="media-section">
+              <div className="media-section-title">Admin Notes</div>
+              <textarea
+                className="notes-input"
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Add notes about this applicant..."
+              />
+            </div>
+
           </div>
 
-          <div style={{marginTop:20}}>
-            <div style={{fontSize:10, letterSpacing:2, textTransform:'uppercase', color:'var(--muted)', marginBottom:8}}>Admin Notes</div>
-            <textarea
-              className="notes-input"
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Add notes about this applicant..."
-            />
+          <div className="modal-actions">
+            <button className="btn-action btn-approve" onClick={() => act('approved')} disabled={saving}>✓ Approve</button>
+            <button className="btn-action btn-reject" onClick={() => act('rejected')} disabled={saving}>✕ Reject</button>
+            {!profile.is_holder && (
+              <button className="btn-action btn-override" onClick={() => act('approved', true)} disabled={saving}>⚡ Override & Approve</button>
+            )}
+            <button className="btn-action btn-view" onClick={onClose} style={{marginLeft:'auto'}}>Close</button>
           </div>
-        </div>
-
-        <div className="modal-actions">
-          <button className="btn-action btn-approve" onClick={() => act('approved')} disabled={saving}>
-            ✓ Approve
-          </button>
-          <button className="btn-action btn-reject" onClick={() => act('rejected')} disabled={saving}>
-            ✕ Reject
-          </button>
-          {!profile.is_holder && (
-            <button className="btn-action btn-override" onClick={() => act('approved', true)} disabled={saving}>
-              ⚡ Override & Approve
-            </button>
-          )}
-          <button className="btn-action btn-view" onClick={onClose} style={{marginLeft:'auto'}}>
-            Close
-          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
