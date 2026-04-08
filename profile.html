@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder Dogs — Builder Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --orange: #f97316;
+    --orange-dim: #c45a0f;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --border: rgba(249,115,22,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 56px;
+    background: rgba(13,13,13,0.96);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo { font-family: 'Black Ops One', sans-serif; font-size: 18px; color: var(--orange); text-decoration: none; }
+  .nav-logo span { color: var(--white); }
+  .nav-back { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--white); }
+
+  .page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 88px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* PROFILE HEADER */
+  .profile-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: start;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 32px;
+    color: var(--orange);
+    margin-bottom: 20px;
+  }
+
+  .profile-name {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    line-height: 0.95;
+    margin-bottom: 8px;
+  }
+
+  .profile-trade {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+
+  .profile-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .meta-item {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .meta-item strong { color: var(--white); }
+
+  .badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    display: inline-block;
+  }
+  .badge-verified { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-holder { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+  .badge-avail { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+
+  /* CONTACT CARD */
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--orange);
+    padding: 28px;
+    min-width: 240px;
+  }
+
+  .contact-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 14px;
+    margin-bottom: 16px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .contact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 14px;
+  }
+
+  .contact-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .contact-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .contact-val a { color: var(--orange); text-decoration: none; }
+  .contact-val a:hover { text-decoration: underline; }
+
+  .social-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .social-btn {
+    display: block;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .social-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  .btn-resume {
+    display: block;
+    width: 100%;
+    background: var(--orange);
+    color: #0d0d0d;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 12px;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 16px;
+    transition: background 0.2s;
+  }
+  .btn-resume:hover { background: var(--orange-dim); }
+
+  /* SECTIONS */
+  .section { margin-bottom: 48px; }
+
+  .section-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .bio-text {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.5px;
+  }
+
+  /* HARD PROOF */
+  .proof-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .proof-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    border: 1px solid var(--border);
+  }
+  .proof-img:hover { opacity: 0.85; }
+
+  .proof-video {
+    aspect-ratio: 1;
+    background: var(--surface);
+    border: 1px solid rgba(249,115,22,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .proof-video:hover { border-color: var(--orange); background: rgba(249,115,22,0.05); }
+  .proof-video-icon { font-size: 32px; }
+  .proof-video-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+  /* VIDEO LINK PILLS */
+  .video-links { display: flex; flex-direction: column; gap: 8px; }
+  .video-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    transition: border 0.2s;
+  }
+  .video-link:hover { border-color: var(--orange); }
+  .video-link-icon { font-size: 20px; }
+  .video-link-url { font-size: 13px; color: var(--orange); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* LIGHTBOX */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; }
+  .lightbox-close { position: absolute; top: 20px; right: 24px; background: transparent; border: none; color: var(--white); font-size: 28px; cursor: pointer; }
+
+  /* NOT FOUND */
+  .not-found { text-align: center; padding: 120px 20px; color: var(--muted); }
+  .not-found-icon { font-size: 56px; margin-bottom: 20px; }
+  .not-found-title { font-family: 'Black Ops One', sans-serif; font-size: 28px; margin-bottom: 12px; }
+  .not-found-sub { font-size: 15px; margin-bottom: 28px; }
+  .not-found-link { color: var(--orange); text-decoration: none; font-weight: 700; letter-spacing: 1px; }
+
+  @media (max-width: 768px) {
+    .profile-header { grid-template-columns: 1fr; }
+    .proof-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <a class="nav-back" href="directory.html">← Directory</a>
+</nav>
+
+<div class="page" id="page">
+  <div style="text-align:center;padding:120px 20px;color:var(--muted);">
+    <div style="font-size:48px;margin-bottom:16px;">🔨</div>
+    <div style="font-size:12px;letter-spacing:3px;text-transform:uppercase;">Loading profile...</div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" style="display:none;" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="Hard Proof" onclick="event.stopPropagation()" />
+</div>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+function getInitials(name) {
+  return (name || '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+async function loadProfile() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (!id) { showNotFound(); return; }
+
+  const { data: profile } = await db.from('profiles').select('*').eq('id', id).eq('status', 'approved').single();
+
+  if (!profile) { showNotFound(); return; }
+
+  const { data: media } = await db.from('profile_media').select('*').eq('profile_id', id);
+
+  document.title = `${profile.full_name} — Builder Dogs`;
+  renderProfile(profile, media || []);
+}
+
+function showNotFound() {
+  document.getElementById('page').innerHTML = `
+    <div class="not-found">
+      <div class="not-found-icon">🔍</div>
+      <div class="not-found-title">Profile Not Found</div>
+      <div class="not-found-sub">This builder may not be verified yet or the link is incorrect.</div>
+      <a href="directory.html" class="not-found-link">← Browse Directory</a>
+    </div>`;
+}
+
+function renderProfile(p, media) {
+  const photos = media.filter(m => m.media_type === 'image');
+  const videos = media.filter(m => m.media_type === 'video');
+  const isAvailable = p.availability && p.availability.includes('Available now');
+
+  const socials = [
+    { label: 'YouTube', url: p.youtube_url },
+    { label: 'X / Twitter', url: p.twitter_url },
+    { label: 'Instagram', url: p.instagram_url },
+    { label: 'Website', url: p.website_url },
+  ].filter(s => s.url);
+
+  const videoLinks = (p.video_links || '').split('\n').filter(l => l.trim());
+
+  const specialties = p.specialties ? p.specialties.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const certs = p.certifications ? p.certifications.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+  document.getElementById('page').innerHTML = `
+    <div class="profile-header">
+      <div>
+        <div class="profile-avatar">${getInitials(p.full_name)}</div>
+        <div class="profile-name">${p.full_name}</div>
+        <div class="profile-trade">${p.trade_type}</div>
+        <div class="profile-meta">
+          ${p.location ? `<span class="meta-item">📍 ${p.location}</span>` : ''}
+          ${p.years_exp ? `<span class="meta-item">⏱ ${p.years_exp}</span>` : ''}
+          ${p.availability ? `<span class="meta-item ${isAvailable ? 'available' : ''}">${isAvailable ? '● ' : ''}${p.availability}</span>` : ''}
+        </div>
+        <div class="badges">
+          <span class="badge badge-verified">✓ Verified Builder</span>
+          ${p.is_holder ? '<span class="badge badge-holder">🐕 Doginal Dogs Holder</span>' : ''}
+          ${isAvailable ? '<span class="badge badge-avail">Available Now</span>' : ''}
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-title">CONTACT</div>
+        ${p.email ? `<div class="contact-item"><span class="contact-label">Email</span><span class="contact-val"><a href="mailto:${p.email}">${p.email}</a></span></div>` : ''}
+        ${p.phone ? `<div class="contact-item"><span class="contact-label">Phone</span><span class="contact-val">${p.phone}</span></div>` : ''}
+        ${socials.length > 0 ? `
+          <div class="social-row">
+            ${socials.map(s => `<a href="${s.url}" target="_blank" class="social-btn">${s.label} ↗</a>`).join('')}
+          </div>` : ''}
+        ${p.resume_url ? `<a href="${p.resume_url}" target="_blank" class="btn-resume">📄 Download Resume</a>` : ''}
+      </div>
+    </div>
+
+    ${p.bio ? `
+    <div class="section">
+      <div class="section-title">About</div>
+      <p class="bio-text">${p.bio}</p>
+    </div>` : ''}
+
+    ${specialties.length > 0 ? `
+    <div class="section">
+      <div class="section-title">Specialties</div>
+      <div class="tags">${specialties.map(s => `<div class="tag">${s}</div>`).join('')}</div>
+    </div>` : ''}
+
+    ${certs.length > 0 ? `
+    <div class="section">
+      <div class="section-title">Certifications</div>
+      <div class="tags">${certs.map(c => `<div class="tag">✓ ${c}</div>`).join('')}</div>
+    </div>` : ''}
+
+    ${photos.length > 0 ? `
+    <div class="section">
+      <div class="section-title">📸 Hard Proof — Photos</div>
+      <div class="proof-grid">
+        ${photos.map(m => `<img src="${m.media_url}" class="proof-img" alt="Work photo" onclick="openLightbox('${m.media_url}')" />`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${videos.length > 0 ? `
+    <div class="section">
+      <div class="section-title">🎬 Hard Proof — Videos</div>
+      <div class="proof-grid">
+        ${videos.map(m => `
+          <a href="${m.media_url}" target="_blank" class="proof-video">
+            <span class="proof-video-icon">▶</span>
+            <span class="proof-video-label">Play Video</span>
+          </a>`).join('')}
+      </div>
+    </div>` : ''}
+
+    ${videoLinks.length > 0 ? `
+    <div class="section">
+      <div class="section-title">🔗 Video Links</div>
+      <div class="video-links">
+        ${videoLinks.map(l => `
+          <a href="${l}" target="_blank" class="video-link">
+            <span class="video-link-icon">▶</span>
+            <span class="video-link-url">${l}</span>
+          </a>`).join('')}
+      </div>
+    </div>` : ''}
+  `;
+}
+
+loadProfile();
+</script>
+</body>
+</html>

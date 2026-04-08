@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder Dogs — Verified Trades Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --orange: #f97316;
+    --orange-dim: #c45a0f;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --border: rgba(249,115,22,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 56px;
+    background: rgba(13,13,13,0.96);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 18px;
+    color: var(--orange);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--white); }
+
+  .nav-right { display: flex; gap: 8px; align-items: center; }
+
+  .nav-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .nav-btn-ghost { color: var(--muted); border-color: var(--border); }
+  .nav-btn-ghost:hover { color: var(--white); border-color: rgba(249,115,22,0.4); }
+  .nav-btn-solid { background: var(--orange); color: #0d0d0d; }
+  .nav-btn-solid:hover { background: var(--orange-dim); }
+
+  /* HEADER */
+  .header {
+    padding: 100px 24px 52px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+
+  .header-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: clamp(32px, 5vw, 64px);
+    line-height: 0.95;
+    margin-bottom: 16px;
+  }
+
+  .header-title span { color: var(--orange); }
+
+  .header-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.6;
+  }
+
+  /* FILTERS */
+  .filters-bar {
+    position: sticky;
+    top: 56px;
+    z-index: 50;
+    background: rgba(13,13,13,0.97);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    padding: 12px 24px;
+  }
+
+  .filters-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-pill {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-pill:hover { border-color: var(--orange); color: var(--white); }
+  .filter-pill.active { background: var(--orange); color: #0d0d0d; border-color: var(--orange); }
+
+  .search-box {
+    margin-left: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    padding: 8px 14px;
+    outline: none;
+    width: 200px;
+    transition: border 0.2s;
+  }
+  .search-box:focus { border-color: var(--orange); }
+  .search-box::placeholder { color: var(--muted); }
+
+  /* GRID */
+  .directory {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .results-count {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+
+  .results-count span { color: var(--orange); }
+
+  .builder-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+  }
+
+  /* BUILDER CARD */
+  .builder-card {
+    background: var(--surface);
+    padding: 28px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .builder-card:hover { background: var(--surface2); }
+
+  .builder-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .builder-avatar {
+    width: 52px;
+    height: 52px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 20px;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+
+  .builder-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+
+  .badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    display: inline-block;
+  }
+
+  .badge-verified { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-holder { background: rgba(245,200,66,0.15); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+
+  .builder-name {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 18px;
+    color: var(--white);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .builder-trade {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+
+  .builder-location {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .builder-bio {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+    margin-bottom: 16px;
+  }
+
+  .builder-proof-strip {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .proof-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .proof-more {
+    width: 48px;
+    height: 48px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .builder-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .builder-avail {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .builder-avail.available { color: var(--green); }
+
+  .builder-arrow {
+    font-size: 16px;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+
+  .builder-card:hover .builder-arrow { color: var(--orange); }
+
+  /* EMPTY / LOADING */
+  .state-msg {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+    background: var(--surface);
+  }
+  .state-icon { font-size: 48px; margin-bottom: 16px; }
+  .state-text { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; }
+
+  /* FOOTER */
+  .footer {
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    position: relative;
+    z-index: 1;
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-logo { font-family: 'Black Ops One', sans-serif; font-size: 14px; color: var(--orange); }
+  .footer-logo span { color: var(--white); }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); text-decoration: none; transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--orange); }
+
+  @media (max-width: 900px) { .builder-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .builder-grid { grid-template-columns: 1fr; } .search-box { width: 100%; margin-left: 0; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-btn nav-btn-ghost">← Home</a>
+    <a href="apply.html" class="nav-btn nav-btn-solid">Get Verified</a>
+  </div>
+</nav>
+
+<div class="header">
+  <p class="header-eyebrow">▸ Verified Trades Community</p>
+  <h1 class="header-title">FIND A <span>BUILDER</span></h1>
+  <p class="header-sub">Every profile is manually reviewed and verified. Real people. Real work. Hard proof.</p>
+</div>
+
+<div class="filters-bar">
+  <div class="filters-inner">
+    <button class="filter-pill active" onclick="setFilter('all')">All Trades</button>
+    <button class="filter-pill" onclick="setFilter('Automotive & Mechanical')">🔧 Automotive</button>
+    <button class="filter-pill" onclick="setFilter('Electrical')">⚡ Electrical</button>
+    <button class="filter-pill" onclick="setFilter('Welding & Fabrication')">🔥 Welding</button>
+    <button class="filter-pill" onclick="setFilter('Carpentry & Construction')">🏗️ Carpentry</button>
+    <button class="filter-pill" onclick="setFilter('Plumbing & HVAC')">💧 Plumbing</button>
+    <button class="filter-pill" onclick="setFilter('Painting & Finishing')">🎨 Painting</button>
+    <button class="filter-pill" onclick="setFilter('IT & Tech')">💻 IT & Tech</button>
+    <input class="search-box" placeholder="Search name or location..." oninput="setSearch(this.value)" />
+  </div>
+</div>
+
+<div class="directory">
+  <div class="results-count" id="results-count"></div>
+  <div class="builder-grid" id="builder-grid">
+    <div class="state-msg">
+      <div class="state-icon">🔨</div>
+      <div class="state-text">Loading builders...</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">BUILDER<span>DOGS</span></div>
+    <div class="footer-links">
+      <a href="apply.html">Get Verified</a>
+      <a href="https://doginaldogs.com" target="_blank">Doginal Dogs</a>
+      <a href="https://discord.gg/doginaldogs" target="_blank">Discord</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+let allProfiles = [];
+let allMedia = {};
+let currentFilter = 'all';
+let currentSearch = '';
+
+async function loadDirectory() {
+  const { data: profiles } = await db
+    .from('profiles')
+    .select('*')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+
+  allProfiles = profiles || [];
+
+  // Fetch first 3 photos for each profile for the preview strip
+  if (allProfiles.length > 0) {
+    const ids = allProfiles.map(p => p.id);
+    const { data: media } = await db
+      .from('profile_media')
+      .select('*')
+      .in('profile_id', ids)
+      .eq('media_type', 'image');
+
+    (media || []).forEach(m => {
+      if (!allMedia[m.profile_id]) allMedia[m.profile_id] = [];
+      allMedia[m.profile_id].push(m);
+    });
+  }
+
+  renderGrid();
+}
+
+function setFilter(trade) {
+  currentFilter = trade;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  renderGrid();
+}
+
+function setSearch(val) {
+  currentSearch = val.toLowerCase();
+  renderGrid();
+}
+
+function getInitials(name) {
+  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('builder-grid');
+  const countEl = document.getElementById('results-count');
+
+  let filtered = allProfiles.filter(p => {
+    const matchTrade = currentFilter === 'all' || p.trade_type === currentFilter;
+    const matchSearch = !currentSearch ||
+      p.full_name?.toLowerCase().includes(currentSearch) ||
+      p.location?.toLowerCase().includes(currentSearch) ||
+      p.trade_type?.toLowerCase().includes(currentSearch) ||
+      p.specialties?.toLowerCase().includes(currentSearch);
+    return matchTrade && matchSearch;
+  });
+
+  countEl.innerHTML = `Showing <span>${filtered.length}</span> verified builder${filtered.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="state-msg">
+        <div class="state-icon">🔍</div>
+        <div class="state-text">No builders found — try a different filter</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => {
+    const photos = allMedia[p.id] || [];
+    const previewPhotos = photos.slice(0, 3);
+    const extraCount = photos.length - 3;
+
+    const proofStrip = previewPhotos.length > 0 ? `
+      <div class="builder-proof-strip">
+        ${previewPhotos.map(m => `<img src="${m.media_url}" class="proof-thumb" alt="Work" />`).join('')}
+        ${extraCount > 0 ? `<div class="proof-more">+${extraCount}</div>` : ''}
+      </div>` : '';
+
+    const isAvailable = p.availability && p.availability.includes('Available now');
+
+    return `
+      <a class="builder-card" href="profile.html?id=${p.id}">
+        <div class="builder-card-top">
+          <div class="builder-avatar">${getInitials(p.full_name)}</div>
+          <div class="builder-badges">
+            <span class="badge badge-verified">✓ Verified</span>
+            ${p.is_holder ? '<span class="badge badge-holder">🐕 Holder</span>' : ''}
+          </div>
+        </div>
+        <div class="builder-name">${p.full_name}</div>
+        <div class="builder-trade">${p.trade_type}</div>
+        <div class="builder-location">📍 ${p.location || 'Location not listed'}</div>
+        <div class="builder-bio">${p.bio || 'No bio provided.'}</div>
+        ${proofStrip}
+        <div class="builder-footer">
+          <span class="builder-avail ${isAvailable ? 'available' : ''}">${p.availability ? (isAvailable ? '● Available' : p.availability) : 'Status unknown'}</span>
+          <span class="builder-arrow">→</span>
+        </div>
+      </a>`;
+  }).join('');
+}
+
+loadDirectory();
+</script>
+</body>
+</html>
