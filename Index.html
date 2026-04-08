@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Builder Dogs — Verified Trades Community</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -463,6 +464,161 @@
     align-self: flex-end;
   }
 
+
+  /* TRADE DRAWER */
+  .trade-card.active { background: var(--surface2); border-left: 3px solid var(--orange); }
+  .trade-card.active .trade-arrow { color: var(--orange); transform: rotate(90deg); }
+  .trade-arrow { transition: transform 0.2s, color 0.2s; display: inline-block; }
+
+  .trade-drawer {
+    grid-column: 1 / -1;
+    background: var(--surface2);
+    border-top: 2px solid var(--orange);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px;
+    display: none;
+    animation: drawerOpen 0.2s ease;
+  }
+
+  .trade-drawer.open { display: block; }
+
+  @keyframes drawerOpen {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .drawer-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+  }
+
+  .drawer-profiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .drawer-profile-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border 0.15s;
+  }
+
+  .drawer-profile-card:hover { border-color: var(--orange); }
+
+  .drawer-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 14px;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+
+  .drawer-info { min-width: 0; }
+
+  .drawer-name {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 13px;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .drawer-location {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .drawer-badge {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    background: rgba(34,197,94,0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34,197,94,0.3);
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  .drawer-empty {
+    grid-column: 1 / -1;
+    padding: 32px;
+    text-align: center;
+    border: 2px dashed rgba(249,115,22,0.1);
+  }
+
+  .drawer-empty-icon { font-size: 28px; margin-bottom: 10px; }
+
+  .drawer-empty-text {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .drawer-empty-sub {
+    font-size: 12px;
+    color: rgba(102,102,102,0.6);
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .drawer-empty-cta {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    background: var(--orange);
+    color: #0d0d0d;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.15s;
+  }
+  .drawer-empty-cta:hover { background: var(--orange-dim); }
+
+  .drawer-view-all {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .drawer-view-all a {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange);
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .drawer-view-all a:hover { opacity: 0.7; }
+
+  @media (max-width: 900px) { .drawer-profiles { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .drawer-profiles { grid-template-columns: 1fr; } }
+
   /* HARD PROOF SECTION */
   .proof-section {
     background: var(--surface);
@@ -829,61 +985,64 @@
     <h2 class="section-title">PICK YOUR <span>TRADE</span></h2>
     <p class="section-sub">Every category is a community of verified builders. Click to browse profiles.</p>
 
-    <div class="trades-grid">
-      <div class="trade-card">
+    <div class="trades-grid" id="trades-grid">
+      <div class="trade-card" onclick="toggleTrade(this, 'Automotive & Mechanical')">
         <div class="trade-icon">🔧</div>
         <div class="trade-name">Automotive & Mechanical</div>
         <div class="trade-desc">Engine work, diagnostics, suspension, brakes, custom builds</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-card" onclick="toggleTrade(this, 'Electrical')">
         <div class="trade-icon">⚡</div>
         <div class="trade-name">Electrical</div>
         <div class="trade-desc">Wiring, panel work, installs, lighting, troubleshooting</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-card" onclick="toggleTrade(this, 'Welding & Fabrication')">
         <div class="trade-icon">🔥</div>
         <div class="trade-name">Welding & Fabrication</div>
         <div class="trade-desc">Metal work, custom fabrication, structural, roll cages</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-drawer" id="drawer-row-1"></div>
+      <div class="trade-card" onclick="toggleTrade(this, 'Carpentry & Construction')">
         <div class="trade-icon">🏗️</div>
         <div class="trade-name">Carpentry & Construction</div>
         <div class="trade-desc">Framing, finishing, cabinetry, decks, renovations</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-card" onclick="toggleTrade(this, 'Plumbing & HVAC')">
         <div class="trade-icon">💧</div>
         <div class="trade-name">Plumbing & HVAC</div>
         <div class="trade-desc">Pipe work, fixtures, climate systems, ductwork</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-card" onclick="toggleTrade(this, 'Painting & Finishing')">
         <div class="trade-icon">🎨</div>
         <div class="trade-name">Painting & Finishing</div>
         <div class="trade-desc">Auto paint, body work, interior, custom wraps, coatings</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-drawer" id="drawer-row-2"></div>
+      <div class="trade-card" onclick="toggleTrade(this, 'Landscaping & Hardscape')">
         <div class="trade-icon">🌿</div>
         <div class="trade-name">Landscaping & Hardscape</div>
         <div class="trade-desc">Outdoor builds, concrete, retaining walls, irrigation</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-card" onclick="toggleTrade(this, 'IT & Tech')">
         <div class="trade-icon">💻</div>
         <div class="trade-name">IT & Tech</div>
         <div class="trade-desc">Networks, builds, repairs, smart home, security systems</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card">
+      <div class="trade-card" onclick="toggleTrade(this, 'General Trades & Other')">
         <div class="trade-icon">📦</div>
         <div class="trade-name">General Trades & Other</div>
         <div class="trade-desc">Don't see your trade? Submit anyway — we cover it all</div>
         <div class="trade-arrow">→</div>
       </div>
+      <div class="trade-drawer" id="drawer-row-3"></div>
     </div>
   </div>
 </section>
@@ -969,6 +1128,97 @@
     </div>
   </div>
 </div>
+
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+// Card index -> drawer row mapping (3 columns)
+// Cards 0,1,2 -> drawer-row-1 | Cards 3,4,5 -> drawer-row-2 | Cards 6,7,8 -> drawer-row-3
+const drawerMap = {0:'drawer-row-1',1:'drawer-row-1',2:'drawer-row-1',3:'drawer-row-2',4:'drawer-row-2',5:'drawer-row-2',6:'drawer-row-3',7:'drawer-row-3',8:'drawer-row-3'};
+
+let activeCard = null;
+let activeDrawer = null;
+
+function getInitials(name) {
+  return (name||'').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+}
+
+async function toggleTrade(card, trade) {
+  const cards = Array.from(document.querySelectorAll('.trade-card'));
+  const cardIndex = cards.indexOf(card);
+  const drawerId = drawerMap[cardIndex];
+  const drawer = document.getElementById(drawerId);
+
+  // Clicking same card — close it
+  if (activeCard === card) {
+    card.classList.remove('active');
+    drawer.classList.remove('open');
+    drawer.innerHTML = '';
+    activeCard = null;
+    activeDrawer = null;
+    return;
+  }
+
+  // Close previous
+  if (activeCard) activeCard.classList.remove('active');
+  if (activeDrawer) { activeDrawer.classList.remove('open'); activeDrawer.innerHTML = ''; }
+
+  // Open new
+  card.classList.add('active');
+  activeCard = card;
+  activeDrawer = drawer;
+
+  drawer.innerHTML = '<div class="drawer-title">Loading...</div>';
+  drawer.classList.add('open');
+  drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Fetch profiles for this trade
+  const { data: profiles } = await db
+    .from('profiles')
+    .select('id, full_name, location, is_holder, availability')
+    .eq('trade_type', trade)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+
+  drawer.innerHTML = renderDrawer(trade, profiles || []);
+}
+
+function renderDrawer(trade, profiles) {
+  const hasProfiles = profiles.length > 0;
+  const encodedTrade = encodeURIComponent(trade);
+
+  return `
+    <div class="drawer-title">▸ ${trade.toUpperCase()} — ${profiles.length} VERIFIED BUILDER${profiles.length !== 1 ? 'S' : ''}</div>
+    <div class="drawer-profiles">
+      ${hasProfiles ? profiles.map(p => `
+        <a class="drawer-profile-card" href="profile.html?id=${p.id}">
+          <div class="drawer-avatar">${getInitials(p.full_name)}</div>
+          <div class="drawer-info">
+            <div class="drawer-name">${p.full_name}</div>
+            <div class="drawer-location">📍 ${p.location || 'Location not listed'}</div>
+            <span class="drawer-badge">✓ Verified</span>
+            ${p.is_holder ? '<span class="drawer-badge" style="background:rgba(245,200,66,0.15);color:#f5c842;border-color:rgba(245,200,66,0.3);margin-left:4px;">🐕 Holder</span>' : ''}
+          </div>
+        </a>`).join('') : `
+        <div class="drawer-empty">
+          <div class="drawer-empty-icon">🔨</div>
+          <div class="drawer-empty-text">No verified builders yet</div>
+          <div class="drawer-empty-sub">Be the first verified ${trade} builder in the community</div>
+          <a href="apply.html" class="drawer-empty-cta">Get Verified Free</a>
+        </div>`}
+    </div>
+    ${hasProfiles ? `
+    <div class="drawer-view-all">
+      <a href="directory.html?trade=${encodedTrade}">View all ${trade} builders →</a>
+    </div>` : ''}
+  `;
+}
+</script>
 
 </body>
 </html>
