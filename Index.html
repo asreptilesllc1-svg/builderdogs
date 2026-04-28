@@ -883,6 +883,156 @@
     .proof-grid { grid-template-columns: repeat(2, 1fr); }
     nav .nav-btn-ghost { display: none; }
   }
+
+  /* ── ANIMATIONS ── */
+
+  /* Dog float/bob */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .dog-card.builder img {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  /* Trade card hover lift + glow */
+  .trade-card {
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  }
+
+  .trade-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(249,115,22,0.15);
+  }
+
+  /* Split cards hover lift */
+  .split-card {
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+  }
+
+  .split-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(249,115,22,0.12);
+  }
+
+  /* Step cards hover */
+  .step {
+    transition: background 0.2s, transform 0.2s !important;
+  }
+
+  .step:hover {
+    background: #1e1e1e;
+    transform: translateY(-3px);
+  }
+
+  /* Proof cards pulse on hover */
+  .proof-card {
+    transition: all 0.2s !important;
+  }
+
+  .proof-card:hover {
+    transform: scale(1.03);
+    border-color: rgba(249,115,22,0.4) !important;
+  }
+
+  /* Button pulse on hover */
+  .btn-primary {
+    transition: all 0.2s, box-shadow 0.2s !important;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 24px rgba(249,115,22,0.4);
+  }
+
+  .btn-secondary {
+    transition: all 0.2s !important;
+  }
+
+  /* Ticker hover slow down */
+  .ticker:hover .ticker-inner {
+    animation-duration: 60s;
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-left {
+    opacity: 0;
+    transform: translateX(-28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .reveal-scale {
+    opacity: 0;
+    transform: scale(0.94);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal-scale.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Stagger delays */
+  .delay-1 { transition-delay: 0.1s !important; }
+  .delay-2 { transition-delay: 0.2s !important; }
+  .delay-3 { transition-delay: 0.3s !important; }
+  .delay-4 { transition-delay: 0.4s !important; }
+  .delay-5 { transition-delay: 0.5s !important; }
+  .delay-6 { transition-delay: 0.6s !important; }
+
+  /* Orange glow on verified badge */
+  .verified-badge {
+    transition: box-shadow 0.3s;
+  }
+  .verified-badge:hover {
+    box-shadow: 0 0 20px rgba(34,197,94,0.2);
+  }
+
+  /* Nav links underline slide */
+  .nav-btn-ghost {
+    position: relative;
+    overflow: hidden;
+  }
+  .nav-btn-ghost::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--orange);
+    transition: width 0.2s;
+  }
+  .nav-btn-ghost:hover::after { width: 100%; }
+
+  /* CTA banner shimmer */
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .cta-banner-title {
+    background: linear-gradient(90deg, #0d0d0d 40%, rgba(255,255,255,0.3) 50%, #0d0d0d 60%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+
 </style>
 </head>
 <body>
@@ -940,12 +1090,12 @@
 
 <!-- TWO PATH SPLIT -->
 <section class="section" id="apply">
-  <p class="section-eyebrow">▸ Two Ways In</p>
-  <h2 class="section-title">FIND A BUILDER.<br><span>BE THE BUILDER.</span></h2>
-  <p class="section-sub">Whether you're looking to hire or looking to be found — this is where trades get done.</p>
+  <p class="section-eyebrow reveal">▸ Two Ways In</p>
+  <h2 class="section-title reveal">FIND A BUILDER.<br><span>BE THE BUILDER.</span></h2>
+  <p class="section-sub reveal">Whether you're looking to hire or looking to be found — this is where trades get done.</p>
 
   <div class="split">
-    <div class="split-card">
+    <div class="split-card reveal">
       <div class="split-icon">🔨</div>
       <div class="split-title">GET VERIFIED</div>
       <p class="split-desc">
@@ -961,7 +1111,7 @@
       <a href="apply.html" class="split-cta split-cta-orange">Submit Your Profile</a>
     </div>
 
-    <div class="split-card">
+    <div class="split-card reveal delay-2">
       <div class="split-icon">🔍</div>
       <div class="split-title">FIND A BUILDER</div>
       <p class="split-desc">
@@ -982,62 +1132,62 @@
 <!-- TRADES DIRECTORY -->
 <section style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:100px 24px;position:relative;z-index:1;" id="trades">
   <div style="max-width:1200px;margin:0 auto;">
-    <p class="section-eyebrow" style="text-align:center;">▸ Browse By Trade</p>
-    <h2 class="section-title">PICK YOUR <span>TRADE</span></h2>
-    <p class="section-sub">Every category is a community of verified builders. Click to browse profiles.</p>
+    <p class="section-eyebrow reveal" style="text-align:center;">▸ Browse By Trade</p>
+    <h2 class="section-title reveal">PICK YOUR <span>TRADE</span></h2>
+    <p class="section-sub reveal">Every category is a community of verified builders. Click to browse profiles.</p>
 
     <div class="trades-grid" id="trades-grid">
-      <div class="trade-card" onclick="toggleTrade(this, 'Automotive & Mechanical')">
+      <div class="trade-card reveal" onclick="toggleTrade(this, 'Automotive & Mechanical')">
         <div class="trade-icon">🔧</div>
         <div class="trade-name">Automotive & Mechanical</div>
         <div class="trade-desc">Engine work, diagnostics, suspension, brakes, custom builds</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card" onclick="toggleTrade(this, 'Electrical')">
+      <div class="trade-card reveal delay-1" onclick="toggleTrade(this, 'Electrical')">
         <div class="trade-icon">⚡</div>
         <div class="trade-name">Electrical</div>
         <div class="trade-desc">Wiring, panel work, installs, lighting, troubleshooting</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card" onclick="toggleTrade(this, 'Welding & Fabrication')">
+      <div class="trade-card reveal delay-2" onclick="toggleTrade(this, 'Welding & Fabrication')">
         <div class="trade-icon">🔥</div>
         <div class="trade-name">Welding & Fabrication</div>
         <div class="trade-desc">Metal work, custom fabrication, structural, roll cages</div>
         <div class="trade-arrow">→</div>
       </div>
       <div class="trade-drawer" id="drawer-row-1"></div>
-      <div class="trade-card" onclick="toggleTrade(this, 'Carpentry & Construction')">
+      <div class="trade-card reveal delay-3" onclick="toggleTrade(this, 'Carpentry & Construction')">
         <div class="trade-icon">🏗️</div>
         <div class="trade-name">Carpentry & Construction</div>
         <div class="trade-desc">Framing, finishing, cabinetry, decks, renovations</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card" onclick="toggleTrade(this, 'Plumbing & HVAC')">
+      <div class="trade-card reveal delay-4" onclick="toggleTrade(this, 'Plumbing & HVAC')">
         <div class="trade-icon">💧</div>
         <div class="trade-name">Plumbing & HVAC</div>
         <div class="trade-desc">Pipe work, fixtures, climate systems, ductwork</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card" onclick="toggleTrade(this, 'Painting & Finishing')">
+      <div class="trade-card reveal delay-5" onclick="toggleTrade(this, 'Painting & Finishing')">
         <div class="trade-icon">🎨</div>
         <div class="trade-name">Painting & Finishing</div>
         <div class="trade-desc">Auto paint, body work, interior, custom wraps, coatings</div>
         <div class="trade-arrow">→</div>
       </div>
       <div class="trade-drawer" id="drawer-row-2"></div>
-      <div class="trade-card" onclick="toggleTrade(this, 'Landscaping & Hardscape')">
+      <div class="trade-card reveal" onclick="toggleTrade(this, 'Landscaping & Hardscape')">
         <div class="trade-icon">🌿</div>
         <div class="trade-name">Landscaping & Hardscape</div>
         <div class="trade-desc">Outdoor builds, concrete, retaining walls, irrigation</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card" onclick="toggleTrade(this, 'IT & Tech')">
+      <div class="trade-card reveal delay-1" onclick="toggleTrade(this, 'IT & Tech')">
         <div class="trade-icon">💻</div>
         <div class="trade-name">IT & Tech</div>
         <div class="trade-desc">Networks, builds, repairs, smart home, security systems</div>
         <div class="trade-arrow">→</div>
       </div>
-      <div class="trade-card" onclick="toggleTrade(this, 'General Trades & Other')">
+      <div class="trade-card reveal delay-2" onclick="toggleTrade(this, 'General Trades & Other')">
         <div class="trade-icon">📦</div>
         <div class="trade-name">General Trades & Other</div>
         <div class="trade-desc">Don't see your trade? Submit anyway — we cover it all</div>
@@ -1051,24 +1201,24 @@
 <!-- HARD PROOF -->
 <div class="proof-section">
   <div class="proof-inner">
-    <p class="section-eyebrow" style="text-align:center;">▸ Hard Proof</p>
-    <h2 class="section-title">YOUR WORK <span>SPEAKS FIRST</span></h2>
-    <p class="section-sub">Every verified profile includes a Hard Proof gallery — real photos and videos of real work. No stock images. No fluff.</p>
+    <p class="section-eyebrow reveal" style="text-align:center;">▸ Hard Proof</p>
+    <h2 class="section-title reveal">YOUR WORK <span>SPEAKS FIRST</span></h2>
+    <p class="section-sub reveal">Every verified profile includes a Hard Proof gallery — real photos and videos of real work. No stock images. No fluff.</p>
 
     <div class="proof-grid">
-      <div class="proof-card featured">
+      <div class="proof-card featured reveal delay-1">
         <div class="proof-card-icon">📸</div>
         <span>Work Photos</span>
       </div>
-      <div class="proof-card featured">
+      <div class="proof-card featured reveal delay-2">
         <div class="proof-card-icon">🎬</div>
         <span>Build Videos</span>
       </div>
-      <div class="proof-card featured">
+      <div class="proof-card featured reveal delay-3">
         <div class="proof-card-icon">📄</div>
         <span>Resume & Certs</span>
       </div>
-      <div class="proof-card featured">
+      <div class="proof-card featured reveal delay-4">
         <div class="proof-card-icon">✅</div>
         <span>Verified Badge</span>
       </div>
@@ -1078,27 +1228,27 @@
 
 <!-- HOW IT WORKS -->
 <section class="section" id="how">
-  <p class="section-eyebrow" style="text-align:center;">▸ How It Works</p>
-  <h2 class="section-title">SIMPLE <span>PROCESS</span></h2>
-  <p class="section-sub">Four steps from submission to verified profile.</p>
+  <p class="section-eyebrow reveal" style="text-align:center;">▸ How It Works</p>
+  <h2 class="section-title reveal">SIMPLE <span>PROCESS</span></h2>
+  <p class="section-sub reveal">Four steps from submission to verified profile.</p>
 
   <div class="steps">
-    <div class="step">
+    <div class="step reveal">
       <div class="step-num">01</div>
       <div class="step-title">Submit Your Profile</div>
       <div class="step-desc">Fill out your trade info, upload your resume, and add your Hard Proof — photos and videos of real work you've done.</div>
     </div>
-    <div class="step">
+    <div class="step reveal delay-1">
       <div class="step-num">02</div>
       <div class="step-title">Get Reviewed</div>
       <div class="step-desc">Every submission is manually reviewed. Doginal Dogs holders get priority. Non-holders can still apply and get approved.</div>
     </div>
-    <div class="step">
+    <div class="step reveal delay-2">
       <div class="step-num">03</div>
       <div class="step-title">Go Live Verified</div>
       <div class="step-desc">Approved profiles go live in the directory with a verified badge. Your Hard Proof gallery is public and searchable by trade.</div>
     </div>
-    <div class="step">
+    <div class="step reveal delay-3">
       <div class="step-num">04</div>
       <div class="step-title">Get Found</div>
       <div class="step-desc">Clients, contractors, and community members browse the directory and contact you directly. Your work does the talking.</div>
@@ -1219,6 +1369,22 @@ function renderDrawer(trade, profiles) {
     </div>` : ''}
   `;
 }
+</script>
+
+
+<script>
+// Scroll reveal observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-scale').forEach(el => {
+  observer.observe(el);
+});
 </script>
 
 </body>
