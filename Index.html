@@ -23,6 +23,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   html { scroll-behavior: smooth; }
 
   body {
@@ -875,6 +876,53 @@
     .proof-grid { grid-template-columns: repeat(2, 1fr); }
     .steps { grid-template-columns: repeat(2, 1fr); }
     nav .nav-links { gap: 4px; }
+  }
+
+  @media (max-width: 600px) {
+    /* Nav — keep logo, shrink get verified button */
+    nav { padding: 0 16px; }
+    .nav-logo { font-size: 15px; }
+    .nav-btn-ghost { display: none; }
+    .nav-btn-solid { font-size: 10px; padding: 7px 12px; letter-spacing: 1px; }
+
+    /* Hero */
+    .hero { padding: 80px 16px 48px; }
+    h1 { font-size: 36px; }
+    .hero-desc { font-size: 15px; }
+    .hero-cta { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+    .dog-card img { width: 130px; height: 130px; }
+
+    /* Ticker */
+    .ticker-inner { font-size: 11px; letter-spacing: 2px; }
+
+    /* Trades grid single column on small screens */
+    .trades-grid { grid-template-columns: 1fr; }
+    .trade-drawer { grid-column: 1 / -1; }
+
+    /* Steps single column */
+    .steps { grid-template-columns: 1fr; }
+
+    /* Proof grid 2 col */
+    .proof-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* Section padding */
+    .section { padding: 60px 16px; }
+
+    /* Split cards */
+    .split-card { padding: 32px 20px; }
+
+    /* Footer */
+    .footer-inner { flex-direction: column; align-items: center; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+    .footer-links a { font-size: 12px; }
+
+    /* CTA banner */
+    .cta-banner { padding: 60px 16px; }
+    .cta-banner-title { font-size: 24px; }
+
+    /* General sections */
+    .section-title { font-size: 26px; }
   }
 
   @media (max-width: 560px) {
