@@ -23,6 +23,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   html { scroll-behavior: smooth; }
 
   body {
@@ -379,8 +380,47 @@
   }
   .footer-links a:hover { color: var(--orange); }
 
-  @media (max-width: 900px) { .builder-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 560px) { .builder-grid { grid-template-columns: 1fr; } .search-box { width: 100%; margin-left: 0; } }
+
+
+
+  @media (max-width: 900px) {
+    .builder-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    /* Nav */
+    nav { padding: 0 16px; }
+    .nav-logo { font-size: 15px; }
+    .nav-btn-ghost { display: none; }
+    .nav-btn-solid { font-size: 10px; padding: 7px 12px; }
+
+    /* Header */
+    .header { padding: 80px 16px 32px; }
+    .header-title { font-size: 32px; }
+    .header-sub { font-size: 14px; }
+
+    /* Filters */
+    .filters-bar { padding: 10px 16px; }
+    .filters-inner { gap: 6px; }
+    .filter-pill { font-size: 10px; padding: 6px 10px; }
+    .search-box { width: 100%; margin-left: 0; font-size: 13px; }
+
+    /* Grid single column */
+    .builder-grid { grid-template-columns: 1fr; }
+
+    /* Cards */
+    .builder-card { padding: 20px; }
+    .builder-name { font-size: 16px; }
+    .builder-avatar { width: 44px; height: 44px; font-size: 16px; }
+
+    /* Directory padding */
+    .directory { padding: 24px 16px 60px; }
+
+    /* Footer */
+    .footer-inner { flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+    .footer-links { flex-wrap: wrap; justify-content: center; }
+  }
+
 </style>
 </head>
 <body>

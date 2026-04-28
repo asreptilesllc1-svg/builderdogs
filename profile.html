@@ -23,6 +23,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   body {
     background: var(--bg);
     color: var(--white);
@@ -333,10 +334,53 @@
   .not-found-sub { font-size: 15px; margin-bottom: 28px; }
   .not-found-link { color: var(--orange); text-decoration: none; font-weight: 700; letter-spacing: 1px; }
 
+
+
   @media (max-width: 768px) {
     .profile-header { grid-template-columns: 1fr; }
     .proof-grid { grid-template-columns: repeat(2, 1fr); }
+    .contact-card { min-width: unset; width: 100%; }
   }
+
+  @media (max-width: 600px) {
+    /* Nav */
+    nav { padding: 0 16px; }
+    .nav-logo { font-size: 15px; }
+    .nav-back { font-size: 10px; letter-spacing: 1px; }
+
+    /* Page */
+    .page { padding: 72px 16px 60px; }
+
+    /* Profile header */
+    .profile-avatar { width: 60px; height: 60px; font-size: 22px; margin-bottom: 14px; }
+    .profile-name { font-size: 28px; }
+    .profile-trade { font-size: 12px; }
+    .profile-meta { gap: 12px; }
+    .meta-item { font-size: 12px; }
+
+    /* Contact card */
+    .contact-card { padding: 20px; }
+    .btn-resume { font-size: 11px; padding: 10px; }
+    .social-btn { font-size: 11px; padding: 8px 10px; }
+
+    /* Sections */
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 16px; }
+    .bio-text { font-size: 14px; }
+
+    /* Proof grid */
+    .proof-grid { grid-template-columns: repeat(2, 1fr); gap: 3px; }
+
+    /* Tags */
+    .tag { font-size: 12px; padding: 5px 10px; }
+
+    /* Badges */
+    .badge { font-size: 9px; padding: 3px 8px; }
+
+    /* Video links */
+    .video-link-url { font-size: 11px; }
+  }
+
 </style>
 </head>
 <body>

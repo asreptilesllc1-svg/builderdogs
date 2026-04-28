@@ -24,6 +24,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; max-width: 100%; }
   html { scroll-behavior: smooth; }
 
   body {
@@ -503,6 +504,33 @@
     .left-panel { position: static; height: auto; padding: 48px 28px 36px; }
     .left-dogs { justify-content: center; }
   }
+
+  @media (max-width: 860px) {
+    .page { grid-template-columns: 1fr; }
+    .left-panel { position: static; height: auto; padding: 48px 20px 32px; }
+    .left-dogs { justify-content: center; }
+    .left-title { font-size: 32px; }
+    .right-panel { padding: 32px 20px; }
+    .field-row { grid-template-columns: 1fr; }
+    .btn-next, .btn-back { font-size: 13px; padding: 14px; }
+    nav { padding: 0 16px; }
+    .nav-logo { font-size: 15px; }
+    .nav-back { font-size: 10px; }
+    .progress-bar { margin-bottom: 24px; }
+    .step-title { font-size: 18px; }
+    .upload-zone { padding: 24px 16px; }
+    .success-screen { padding: 40px 16px; }
+    .success-title { font-size: 22px; }
+  }
+
+  @media (max-width: 480px) {
+    .left-dog img { width: 64px; height: 64px; }
+    .left-title { font-size: 26px; }
+    .left-desc { font-size: 14px; }
+    .left-rules li { font-size: 12px; }
+    .field input, .field select, .field textarea { font-size: 14px; }
+  }
+
 </style>
 </head>
 <body>
