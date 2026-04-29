@@ -1,10 +1,6 @@
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
-
+export async function onRequestPost(context) {
   try {
-    const data = JSON.parse(event.body);
+    const data = await context.request.json();
     const RESEND_KEY = 're_3QKcGgDA_G14WmR6XveNgU6vzkvXdVLWK';
 
     const emailBody = `
@@ -66,22 +62,15 @@ exports.handler = async (event) => {
 
     const result = await response.json();
 
-    if (!response.ok) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: result.message || 'Resend error' })
-      };
-    }
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, id: result.id })
-    };
+    return new Response(JSON.stringify({ success: true, id: result.id }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
 
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message })
-    };
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
-};
+}
