@@ -920,7 +920,7 @@ async function uploadFile(file, bucket, folder) {
 // ── SUBMIT ──
 
 async function sendNotificationEmail(data) {
-  const response = await fetch('/.netlify/functions/send-email', {
+  const response = await fetch('/functions/send-email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
