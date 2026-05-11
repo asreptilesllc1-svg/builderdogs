@@ -310,7 +310,7 @@
   /* THREE CARDS */
   .three-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 2px;
     background: var(--border);
   }
@@ -529,6 +529,7 @@
   /* RESPONSIVE */
   @media (max-width: 768px) {
     .three-grid { grid-template-columns: 1fr; }
+    .three-grid .feature-card { padding: 32px 20px; }
     .nav-links { display: none; }
     .hamburger { display: flex; }
     .doginal-stats { gap: 24px; }
@@ -596,7 +597,7 @@
 <section class="section">
   <p class="section-eyebrow reveal">▸ The Goods</p>
   <h2 class="section-title reveal">BUILDER DOGS <span>MERCH</span></h2>
-  <p class="section-sub reveal">Official Builder Dogs gear. Shop the collection, design your cards, and get early access to new drops.</p>
+  <p class="section-sub reveal">Official Builder Dogs gear. Shop the collection and get early access to new drops.</p>
 
   <div class="three-grid">
     <div class="feature-card reveal">
@@ -604,9 +605,6 @@
       <div class="feature-title">Builder Dogs Shop</div>
       <p class="feature-desc">Official Builder Dogs merch. T-shirts, hats, hoodies and more. Rep the community worldwide.</p>
       <a href="https://shop.builderdogs.com" target="_blank" class="feature-link feature-link-orange">Shop Now</a>
-    </div>
-      <p class="feature-desc">Design custom business cards with your Builder Dogs branding. Download print-ready files for $9.99.</p>
-      <a href="card-builder.html" class="feature-link feature-link-orange">Design Now</a>
     </div>
     <div class="feature-card reveal delay-3">
       <span class="feature-icon">🔔</span>
