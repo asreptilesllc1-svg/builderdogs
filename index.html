@@ -882,8 +882,8 @@
     /* Nav — keep logo, shrink get verified button */
     nav { padding: 0 16px; }
     .nav-logo { font-size: 15px; }
-    .nav-btn-ghost { display: none; }
-    .nav-btn-solid { font-size: 10px; padding: 7px 12px; letter-spacing: 1px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
 
     /* Hero */
     .hero { padding: 80px 16px 48px; }
@@ -929,7 +929,8 @@
     .trades-grid { grid-template-columns: 1fr; }
     .steps { grid-template-columns: 1fr; }
     .proof-grid { grid-template-columns: repeat(2, 1fr); }
-    nav .nav-btn-ghost { display: none; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
   }
 
   /* ── ANIMATIONS ── */
@@ -1095,6 +1096,14 @@
     <a href="apply.html" class="nav-btn nav-btn-solid">Get Verified</a>
   </div>
 </nav>
+
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="https://shop.builderdogs.com" target="_blank">🛒 Shop</a>
+  <a href="card-builder.html">🃏 Card Builder</a>
+  <a href="directory.html">Browse Trades</a>
+  <a href="apply.html" class="mob-solid">Get Verified</a>
+</div>
 
 <!-- TICKER -->
 <div class="ticker">
@@ -1474,6 +1483,20 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.reveal, .reveal-left, .reveal-scale').forEach(el => {
   observer.observe(el);
+});
+</script>
+
+
+<script>
+function toggleMenu() {
+  const menu = document.getElementById('mobile-menu');
+  menu.classList.toggle('open');
+}
+// Close menu when clicking a link
+document.querySelectorAll('.mobile-menu a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.remove('open');
+  });
 });
 </script>
 
