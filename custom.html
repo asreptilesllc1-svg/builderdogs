@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<title>Builder Dogs — Custom Product Request</title>
+<meta name="description" content="Request a custom Builder Dogs product. Tell us what you want and we'll make it happen.">
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --orange: #f97316;
+    --orange-dim: #c45a0f;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --red: #ef4444;
+    --border: rgba(249,115,22,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 56px;
+    background: rgba(13,13,13,0.96);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo { font-family: 'Black Ops One', sans-serif; font-size: 18px; color: var(--orange); text-decoration: none; }
+  .nav-logo span { color: var(--white); }
+  .nav-back { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--white); }
+
+  /* LAYOUT */
+  .page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 480px;
+    padding-top: 56px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* LEFT */
+  .left {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 60px 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px);
+  }
+
+  .left-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 16px;
+  }
+
+  .left-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: clamp(32px, 3.5vw, 52px);
+    line-height: 0.95;
+    margin-bottom: 20px;
+  }
+
+  .left-title em { font-style: normal; color: var(--orange); display: block; }
+
+  .left-desc {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 380px;
+  }
+
+  .left-desc strong { color: var(--white); }
+
+  .left-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .left-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 11px;
+    color: var(--orange);
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.2);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-text { font-size: 13px; color: var(--muted); line-height: 1.6; padding-top: 4px; }
+  .step-text strong { color: var(--white); }
+
+  /* RIGHT — FORM */
+  .right { padding: 48px 40px; overflow-y: auto; }
+
+  .form-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 20px;
+    margin-bottom: 28px;
+    color: var(--white);
+  }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 7px;
+  }
+
+  .optional { color: rgba(102,102,102,0.5); font-weight: 400; font-size: 9px; }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid rgba(249,115,22,0.15);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 12px 14px;
+    outline: none;
+    transition: border 0.2s;
+    appearance: none;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: var(--orange); }
+  .field input::placeholder,
+  .field textarea::placeholder { color: rgba(102,102,102,0.6); font-weight: 400; }
+  .field select option { background: var(--surface2); }
+  .field textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .field-error { font-size: 11px; color: var(--red); margin-top: 5px; letter-spacing: 1px; }
+
+  /* COLOR PICKER */
+  .color-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .color-chip {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .color-chip:hover { transform: scale(1.1); }
+  .color-chip.selected { border-color: var(--white); }
+  .color-chip.selected::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 2px dashed rgba(249,115,22,0.2);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface2);
+    position: relative;
+  }
+
+  .upload-zone:hover { border-color: var(--orange); background: rgba(249,115,22,0.03); }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 24px; margin-bottom: 8px; }
+  .upload-label { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+  .upload-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+  .upload-file { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); padding: 8px 12px; font-size: 12px; color: var(--green); margin-top: 8px; }
+
+  /* BUDGET */
+  .budget-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+
+  .budget-opt {
+    padding: 10px 8px;
+    background: var(--surface2);
+    border: 1px solid rgba(249,115,22,0.15);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  .budget-opt:hover { border-color: var(--orange); color: var(--white); }
+  .budget-opt.selected { background: var(--orange); color: #0d0d0d; border-color: var(--orange); }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* SUBMIT */
+  .btn-submit {
+    width: 100%;
+    background: var(--orange);
+    color: #0d0d0d;
+    border: none;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+  }
+  .btn-submit:hover { background: var(--orange-dim); }
+  .btn-submit:disabled { background: rgba(249,115,22,0.3); cursor: not-allowed; }
+
+  /* SUCCESS */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .success-icon { font-size: 52px; margin-bottom: 20px; }
+  .success-title { font-family: 'Black Ops One', sans-serif; font-size: 26px; color: var(--green); margin-bottom: 12px; }
+  .success-sub { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .success-link { font-family: 'Black Ops One', sans-serif; font-size: 12px; letter-spacing: 2px; padding: 13px 28px; background: var(--orange); color: #0d0d0d; text-decoration: none; display: inline-block; }
+
+  /* NOTICE */
+  .notice {
+    background: rgba(249,115,22,0.06);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-left: 3px solid var(--orange);
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .notice strong { color: var(--orange); }
+
+  /* RESPONSIVE */
+  @media (max-width: 860px) {
+    .page { grid-template-columns: 1fr; }
+    .left { position: static; height: auto; padding: 48px 24px 32px; }
+    .right { padding: 32px 20px; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .budget-options { grid-template-columns: repeat(2, 1fr); }
+    nav { padding: 0 16px; }
+    .nav-logo { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <a class="nav-back" href="https://shop.builderdogs.com">← Back to Shop</a>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT -->
+  <div class="left">
+    <p class="left-eyebrow">▸ Custom Orders</p>
+    <h1 class="left-title">BUILD<br><em>YOUR VISION.</em></h1>
+    <p class="left-desc">
+      Want something <strong>unique to you?</strong> Tell us what you have in mind and we'll make it happen.
+      Custom products, custom designs, built to order.
+    </p>
+
+    <div class="left-steps">
+      <div class="left-step">
+        <div class="step-num">01</div>
+        <div class="step-text"><strong>Submit your request</strong> — tell us what you want, your design idea, colors, and budget.</div>
+      </div>
+      <div class="left-step">
+        <div class="step-num">02</div>
+        <div class="step-text"><strong>We review and quote</strong> — you'll hear back within 48 hours with pricing and options.</div>
+      </div>
+      <div class="left-step">
+        <div class="step-num">03</div>
+        <div class="step-text"><strong>Approve and pay</strong> — once you're happy with the quote, we send a secure payment link.</div>
+      </div>
+      <div class="left-step">
+        <div class="step-num">04</div>
+        <div class="step-text"><strong>We fulfill and ship</strong> — your custom product ships directly to you worldwide.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="form-title">Custom Product Request</div>
+
+    <div id="request-form">
+      <div class="notice">
+        <strong>Response time:</strong> We review all requests within 48 hours and will email you with a quote and next steps.
+      </div>
+
+      <!-- CONTACT -->
+      <div class="field-row">
+        <div class="field">
+          <label>First Name <span class="optional">required</span></label>
+          <input type="text" id="first_name" placeholder="Adam" />
+          <div class="field-error" id="err-first_name"></div>
+        </div>
+        <div class="field">
+          <label>Last Name <span class="optional">required</span></label>
+          <input type="text" id="last_name" placeholder="Smith" />
+          <div class="field-error" id="err-last_name"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email Address <span class="optional">required</span></label>
+        <input type="email" id="email" placeholder="you@example.com" />
+        <div class="field-error" id="err-email"></div>
+      </div>
+
+      <div class="field">
+        <label>Phone <span class="optional">optional</span></label>
+        <input type="tel" id="phone" placeholder="+1 (555) 000-0000" />
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PRODUCT -->
+      <div class="field">
+        <label>Product Type <span class="optional">required</span></label>
+        <select id="product_type">
+          <option value="">— What do you want? —</option>
+          <option>T-Shirt</option>
+          <option>Hoodie</option>
+          <option>Hat / Cap</option>
+          <option>Desk Mat</option>
+          <option>Phone Case</option>
+          <option>Tumbler / Cup</option>
+          <option>Notebook / Journal</option>
+          <option>Sticker</option>
+          <option>Magnet</option>
+          <option>Poster / Print</option>
+          <option>Multiple Products</option>
+          <option>Other — I'll describe below</option>
+        </select>
+        <div class="field-error" id="err-product_type"></div>
+      </div>
+
+      <div class="field">
+        <label>Quantity <span class="optional">required</span></label>
+        <select id="quantity">
+          <option value="">— How many? —</option>
+          <option>1</option>
+          <option>2–5</option>
+          <option>6–10</option>
+          <option>11–25</option>
+          <option>26–50</option>
+          <option>50+</option>
+        </select>
+        <div class="field-error" id="err-quantity"></div>
+      </div>
+
+      <!-- COLORS -->
+      <div class="field">
+        <label>Preferred Colors <span class="optional">select all that apply</span></label>
+        <div class="color-row" id="color-row">
+          <div class="color-chip selected" style="background:#0d0d0d;border-color:var(--white);" data-color="Black" title="Black" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#ffffff;" data-color="White" title="White" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#f97316;" data-color="Orange" title="Orange" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#f5c842;" data-color="Gold" title="Gold" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#374151;" data-color="Grey" title="Grey" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#1e3a5f;" data-color="Navy" title="Navy" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#7c3aed;" data-color="Purple" title="Purple" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#dc2626;" data-color="Red" title="Red" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:#16a34a;" data-color="Green" title="Green" onclick="toggleColor(this)"></div>
+          <div class="color-chip" style="background:linear-gradient(135deg,#f97316,#f5c842,#22c55e,#3b82f6,#a855f7);" data-color="No preference" title="No preference" onclick="toggleColor(this)"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- DESIGN -->
+      <div class="field">
+        <label>Design Description <span class="optional">required</span></label>
+        <textarea id="design_desc" placeholder="Describe your design idea in as much detail as possible. What do you want it to look like? Any text, logos, images, style references?" rows="5"></textarea>
+        <div class="field-error" id="err-design_desc"></div>
+      </div>
+
+      <div class="field">
+        <label>Reference Image <span class="optional">optional — upload a sketch, example, or inspiration</span></label>
+        <div class="upload-zone" id="ref-zone">
+          <input type="file" id="ref_image" accept="image/*,.pdf" onchange="handleUpload()" />
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-label">Drop an image or click to upload</div>
+          <div class="upload-sub">JPG, PNG, PDF — max 10MB</div>
+        </div>
+        <div id="ref-file-name"></div>
+      </div>
+
+      <div class="field">
+        <label>Special Instructions <span class="optional">optional</span></label>
+        <textarea id="special_instructions" placeholder="Anything else we should know? Deadlines, specific requirements, placement preferences..." rows="3"></textarea>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- BUDGET -->
+      <div class="field">
+        <label>Budget Range <span class="optional">required</span></label>
+        <div class="budget-options">
+          <div class="budget-opt" onclick="selectBudget(this)" data-val="Under $50">Under $50</div>
+          <div class="budget-opt" onclick="selectBudget(this)" data-val="$50–$100">$50–$100</div>
+          <div class="budget-opt" onclick="selectBudget(this)" data-val="$100–$250">$100–$250</div>
+          <div class="budget-opt" onclick="selectBudget(this)" data-val="$250–$500">$250–$500</div>
+          <div class="budget-opt" onclick="selectBudget(this)" data-val="$500+">$500+</div>
+          <div class="budget-opt" onclick="selectBudget(this)" data-val="Flexible">Flexible</div>
+        </div>
+        <div class="field-error" id="err-budget"></div>
+      </div>
+
+      <button class="btn-submit" id="submit-btn" onclick="submitRequest()">🔨 Submit Custom Request</button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">🔨</div>
+      <div class="success-title">REQUEST RECEIVED</div>
+      <p class="success-sub">We've got your custom request and will review it within 48 hours. Check your email for a quote and next steps.</p>
+      <a href="https://shop.builderdogs.com" class="success-link">← Back to Shop</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+let selectedColors = ['Black'];
+let selectedBudget = '';
+let refImageFile = null;
+
+function toggleColor(el) {
+  const color = el.dataset.color;
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) {
+    selectedColors.push(color);
+  } else {
+    selectedColors = selectedColors.filter(c => c !== color);
+  }
+}
+
+function selectBudget(el) {
+  document.querySelectorAll('.budget-opt').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBudget = el.dataset.val;
+  document.getElementById('err-budget').textContent = '';
+}
+
+function handleUpload() {
+  const file = document.getElementById('ref_image').files[0];
+  refImageFile = file || null;
+  const nameEl = document.getElementById('ref-file-name');
+  if (file) {
+    nameEl.innerHTML = `<div class="upload-file">✓ ${file.name} — ${(file.size/1024/1024).toFixed(1)}MB</div>`;
+  }
+}
+
+function val(id) { return (document.getElementById(id)||{}).value?.trim() || ''; }
+
+function setErr(id, msg) {
+  const el = document.getElementById('err-' + id);
+  if (el) el.textContent = msg;
+}
+
+function clearErrs() {
+  ['first_name','last_name','email','product_type','quantity','design_desc','budget'].forEach(id => setErr(id, ''));
+}
+
+async function submitRequest() {
+  clearErrs();
+  let valid = true;
+
+  if (!val('first_name')) { setErr('first_name', '⚠ Required'); valid = false; }
+  if (!val('last_name')) { setErr('last_name', '⚠ Required'); valid = false; }
+  if (!val('email') || !val('email').includes('@')) { setErr('email', '⚠ Valid email required'); valid = false; }
+  if (!val('product_type')) { setErr('product_type', '⚠ Please select a product type'); valid = false; }
+  if (!val('quantity')) { setErr('quantity', '⚠ Please select a quantity'); valid = false; }
+  if (!val('design_desc') || val('design_desc').length < 20) { setErr('design_desc', '⚠ Please describe your design idea'); valid = false; }
+  if (!selectedBudget) { setErr('budget', '⚠ Please select a budget range'); valid = false; }
+
+  if (!valid) return;
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    // Upload reference image if provided
+    let ref_image_url = null;
+    if (refImageFile) {
+      btn.textContent = 'Uploading image...';
+      const ext = refImageFile.name.split('.').pop();
+      const path = `custom-requests/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadError } = await db.storage.from('media').upload(path, refImageFile);
+      if (!uploadError) {
+        const { data } = db.storage.from('media').getPublicUrl(path);
+        ref_image_url = data.publicUrl;
+      }
+    }
+
+    btn.textContent = 'Saving request...';
+
+    // Save to Supabase
+    const { error } = await db.from('custom_requests').insert({
+      full_name: val('first_name') + ' ' + val('last_name'),
+      email: val('email'),
+      phone: val('phone'),
+      product_type: val('product_type'),
+      quantity: val('quantity'),
+      colors: selectedColors.join(', '),
+      design_description: val('design_desc'),
+      special_instructions: val('special_instructions'),
+      budget: selectedBudget,
+      ref_image_url,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    });
+
+    if (error) throw error;
+
+    // Send notification email
+    btn.textContent = 'Sending notification...';
+    try {
+      await fetch('https://builderdogs-email.asreptilesllc1.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `CUSTOM REQUEST from ${val('first_name')} ${val('last_name')}`,
+          email: val('email'),
+          trade: `Product: ${val('product_type')} — Qty: ${val('quantity')} — Budget: ${selectedBudget}`,
+          location: `Colors: ${selectedColors.join(', ')}`,
+          wallet: val('design_desc'),
+          profileId: 'custom-request'
+        })
+      });
+    } catch(e) { console.log('Email error:', e); }
+
+    // Show success
+    document.getElementById('request-form').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '🔨 Submit Custom Request';
+    alert('Something went wrong. Please try again. Error: ' + err.message);
+  }
+}
+</script>
+</body>
+</html>
