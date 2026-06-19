@@ -382,12 +382,7 @@
     color: var(--muted);
   }
 
-  .signature-line {
-    border-bottom: 1px solid var(--dark);
-    width: 200px;
-    margin-top: 24px;
-    margin-bottom: 4px;
-  }
+
 
   /* PRINT */
   @media print {
@@ -426,9 +421,7 @@
     <div>
       <div class="shop-name">Adams Auto Repair</div>
       <div class="shop-info">
-        Sperry, Oklahoma 74073<br>
-        Phone: <input id="shop-phone" style="border:none;font-size:12px;color:#666;width:140px;outline:none;" placeholder="(918) 000-0000" /><br>
-        Email: <input id="shop-email" style="border:none;font-size:12px;color:#666;width:180px;outline:none;" placeholder="adams@example.com" />
+        Sperry, Oklahoma 74073
       </div>
     </div>
     <div class="inv-number-box">
@@ -491,23 +484,8 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <div class="inv-footer">
-    <div>
-      <div style="margin-top:12px;">
-        <div class="signature-line"></div>
-        <div>Customer Signature</div>
-      </div>
-    </div>
-    <div style="text-align:right;">
-      <div style="margin-bottom:4px;font-weight:600;color:#333;">Thank you for your business!</div>
-      <div>Adams Auto Repair — Sperry, Oklahoma</div>
-      <div style="margin-top:12px;">
-        <textarea id="inv-notes" class="concern-notes" style="width:240px;min-height:60px;" placeholder="Additional notes, warranty info, next service reminder..."></textarea>
-      </div>
-    </div>
-  </div>
 
+</div>
 </div>
 </div>
 
@@ -657,8 +635,6 @@ function saveInvoice() {
   const data = {
     invNum: document.getElementById('inv-num').value,
     date: document.getElementById('inv-date').value,
-    shopPhone: document.getElementById('shop-phone').value,
-    shopEmail: document.getElementById('shop-email').value,
     custName: document.getElementById('cust-name').value,
     custPhone: document.getElementById('cust-phone').value,
     custEmail: document.getElementById('cust-email').value,
@@ -669,7 +645,6 @@ function saveInvoice() {
     vehVin: document.getElementById('veh-vin').value,
     vehPlate: document.getElementById('veh-plate').value,
     milesIn: document.getElementById('miles-in').value,
-    notes: document.getElementById('inv-notes').value,
     html: document.getElementById('concerns-container').innerHTML
   };
   
@@ -693,8 +668,6 @@ function loadInvoice() {
         const data = JSON.parse(ev.target.result);
         document.getElementById('inv-num').value = data.invNum || '';
         document.getElementById('inv-date').value = data.date || '';
-        document.getElementById('shop-phone').value = data.shopPhone || '';
-        document.getElementById('shop-email').value = data.shopEmail || '';
         document.getElementById('cust-name').value = data.custName || '';
         document.getElementById('cust-phone').value = data.custPhone || '';
         document.getElementById('cust-email').value = data.custEmail || '';
@@ -705,7 +678,6 @@ function loadInvoice() {
         document.getElementById('veh-vin').value = data.vehVin || '';
         document.getElementById('veh-plate').value = data.vehPlate || '';
         document.getElementById('miles-in').value = data.milesIn || '';
-        document.getElementById('inv-notes').value = data.notes || '';
         document.getElementById('concerns-container').innerHTML = data.html || '';
         calcTotals();
         alert('Invoice loaded!');
