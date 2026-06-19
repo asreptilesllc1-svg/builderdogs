@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adams Auto Repair — Invoice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f8f8;
+    --white: #ffffff;
+    --dark: #1a1a1a;
+    --muted: #666;
+    --border: #e0e0e0;
+    --accent: #1a3a6b;
+    --accent-light: #e8eef7;
+    --red: #dc2626;
+    --green: #16a34a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: var(--bg);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    color: var(--dark);
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    background: var(--accent);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  .toolbar-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .toolbar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 3px;
+  }
+
+  .btn-white { background: white; color: var(--accent); }
+  .btn-white:hover { background: #e8eef7; }
+  .btn-outline { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+  .btn-red { background: #dc2626; color: white; }
+  .btn-red:hover { background: #b91c1c; }
+  .btn-green { background: #16a34a; color: white; }
+  .btn-green:hover { background: #15803d; }
+
+  /* INVOICE WRAPPER */
+  .invoice-wrapper {
+    max-width: 900px;
+    margin: 24px auto;
+    padding: 0 16px 60px;
+  }
+
+  /* INVOICE PAGE */
+  .invoice {
+    background: white;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    padding: 48px;
+  }
+
+  /* HEADER */
+  .inv-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 3px solid var(--accent);
+  }
+
+  .shop-name {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .shop-info { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  .inv-number-box { text-align: right; }
+  .inv-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .inv-number { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .inv-date { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* VEHICLE & CUSTOMER */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .info-box {
+    background: var(--accent-light);
+    border: 1px solid #c5d5e8;
+    border-left: 4px solid var(--accent);
+    padding: 14px 16px;
+  }
+
+  .info-box-title {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .info-field {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .info-field label {
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .info-field input {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 4px 8px;
+    font-size: 13px;
+    width: 100%;
+    background: white;
+    outline: none;
+    transition: border 0.15s;
+  }
+
+  .info-field input:focus { border-color: var(--accent); }
+
+  /* MILEAGE ROW */
+  .mileage-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .mileage-box {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mileage-box label { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .mileage-box input { border: 1px solid var(--border); padding: 4px 8px; font-size: 13px; flex: 1; outline: none; }
+  .mileage-box input:focus { border-color: var(--accent); }
+
+  /* CONCERNS */
+  .concerns-header {
+    background: var(--accent);
+    color: white;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .concern-block {
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    background: white;
+  }
+
+  .concern-header {
+    background: #f0f4f9;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .concern-num {
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .concern-title-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    background: white;
+  }
+
+  .concern-title-input:focus { border-color: var(--accent); }
+
+  .btn-remove-concern {
+    background: transparent;
+    border: 1px solid #fca5a5;
+    color: var(--red);
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  .concern-body { padding: 14px; }
+
+  /* LINE ITEMS */
+  .line-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .line-items-table th {
+    background: #f8f8f8;
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .line-items-table td {
+    border: 1px solid var(--border);
+    padding: 4px 6px;
+  }
+
+  .line-items-table input, .line-items-table select {
+    width: 100%;
+    border: none;
+    padding: 4px 6px;
+    font-size: 13px;
+    outline: none;
+    background: transparent;
+  }
+
+  .line-items-table input:focus { background: #fffbeb; }
+
+  .line-total { font-weight: 700; color: var(--accent); text-align: right; padding: 6px 10px !important; }
+
+  .btn-add-line {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px dashed #a0b8d4;
+    padding: 5px 12px;
+    cursor: pointer;
+    margin-right: 6px;
+  }
+
+  .btn-add-line:hover { background: #d0dff0; }
+
+  .btn-remove-line {
+    background: transparent;
+    border: none;
+    color: #fca5a5;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+  }
+
+  .btn-remove-line:hover { color: var(--red); }
+
+  /* NOTES */
+  .concern-notes {
+    width: 100%;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 48px;
+    outline: none;
+    margin-top: 8px;
+    color: var(--muted);
+  }
+
+  .concern-notes:focus { border-color: var(--accent); }
+
+  /* ADD CONCERN */
+  .btn-add-concern {
+    width: 100%;
+    border: 2px dashed #a0b8d4;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-add-concern:hover { background: #d0dff0; }
+
+  /* TOTALS */
+  .totals-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+  }
+
+  .totals-box {
+    width: 320px;
+    border: 1px solid var(--border);
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .total-row:last-child { border-bottom: none; }
+  .total-label { color: var(--muted); font-weight: 600; }
+  .total-val { font-weight: 700; }
+  .total-row.grand { background: var(--accent); color: white; font-size: 15px; }
+  .total-row.grand .total-label, .total-row.grand .total-val { color: white; }
+
+  /* FOOTER */
+  .inv-footer {
+    border-top: 2px solid var(--border);
+    padding-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .signature-line {
+    border-bottom: 1px solid var(--dark);
+    width: 200px;
+    margin-top: 24px;
+    margin-bottom: 4px;
+  }
+
+  /* PRINT */
+  @media print {
+    .toolbar { display: none !important; }
+    body { background: white; }
+    .invoice-wrapper { margin: 0; padding: 0; max-width: 100%; }
+    .invoice { box-shadow: none; padding: 24px; }
+    .btn-add-concern, .btn-add-line, .btn-remove-concern, .btn-remove-line { display: none !important; }
+    input, textarea, select { border: none !important; background: transparent !important; }
+    .concern-header { background: #f0f4f9 !important; -webkit-print-color-adjust: exact; }
+    .concerns-header { background: var(--accent) !important; -webkit-print-color-adjust: exact; }
+    .total-row.grand { background: var(--accent) !important; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="toolbar-title">🔧 Adams Auto Repair — Invoice Writer</div>
+  <div class="toolbar-btns">
+    <button class="btn btn-outline" onclick="newInvoice()">+ New Invoice</button>
+    <button class="btn btn-outline" onclick="saveInvoice()">💾 Save</button>
+    <button class="btn btn-outline" onclick="loadInvoice()">📂 Load</button>
+    <button class="btn btn-white" onclick="window.print()">🖨️ Print</button>
+    <button class="btn btn-green" onclick="downloadPDF()">⬇ Download PDF</button>
+  </div>
+</div>
+
+<!-- INVOICE -->
+<div class="invoice-wrapper">
+<div class="invoice" id="invoice">
+
+  <!-- HEADER -->
+  <div class="inv-header">
+    <div>
+      <div class="shop-name">Adams Auto Repair</div>
+      <div class="shop-info">
+        Sperry, Oklahoma 74073<br>
+        Phone: <input id="shop-phone" style="border:none;font-size:12px;color:#666;width:140px;outline:none;" placeholder="(918) 000-0000" /><br>
+        Email: <input id="shop-email" style="border:none;font-size:12px;color:#666;width:180px;outline:none;" placeholder="adams@example.com" />
+      </div>
+    </div>
+    <div class="inv-number-box">
+      <div class="inv-label">Invoice #</div>
+      <div class="inv-number">
+        <input id="inv-num" style="border:1px solid #e0e0e0;font-size:20px;font-weight:800;color:#1a3a6b;width:140px;padding:4px 8px;text-align:right;outline:none;" value="001" />
+      </div>
+      <div class="inv-date">
+        Date: <input type="date" id="inv-date" style="border:1px solid #e0e0e0;font-size:12px;padding:3px 6px;outline:none;margin-top:4px;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMER & VEHICLE -->
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="info-box-title">Customer Information</div>
+      <div class="info-field"><label>Name</label><input id="cust-name" placeholder="Full Name" /></div>
+      <div class="info-field"><label>Phone</label><input id="cust-phone" placeholder="(918) 000-0000" /></div>
+      <div class="info-field"><label>Email</label><input id="cust-email" placeholder="customer@email.com" /></div>
+      <div class="info-field"><label>Address</label><input id="cust-addr" placeholder="Street Address" /></div>
+    </div>
+    <div class="info-box">
+      <div class="info-box-title">Vehicle Information</div>
+      <div class="info-field"><label>Year</label><input id="veh-year" placeholder="2020" maxlength="4" /></div>
+      <div class="info-field"><label>Make</label><input id="veh-make" placeholder="Ford" /></div>
+      <div class="info-field"><label>Model</label><input id="veh-model" placeholder="F-150" /></div>
+      <div class="info-field"><label>VIN</label><input id="veh-vin" placeholder="1FTFW1ET0EKE00000" style="font-size:11px;" /></div>
+      <div class="info-field"><label>License</label><input id="veh-plate" placeholder="Plate #" /></div>
+    </div>
+  </div>
+
+  <!-- MILEAGE -->
+  <div class="mileage-row" style="grid-template-columns:1fr;">
+    <div class="mileage-box">
+      <label>Mileage:</label>
+      <input id="miles-in" type="number" placeholder="00000" oninput="calcTotals()" />
+      <span style="font-size:11px;color:#666;">mi</span>
+    </div>
+  </div>
+
+  <!-- CONCERNS -->
+  <div class="concerns-header">
+    <span>Vehicle Concerns & Services</span>
+    <span style="font-size:10px;font-weight:400;opacity:0.8;">Labor entered in tenths (0.1 = 6 min)</span>
+  </div>
+
+  <div id="concerns-container"></div>
+
+  <button class="btn-add-concern" onclick="addConcern()">+ Add Concern / Service</button>
+
+  <!-- TOTALS -->
+  <div class="totals-section">
+    <div class="totals-box">
+      <div class="total-row"><span class="total-label">Labor Subtotal</span><span class="total-val" id="tot-labor">$0.00</span></div>
+      <div class="total-row"><span class="total-label">Parts Subtotal</span><span class="total-val" id="tot-parts">$0.00</span></div>
+      <div class="total-row"><span class="total-label">Subtotal</span><span class="total-val" id="tot-sub">$0.00</span></div>
+      <div class="total-row"><span class="total-label">Tax (9.35% — Sperry, OK)</span><span class="total-val" id="tot-tax">$0.00</span></div>
+      <div class="total-row grand"><span class="total-label">TOTAL DUE</span><span class="total-val" id="tot-grand">$0.00</span></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="inv-footer">
+    <div>
+      <div style="margin-top:12px;">
+        <div class="signature-line"></div>
+        <div>Customer Signature</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="margin-bottom:4px;font-weight:600;color:#333;">Thank you for your business!</div>
+      <div>Adams Auto Repair — Sperry, Oklahoma</div>
+      <div style="margin-top:12px;">
+        <textarea id="inv-notes" class="concern-notes" style="width:240px;min-height:60px;" placeholder="Additional notes, warranty info, next service reminder..."></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const TAX_RATE = 0.0935; // Sperry, Oklahoma
+const LABOR_RATE_DEFAULT = 95; // per hour — adjustable
+let concernCount = 0;
+
+// Set today's date
+document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+
+function addConcern() {
+  concernCount++;
+  const id = concernCount;
+  const container = document.getElementById('concerns-container');
+  
+  const div = document.createElement('div');
+  div.className = 'concern-block';
+  div.id = 'concern-' + id;
+  div.innerHTML = `
+    <div class="concern-header">
+      <div class="concern-num">${id}</div>
+      <input class="concern-title-input" placeholder="Describe concern (e.g. No start, Engine light on, Oil change...)" />
+      <button class="btn-remove-concern" onclick="removeConcern(${id})">✕ Remove</button>
+    </div>
+    <div class="concern-body">
+      <table class="line-items-table">
+        <thead>
+          <tr>
+            <th style="width:80px;">Type</th>
+            <th>Description</th>
+            <th style="width:80px;">Qty / Hrs</th>
+            <th style="width:90px;">Rate / Price</th>
+            <th style="width:90px;">Total</th>
+            <th style="width:30px;"></th>
+          </tr>
+        </thead>
+        <tbody id="lines-${id}">
+        </tbody>
+      </table>
+      <button class="btn-add-line" onclick="addLine(${id}, 'Labor')">+ Labor</button>
+      <button class="btn-add-line" onclick="addLine(${id}, 'Part')">+ Part</button>
+      <button class="btn-add-line" onclick="addLine(${id}, 'Sublet')">+ Sublet</button>
+      <button class="btn-add-line" onclick="addLine(${id}, 'Other')">+ Other</button>
+      <br>
+      <textarea class="concern-notes" placeholder="Technician notes, findings, recommendations..." oninput="calcTotals()"></textarea>
+    </div>
+  `;
+  
+  container.appendChild(div);
+  // Auto add one labor line
+  addLine(id, 'Labor');
+}
+
+function addLine(concernId, type) {
+  const tbody = document.getElementById('lines-' + concernId);
+  const tr = document.createElement('tr');
+  tr.id = 'line-' + concernId + '-' + Date.now();
+  
+  const isLabor = type === 'Labor';
+  const placeholder = isLabor ? '0.0' : '1';
+  const ratePlaceholder = isLabor ? LABOR_RATE_DEFAULT.toFixed(2) : '0.00';
+  const qtyStep = isLabor ? '0.1' : '1';
+  const qtyMin = isLabor ? '0.1' : '0';
+  
+  tr.innerHTML = `
+    <td>
+      <select onchange="calcTotals()" style="border:none;font-size:12px;background:transparent;outline:none;width:70px;">
+        <option ${type==='Labor'?'selected':''}>Labor</option>
+        <option ${type==='Part'?'selected':''}>Part</option>
+        <option ${type==='Sublet'?'selected':''}>Sublet</option>
+        <option ${type==='Other'?'selected':''}>Other</option>
+      </select>
+    </td>
+    <td><input type="text" placeholder="Description" oninput="calcTotals()" /></td>
+    <td><input type="number" class="qty-input" placeholder="${placeholder}" step="${qtyStep}" min="${qtyMin}" value="${isLabor?'0.0':'1'}" oninput="calcTotals()" style="text-align:center;" /></td>
+    <td><input type="number" class="rate-input" placeholder="${ratePlaceholder}" step="0.01" value="${isLabor?LABOR_RATE_DEFAULT:''}" oninput="calcTotals()" /></td>
+    <td class="line-total">$0.00</td>
+    <td><button class="btn-remove-line" onclick="this.closest('tr').remove(); calcTotals()">✕</button></td>
+  `;
+  
+  tbody.appendChild(tr);
+  calcTotals();
+}
+
+function removeConcern(id) {
+  const el = document.getElementById('concern-' + id);
+  if (el) el.remove();
+  calcTotals();
+}
+
+function calcTotals() {
+  let totalLabor = 0;
+  let totalParts = 0;
+
+  // Update each line total
+  document.querySelectorAll('.line-items-table tbody tr').forEach(tr => {
+    const type = tr.querySelector('select')?.value || '';
+    const qty = parseFloat(tr.querySelector('.qty-input')?.value) || 0;
+    const rate = parseFloat(tr.querySelector('.rate-input')?.value) || 0;
+    const lineTotal = qty * rate;
+    
+    const totalCell = tr.querySelector('.line-total');
+    if (totalCell) totalCell.textContent = '$' + lineTotal.toFixed(2);
+    
+    if (type === 'Labor' || type === 'Sublet') {
+      totalLabor += lineTotal;
+    } else {
+      totalParts += lineTotal;
+    }
+  });
+
+  const subtotal = totalLabor + totalParts;
+  const tax = totalParts * TAX_RATE; // Tax on parts only typically
+  const grand = subtotal + tax;
+
+  document.getElementById('tot-labor').textContent = '$' + totalLabor.toFixed(2);
+  document.getElementById('tot-parts').textContent = '$' + totalParts.toFixed(2);
+  document.getElementById('tot-sub').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('tot-tax').textContent = '$' + tax.toFixed(2);
+  document.getElementById('tot-grand').textContent = '$' + grand.toFixed(2);
+}
+
+function newInvoice() {
+  if (!confirm('Start a new invoice? Unsaved changes will be lost.')) return;
+  
+  // Increment invoice number
+  const current = parseInt(document.getElementById('inv-num').value) || 0;
+  document.getElementById('inv-num').value = String(current + 1).padStart(3, '0');
+  
+  // Clear fields
+  ['cust-name','cust-phone','cust-email','cust-addr',
+   'veh-year','veh-make','veh-model','veh-vin','veh-plate',
+   'miles-in','miles-out','inv-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  
+  document.getElementById('concerns-container').innerHTML = '';
+  document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('inv-due').value = '';
+  concernCount = 0;
+  calcTotals();
+}
+
+function saveInvoice() {
+  const data = {
+    invNum: document.getElementById('inv-num').value,
+    date: document.getElementById('inv-date').value,
+    shopPhone: document.getElementById('shop-phone').value,
+    shopEmail: document.getElementById('shop-email').value,
+    custName: document.getElementById('cust-name').value,
+    custPhone: document.getElementById('cust-phone').value,
+    custEmail: document.getElementById('cust-email').value,
+    custAddr: document.getElementById('cust-addr').value,
+    vehYear: document.getElementById('veh-year').value,
+    vehMake: document.getElementById('veh-make').value,
+    vehModel: document.getElementById('veh-model').value,
+    vehVin: document.getElementById('veh-vin').value,
+    vehPlate: document.getElementById('veh-plate').value,
+    milesIn: document.getElementById('miles-in').value,
+    notes: document.getElementById('inv-notes').value,
+    html: document.getElementById('concerns-container').innerHTML
+  };
+  
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'invoice-' + data.invNum + '-' + (data.custName || 'customer').replace(/\s+/g,'-') + '.json';
+  a.click();
+  alert('Invoice saved!');
+}
+
+function loadInvoice() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        document.getElementById('inv-num').value = data.invNum || '';
+        document.getElementById('inv-date').value = data.date || '';
+        document.getElementById('shop-phone').value = data.shopPhone || '';
+        document.getElementById('shop-email').value = data.shopEmail || '';
+        document.getElementById('cust-name').value = data.custName || '';
+        document.getElementById('cust-phone').value = data.custPhone || '';
+        document.getElementById('cust-email').value = data.custEmail || '';
+        document.getElementById('cust-addr').value = data.custAddr || '';
+        document.getElementById('veh-year').value = data.vehYear || '';
+        document.getElementById('veh-make').value = data.vehMake || '';
+        document.getElementById('veh-model').value = data.vehModel || '';
+        document.getElementById('veh-vin').value = data.vehVin || '';
+        document.getElementById('veh-plate').value = data.vehPlate || '';
+        document.getElementById('miles-in').value = data.milesIn || '';
+        document.getElementById('inv-notes').value = data.notes || '';
+        document.getElementById('concerns-container').innerHTML = data.html || '';
+        calcTotals();
+        alert('Invoice loaded!');
+      } catch(e) {
+        alert('Error loading invoice file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+async function downloadPDF() {
+  window.print();
+}
+
+// Start with one concern
+addConcern();
+</script>
+</body>
+</html>
