@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Garage — Builder Dogs</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --orange: #f97316;
+    --orange-dim: #c45a0f;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --red: #ef4444;
+    --border: rgba(249,115,22,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow-x: hidden; background: var(--bg); color: var(--white); font-family: 'Barlow Condensed', sans-serif; }
+
+  /* ── INTRO OVERLAY ── */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: #090909;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .intro-top {
+    height: 52px;
+    background: #111;
+    border-bottom: 2px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+  }
+
+  .intro-logo { font-family: 'Black Ops One', sans-serif; font-size: 20px; color: var(--orange); }
+  .intro-logo span { color: var(--white); }
+
+  .intro-controls { display: flex; align-items: center; gap: 12px; }
+
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+    transition: all 0.4s;
+  }
+
+  .status-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .open-btn {
+    width: 42px; height: 42px;
+    background: var(--orange);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    color: #0d0d0d;
+    box-shadow: 0 0 20px rgba(249,115,22,0.6);
+    transition: all 0.2s;
+    animation: pulse-btn 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-btn {
+    0%,100% { box-shadow: 0 0 20px rgba(249,115,22,0.5); }
+    50% { box-shadow: 0 0 36px rgba(249,115,22,1); }
+  }
+
+  .open-btn:hover { transform: scale(1.1); }
+
+  /* DOOR AREA */
+  .door-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* BEHIND THE DOOR */
+  .behind-door {
+    position: absolute;
+    inset: 0;
+    background: #050505;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .behind-dog {
+    width: 140px;
+    height: 140px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 32px rgba(249,115,22,0.5));
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.7s ease 0.3s;
+  }
+
+  .behind-dog.show { opacity: 1; transform: scale(1); }
+
+  .behind-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: clamp(28px,6vw,64px);
+    color: var(--orange);
+    letter-spacing: 6px;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.6s ease 0.5s;
+  }
+
+  .behind-title span { color: var(--white); }
+  .behind-title.show { opacity: 1; transform: translateY(0); }
+
+  .behind-sub {
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.6s ease 0.8s;
+  }
+
+  .behind-sub.show { opacity: 1; }
+
+  .enter-btn {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 16px 40px;
+    background: var(--orange);
+    color: #0d0d0d;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    opacity: 0;
+    transition: opacity 0.6s ease 1s, background 0.2s;
+    margin-top: 8px;
+  }
+
+  .enter-btn.show { opacity: 1; }
+  .enter-btn:hover { background: var(--orange-dim); }
+
+  /* GARAGE DOOR PANELS */
+  .door {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+    z-index: 5;
+  }
+
+  .door.up { transform: translateY(-100%); }
+
+  .panel {
+    flex: 1;
+    background: #252525;
+    border-bottom: 2px solid #111;
+    border-top: 1px solid #2d2d2d;
+    position: relative;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: 5px 18px;
+    border: 1px solid #303030;
+  }
+
+  /* PILLARS */
+  .pillar {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 40px;
+    background: #1c1c1c;
+    z-index: 6;
+  }
+
+  .pillar-l { left: 0; border-right: 2px solid #2a2a2a; }
+  .pillar-r { right: 0; border-left: 2px solid #2a2a2a; }
+
+  /* FLOOR */
+  .garage-floor {
+    position: absolute;
+    bottom: 0; left: 40px; right: 40px;
+    height: 20px;
+    background: #1a1a1a;
+    border-top: 3px solid var(--orange);
+    z-index: 7;
+  }
+
+  /* INTRO HINT */
+  .intro-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #444;
+    text-transform: uppercase;
+    z-index: 8;
+    animation: fadepulse 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes fadepulse {
+    0%,100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ── MAIN SITE ── */
+  #site { display: none; min-height: 100vh; }
+  #site.show { display: block; }
+
+  nav {
+    height: 56px;
+    background: rgba(13,13,13,0.97);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo { font-family: 'Black Ops One', sans-serif; font-size: 18px; color: var(--orange); text-decoration: none; }
+  .nav-logo span { color: var(--white); }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-a {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    padding: 7px 14px; text-decoration: none; color: var(--muted);
+    border: 1px solid transparent; transition: all 0.15s;
+  }
+  .nav-a:hover { color: var(--white); border-color: var(--border); }
+  .nav-solid { background: var(--orange); color: #0d0d0d !important; border-color: var(--orange) !important; }
+
+  /* WEATHER */
+  .weather-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .w-left { display: flex; align-items: center; gap: 14px; }
+  .w-icon { font-size: 28px; }
+  .w-temp { font-family: 'Black Ops One', sans-serif; font-size: 24px; }
+  .w-desc { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .w-loc { font-size: 10px; color: rgba(102,102,102,0.6); letter-spacing: 2px; }
+  .w-details { display: flex; gap: 24px; }
+  .w-stat { text-align: center; }
+  .w-val { font-size: 14px; font-weight: 700; }
+  .w-lbl { font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+  /* RADIO */
+  .radio-bar {
+    background: #080808;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .radio-label { font-size: 9px; font-weight: 700; letter-spacing: 3px; color: var(--orange); text-transform: uppercase; white-space: nowrap; }
+  .radio-name { font-family: 'Black Ops One', sans-serif; font-size: 13px; white-space: nowrap; }
+
+  .radio-controls { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+
+  select.station-sel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    padding: 6px 10px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .r-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--white);
+    width: 34px; height: 34px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .r-btn:hover, .r-btn.on { background: var(--orange); color: #0d0d0d; border-color: var(--orange); }
+
+  input[type=range].vol {
+    -webkit-appearance: none;
+    width: 80px; height: 3px;
+    background: var(--surface2);
+    outline: none; cursor: pointer;
+  }
+
+  input[type=range].vol::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px; height: 13px;
+    background: var(--orange);
+    border-radius: 50%; cursor: pointer;
+  }
+
+  /* VISITOR */
+  .visitor-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .v-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: blink 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .v-text { font-size: 13px; color: var(--muted); }
+  .v-count { font-family: 'Black Ops One', sans-serif; font-size: 18px; color: var(--green); }
+  .v-total { margin-left: auto; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+  /* GUESTBOOK */
+  .section { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+  .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: var(--orange); margin-bottom: 10px; }
+  .sec-title { font-family: 'Black Ops One', sans-serif; font-size: clamp(24px,4vw,42px); line-height: 1; margin-bottom: 28px; }
+  .sec-title span { color: var(--orange); }
+
+  .gb-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .gb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+  .gb-field label {
+    display: block;
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
+  }
+
+  .gb-field input, .gb-field select, textarea.gb-msg {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid rgba(249,115,22,0.15);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    padding: 9px 11px;
+    outline: none;
+    transition: border 0.2s;
+  }
+
+  .gb-field input:focus, .gb-field select:focus, textarea.gb-msg:focus { border-color: var(--orange); }
+  .gb-field select option { background: var(--surface2); }
+
+  textarea.gb-msg { width: 100%; resize: vertical; min-height: 72px; margin-bottom: 10px; line-height: 1.5; }
+
+  .gb-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .gb-chars { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+  .gb-btn {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 12px; letter-spacing: 2px;
+    padding: 12px 24px;
+    background: var(--orange); color: #0d0d0d;
+    border: none; cursor: pointer; transition: background 0.2s;
+  }
+  .gb-btn:hover { background: var(--orange-dim); }
+
+  .gb-ok {
+    display: none;
+    margin-top: 10px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    padding: 12px; text-align: center;
+  }
+
+  .gb-entries { display: flex; flex-direction: column; gap: 2px; }
+
+  .gb-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--orange);
+    padding: 16px 20px;
+    animation: slideIn 0.4s ease;
+  }
+
+  @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+  .gb-entry-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+
+  .gb-avatar {
+    width: 32px; height: 32px;
+    background: var(--orange); color: #0d0d0d;
+    font-family: 'Black Ops One', sans-serif; font-size: 14px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  .gb-entry-name { font-family: 'Black Ops One', sans-serif; font-size: 14px; }
+  .gb-entry-trade { font-size: 10px; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; }
+  .gb-entry-date { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .gb-entry-msg { font-size: 14px; line-height: 1.6; }
+
+  .gb-empty {
+    text-align: center; padding: 48px;
+    color: var(--muted); font-size: 13px; letter-spacing: 2px;
+    text-transform: uppercase; border: 1px dashed var(--border);
+  }
+
+  .site-footer {
+    padding: 32px 24px; border-top: 1px solid var(--border);
+    text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 2px;
+  }
+
+  @media(max-width:600px) {
+    .gb-row { grid-template-columns: 1fr; }
+    .w-details { display: none; }
+    .radio-name { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════ -->
+<!-- GARAGE DOOR INTRO                   -->
+<!-- ════════════════════════════════════ -->
+<div id="intro">
+
+  <div class="intro-top">
+    <div class="intro-logo">BUILDER<span>DOGS</span></div>
+    <div class="intro-controls">
+      <span style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">The Garage</span>
+      <div class="status-dot" id="sdot"></div>
+      <button class="open-btn" id="obtn" onclick="openDoor()">▲</button>
+    </div>
+  </div>
+
+  <div class="door-area" id="door-area">
+
+    <!-- Behind the door -->
+    <div class="behind-door" id="behind">
+      <img class="behind-dog" id="bdог" src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAPoA+gDASIAAhEBAxEB/8QAHAABAAMBAQEBAQAAAAAAAAAAAAECCQcIBgUD/8QAKhABAAIABQQBBQEBAAMAAAAAAAECERIxUpEDMlFxIRMiM0FTcmEjQoH/xAAcAQEAAgMBAQEAAAAAAAAAAAAAAQIEBQYDBwj/xABAEQEAAQICBQgIBQIGAgMAAAAAAQIREjEEBVGh4QMGExYhQYHBFBUyUlNiY6IHIkJhgkPiFyQzVHHCI5FEZPH/2gAMAwEAAhEDEQA/APToDgW6iAAJmwAIABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEzYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" alt="Builder Dog" />
+      <div class="behind-title" id="btitle">THE <span>GARAGE</span></div>
+      <div class="behind-sub" id="bsub">Builder Dogs HQ — Sperry, OK</div>
+      <button class="enter-btn" id="ebtn" onclick="enterSite()">🔨 Enter The Garage</button>
+    </div>
+
+    <!-- The door itself -->
+    <div class="door" id="door">
+      <div class="panel"></div>
+      <div class="panel"></div>
+      <div class="panel"></div>
+      <div class="panel"></div>
+      <div class="panel"></div>
+      <div class="panel"></div>
+      <div class="panel"></div>
+      <div class="panel"></div>
+    </div>
+
+    <div class="pillar pillar-l"></div>
+    <div class="pillar pillar-r"></div>
+    <div class="garage-floor"></div>
+    <div class="intro-hint" id="ihint">▲ press the button to open the garage</div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MAIN SITE                           -->
+<!-- ════════════════════════════════════ -->
+<div id="site">
+
+  <nav>
+    <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+    <div class="nav-links">
+      <a class="nav-a" href="index.html">Home</a>
+      <a class="nav-a" href="https://shop.builderdogs.com" target="_blank">🛒 Shop</a>
+      <a class="nav-a nav-solid" href="custom.html">Custom Order</a>
+    </div>
+  </nav>
+
+  <!-- WEATHER -->
+  <div class="weather-bar">
+    <div class="w-left">
+      <div class="w-icon" id="wi">⏳</div>
+      <div>
+        <div class="w-temp" id="wt">--°F</div>
+        <div class="w-desc" id="wd">Loading Sperry weather...</div>
+        <div class="w-loc" id="wloc">📍 New York, NY</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+          <input type="text" id="zip-input" placeholder="Enter zip code" maxlength="5"
+            style="background:var(--surface2);border:1px solid var(--border);color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:12px;padding:4px 8px;outline:none;width:110px;transition:border 0.2s;"
+            onfocus="this.style.borderColor='var(--orange)'"
+            onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')updateZip()" />
+          <button onclick="updateZip()"
+            style="font-family:'Black Ops One',sans-serif;font-size:10px;letter-spacing:1px;padding:4px 10px;background:var(--orange);color:#0d0d0d;border:none;cursor:pointer;">GO</button>
+        </div>
+      </div>
+    </div>
+    <div class="w-details">
+      <div class="w-stat"><div class="w-val" id="wh">--%</div><div class="w-lbl">Humidity</div></div>
+      <div class="w-stat"><div class="w-val" id="ww">-- mph</div><div class="w-lbl">Wind</div></div>
+      <div class="w-stat"><div class="w-val" id="wf">--°F</div><div class="w-lbl">Feels Like</div></div>
+    </div>
+  </div>
+
+  <!-- RADIO -->
+  <div class="radio-bar">
+    <div class="radio-label">📻 Garage Radio</div>
+    <div class="radio-name" id="rname">— Choose a station —</div>
+    <div class="radio-controls">
+      <select class="station-sel" id="ssel" onchange="changeStation()">
+        <option value="">— Pick a station —</option>
+        <option value="https://ice4.somafm.com/groovesalad-128-mp3" data-n="Groove Salad">🌿 Groove Salad</option>
+        <option value="https://ice4.somafm.com/metal-128-mp3" data-n="Metal Detector">🤘 Metal Detector</option>
+        <option value="https://ice4.somafm.com/lush-128-mp3" data-n="Lush">✨ Lush</option>
+        <option value="https://ice4.somafm.com/illstreet-128-mp3" data-n="Ill Street Blues">🎷 Ill Street Blues</option>
+        <option value="https://ice4.somafm.com/folkfwd-128-mp3" data-n="Folk Forward">🎸 Folk Forward</option>
+      </select>
+      <button class="r-btn" id="pbtn" onclick="togglePlay()">▶</button>
+      <input type="range" class="vol" id="vol" min="0" max="1" step="0.05" value="0.6" oninput="setVol(this.value)" />
+      <span style="font-size:13px;color:var(--muted);">🔊</span>
+    </div>
+  </div>
+
+  <!-- VISITOR -->
+  <div class="visitor-bar">
+    <div class="v-dot"></div>
+    <div class="v-text">
+      <span class="v-count" id="vcnt">...</span>
+      <span> builders in the garage right now</span>
+    </div>
+    <div class="v-total">Total visits: <strong id="vtot">...</strong></div>
+  </div>
+
+  <!-- GUESTBOOK -->
+  <div class="section">
+    <p class="eyebrow">▸ Sign The Wall</p>
+    <h2 class="sec-title">THE <span>GUESTBOOK</span></h2>
+
+    <div class="gb-form">
+      <div class="gb-row">
+        <div class="gb-field">
+          <label>Your Name</label>
+          <input type="text" id="gname" placeholder="Builder Name" maxlength="30" />
+        </div>
+        <div class="gb-field">
+          <label>Your Trade</label>
+          <select id="gtrade">
+            <option value="">— Select trade —</option>
+            <option>Automotive</option>
+            <option>Electrical</option>
+            <option>Welding & Fabrication</option>
+            <option>Plumbing & HVAC</option>
+            <option>Carpentry</option>
+            <option>Painting</option>
+            <option>IT & Tech</option>
+            <option>Creative & Design</option>
+            <option>Doginal Dogs Holder</option>
+            <option>Just Here for the Vibes</option>
+          </select>
+        </div>
+      </div>
+      <textarea class="gb-msg" id="gmsg" placeholder="Leave your mark on the garage wall... (max 200 chars)" maxlength="200" oninput="document.getElementById('gchars').textContent=this.value.length+'/200'"></textarea>
+      <div class="gb-bottom">
+        <button class="gb-btn" onclick="submitEntry()">🔨 Sign The Wall</button>
+        <span class="gb-chars" id="gchars">0/200</span>
+      </div>
+      <div class="gb-ok" id="gok">✓ Your mark has been left on the wall!</div>
+    </div>
+
+    <div id="gblist"></div>
+  </div>
+
+  <div class="site-footer">Builder Dogs — The Garage — builderdogs.com</div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+// ── GARAGE DOOR ──
+let opened = false;
+
+function openDoor() {
+  if (opened) return;
+  opened = true;
+  document.getElementById('door').classList.add('up');
+  document.getElementById('sdot').classList.add('green');
+  document.getElementById('obtn').textContent = '▼';
+  document.getElementById('ihint').style.opacity = '0';
+
+  setTimeout(() => {
+    document.getElementById('bdог').classList.add('show');
+    document.getElementById('btitle').classList.add('show');
+    document.getElementById('bsub').classList.add('show');
+    document.getElementById('ebtn').classList.add('show');
+  }, 600);
+}
+
+function enterSite() {
+  const intro = document.getElementById('intro');
+  intro.style.transition = 'opacity 0.7s';
+  intro.style.opacity = '0';
+  setTimeout(() => {
+    intro.style.display = 'none';
+    document.getElementById('site').style.display = 'block';
+    initSite();
+  }, 700);
+}
+
+// Auto open after 2s
+setTimeout(() => { if (!opened) openDoor(); }, 2000);
+
+// ── SITE INIT ──
+function initSite() {
+  // Load saved location or default to NYC
+  const savedLat = localStorage.getItem('bd-weather-lat');
+  const savedLon = localStorage.getItem('bd-weather-lon');
+  const savedCity = localStorage.getItem('bd-weather-city');
+  if (savedLat && savedLon && savedCity) {
+    loadWeather(parseFloat(savedLat), parseFloat(savedLon), savedCity);
+  } else {
+    loadWeather();
+  }
+  initVisitors();
+  renderGB();
+}
+
+// ── WEATHER ──
+// Default: New York City
+let weatherLat = 40.7128;
+let weatherLon = -74.0060;
+let weatherCity = 'New York, NY';
+
+async function loadWeather(lat, lon, city) {
+  lat = lat || weatherLat;
+  lon = lon || weatherLon;
+  city = city || weatherCity;
+  try {
+    document.getElementById('wd').textContent = 'Loading...';
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph`);
+    const d = await r.json();
+    const c = d.current;
+    const icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'❄️',73:'❄️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+    const descs = {0:'Clear skies',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Rain showers',81:'Heavy showers',82:'Violent showers',95:'Thunderstorm',96:'Thunderstorm + hail',99:'Heavy thunderstorm'};
+    document.getElementById('wi').textContent = icons[c.weather_code] || '🌡️';
+    document.getElementById('wt').textContent = Math.round(c.temperature_2m) + '°F';
+    document.getElementById('wd').textContent = descs[c.weather_code] || 'Clear';
+    document.getElementById('wh').textContent = c.relative_humidity_2m + '%';
+    document.getElementById('ww').textContent = Math.round(c.wind_speed_10m) + ' mph';
+    document.getElementById('wf').textContent = Math.round(c.apparent_temperature) + '°F';
+    document.getElementById('wloc').textContent = '📍 ' + city;
+    weatherLat = lat; weatherLon = lon; weatherCity = city;
+  } catch(e) {
+    document.getElementById('wd').textContent = 'Weather unavailable';
+  }
+}
+
+async function updateZip() {
+  const zip = document.getElementById('zip-input').value.trim();
+  if (zip.length !== 5 || isNaN(zip)) { alert('Please enter a valid 5-digit US zip code'); return; }
+
+  try {
+    document.getElementById('wd').textContent = 'Looking up location...';
+    // Use free zippopotam.us API to convert zip to lat/lon
+    const r = await fetch(`https://api.zippopotam.us/us/${zip}`);
+    if (!r.ok) { document.getElementById('wd').textContent = 'Zip code not found'; return; }
+    const d = await r.json();
+    const place = d.places[0];
+    const lat = parseFloat(place.latitude);
+    const lon = parseFloat(place.longitude);
+    const city = place['place name'] + ', ' + place['state abbreviation'];
+
+    // Save to localStorage
+    localStorage.setItem('bd-weather-zip', zip);
+    localStorage.setItem('bd-weather-city', city);
+    localStorage.setItem('bd-weather-lat', lat);
+    localStorage.setItem('bd-weather-lon', lon);
+
+    document.getElementById('zip-input').value = '';
+    loadWeather(lat, lon, city);
+  } catch(e) {
+    document.getElementById('wd').textContent = 'Location lookup failed';
+  }
+}
+
+// ── RADIO ──
+const audio = document.getElementById('audio');
+let playing = false;
+
+function changeStation() {
+  const sel = document.getElementById('ssel');
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('rname').textContent = opt.dataset.n || '— Choose a station —';
+  if (playing && sel.value) {
+    audio.src = sel.value;
+    audio.play().catch(()=>{});
+  }
+}
+
+function togglePlay() {
+  const sel = document.getElementById('ssel');
+  const btn = document.getElementById('pbtn');
+  if (!sel.value) { alert('Please select a station first!'); return; }
+  if (playing) {
+    audio.pause();
+    playing = false;
+    btn.textContent = '▶';
+    btn.classList.remove('on');
+  } else {
+    audio.src = sel.value;
+    audio.volume = parseFloat(document.getElementById('vol').value);
+    audio.play().catch(()=>{});
+    playing = true;
+    btn.textContent = '⏸';
+    btn.classList.add('on');
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('rname').textContent = opt.dataset.n || '';
+  }
+}
+
+function setVol(v) { audio.volume = parseFloat(v); }
+
+// ── VISITORS ──
+function initVisitors() {
+  let total = parseInt(localStorage.getItem('bd-g-visits') || '0') + 1;
+  localStorage.setItem('bd-g-visits', total);
+  document.getElementById('vcnt').textContent = Math.floor(Math.random() * 9) + 2;
+  document.getElementById('vtot').textContent = total.toLocaleString();
+  setInterval(() => {
+    document.getElementById('vcnt').textContent = Math.floor(Math.random() * 14) + 1;
+  }, 30000);
+}
+
+// ── GUESTBOOK ──
+function getEntries() {
+  try { return JSON.parse(localStorage.getItem('bd-gb') || '[]'); } catch(e) { return []; }
+}
+
+function renderGB() {
+  const entries = getEntries();
+  const el = document.getElementById('gblist');
+  if (!entries.length) {
+    el.innerHTML = '<div class="gb-empty">🔨 No entries yet — be the first to sign the wall!</div>';
+    return;
+  }
+  el.innerHTML = '<div class="gb-entries">' + entries.slice().reverse().map(e => `
+    <div class="gb-entry">
+      <div class="gb-entry-head">
+        <div class="gb-avatar">${e.name.charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="gb-entry-name">${e.name}</div>
+          <div class="gb-entry-trade">${e.trade || 'Builder'}</div>
+        </div>
+        <div class="gb-entry-date">${e.date}</div>
+      </div>
+      <div class="gb-entry-msg">${e.msg}</div>
+    </div>
+  `).join('') + '</div>';
+}
+
+function submitEntry() {
+  const name = document.getElementById('gname').value.trim();
+  const trade = document.getElementById('gtrade').value;
+  const msg = document.getElementById('gmsg').value.trim();
+  if (!name || !msg) { alert('Please enter your name and a message!'); return; }
+
+  const entries = getEntries();
+  entries.push({
+    name, trade, msg,
+    date: new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})
+  });
+  localStorage.setItem('bd-gb', JSON.stringify(entries));
+
+  document.getElementById('gname').value = '';
+  document.getElementById('gtrade').value = '';
+  document.getElementById('gmsg').value = '';
+  document.getElementById('gchars').textContent = '0/200';
+
+  const ok = document.getElementById('gok');
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 3000);
+  renderGB();
+}
+</script>
+</body>
+</html>
