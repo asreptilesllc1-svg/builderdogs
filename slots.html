@@ -618,6 +618,83 @@ body {
   0% { transform: translateY(-20px) rotate(0deg); opacity:1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
 }
+
+/* ── MOBILE ── */
+@media (max-width: 560px) {
+  body { padding: 8px 8px 32px; }
+
+  .back-link { font-size: 10px; margin-bottom: 10px; }
+
+  /* Marquee */
+  .marquee-main { font-size: 20px; letter-spacing: 2px; }
+  .marquee-sub { font-size: 9px; letter-spacing: 2px; }
+  .neon-strip { font-size: 11px; letter-spacing: 3px; }
+  .marquee-lights { padding: 6px 8px; }
+  .light { width: 7px; height: 7px; }
+
+  /* Reels */
+  .reels-bg { height: 200px; }
+  .reels { height: 200px; }
+  .reel-item { height: 76px; width: 100%; gap: 2px; padding: 4px; }
+  .reel-item img { width: 52px; height: 52px; }
+  .reel-item .trait-name { font-size: 7px; letter-spacing: 1px; }
+  .win-line { height: 2px; }
+
+  /* Result */
+  .result-panel { padding: 8px 10px; min-height: 36px; }
+  .result-text { font-size: 11px; letter-spacing: 1px; }
+
+  /* Bottom panel */
+  .bottom-panel { padding: 12px 10px; }
+
+  /* Jackpot display */
+  #jackpot-display { font-size: 24px; }
+
+  /* Credit displays */
+  .displays-row { gap: 6px; margin-bottom: 10px; }
+  .display-box { padding: 6px 8px; }
+  .display-val { font-size: 22px; }
+  .display-label { font-size: 7px; }
+
+  /* Bet controls */
+  .bet-row { gap: 6px; margin-bottom: 10px; }
+  .bet-btn { width: 32px; height: 32px; font-size: 16px; }
+  .bet-val { font-size: 18px; }
+  .bet-label { font-size: 8px; }
+
+  /* Spin button */
+  .spin-area { gap: 8px; }
+  .spin-btn { font-size: 16px; letter-spacing: 2px; padding: 14px 28px; }
+  .max-btn { font-size: 8px; padding: 8px 10px; letter-spacing: 1px; }
+
+  /* Paytable */
+  .paytable { padding: 8px 10px; margin-top: 8px; }
+  .paytable-title { font-size: 9px; letter-spacing: 2px; }
+  .paytable-row { font-size: 10px; padding: 2px 0; }
+  .pay-award { font-size: 12px; }
+
+  /* Cabinet bottom */
+  .cabinet-bottom { padding: 8px 12px; }
+  .cabinet-logo { font-size: 10px; }
+
+  /* History */
+  .win-history { margin-top: 10px; }
+  .history-item { font-size: 10px; padding: 5px 10px; }
+
+  /* Hot streak / multiplier */
+  #hot-streak span { font-size: 12px; letter-spacing: 2px; }
+  #mult-text { font-size: 16px; letter-spacing: 2px; }
+}
+
+@media (max-width: 380px) {
+  .reels-bg { height: 180px; }
+  .reels { height: 180px; }
+  .reel-item { height: 68px; }
+  .reel-item img { width: 44px; height: 44px; }
+  .spin-btn { font-size: 14px; padding: 12px 20px; }
+  .marquee-main { font-size: 17px; }
+}
+
 </style>
 </head>
 <body>
@@ -823,8 +900,10 @@ let bet = 1;
 let spinning = false;
 let winStreak = 0;
 let clickInterval = null;
-const ITEM_H = 101;
-const REEL_H = 260;
+const isMobile = window.innerWidth <= 560;
+const isSmall = window.innerWidth <= 380;
+const ITEM_H = isSmall ? 69 : isMobile ? 77 : 101;
+const REEL_H = isSmall ? 180 : isMobile ? 200 : 260;
 
 // MARQUEE LIGHTS
 const ml = document.getElementById('mlights');
