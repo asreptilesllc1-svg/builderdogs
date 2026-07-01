@@ -647,11 +647,110 @@
     text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 2px;
   }
 
+
+  /* ══════════════════════════════════════
+     MOBILE — 600px and below
+  ══════════════════════════════════════ */
   @media(max-width:600px) {
-    .gb-row { grid-template-columns: 1fr; }
+
+    /* GARAGE DOOR INTRO */
+    .intro-top { padding: 0 12px; height: 48px; }
+    .intro-logo { font-size: 16px; }
+    .open-btn { width: 36px; height: 36px; font-size: 15px; }
+
+    /* BEHIND DOOR */
+    .behind-dog { width: 90px; height: 90px; }
+    .behind-title { font-size: clamp(20px, 6vw, 36px); letter-spacing: 3px; }
+    .behind-sub { font-size: 11px; letter-spacing: 3px; }
+    .enter-btn { font-size: 12px; letter-spacing: 2px; padding: 13px 28px; }
+
+    /* NAV */
+    nav { padding: 0 12px; }
+    .nav-logo { font-size: 15px; }
+    .nav-links { gap: 4px; }
+    .nav-a { font-size: 10px; padding: 6px 8px; letter-spacing: 1px; display: none; }
+    .nav-a:last-child { display: block; } /* keep last nav item */
+
+    /* WALLET BAR */
+    .wallet-bar { padding: 8px 12px; gap: 8px; }
+    .wallet-left { flex-wrap: wrap; gap: 6px; }
+    .wallet-status { font-size: 11px; }
+    .wallet-address { font-size: 11px; }
+    .wallet-badge { font-size: 8px; padding: 2px 6px; }
+    .connect-btn { font-size: 10px; padding: 6px 12px; letter-spacing: 1px; }
+
+    /* DAILY STREAK BAR */
+    #daily-streak-bar { padding: 8px 12px; flex-wrap: wrap; gap: 8px; }
+    #daily-streak-bar .streak-fire { font-size: 16px; }
+    #streak-count { font-size: 13px; }
+    #streak-sub { font-size: 9px; }
+    #streak-days { gap: 4px; }
+    #checkin-btn { font-size: 10px; padding: 6px 12px; letter-spacing: 1px; }
+
+    /* WEATHER */
+    .weather-bar { padding: 8px 12px; gap: 8px; }
+    .w-icon { font-size: 22px; }
+    .w-temp { font-size: 20px; }
+    .w-desc { font-size: 10px; letter-spacing: 0.5px; }
+    .w-loc { font-size: 9px; }
     .w-details { display: none; }
+    #zip-input { width: 90px; font-size: 12px; padding: 3px 6px; }
+
+    /* RADIO BAR */
+    .radio-bar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+    .radio-label { font-size: 8px; letter-spacing: 2px; }
     .radio-name { display: none; }
+    .radio-controls { flex-wrap: nowrap; gap: 6px; margin-left: 0; }
+    .station-sel { font-size: 11px; padding: 5px 6px; max-width: 140px; }
+    .r-btn { width: 30px; height: 30px; font-size: 12px; }
+    input[type=range].vol { width: 60px; }
+
+    /* VISITOR BAR */
+    .visitor-bar { padding: 6px 12px; }
+    .v-text { font-size: 11px; }
+    .v-count { font-size: 15px; }
+    .v-total { font-size: 10px; }
+
+    /* VERIFY SECTION */
+    .verify-section { padding: 14px 12px; }
+    .verify-title { font-size: 13px; }
+    .verify-desc { font-size: 12px; }
+    .verify-row { flex-direction: column; }
+    .verify-input { min-width: 100%; font-size: 13px; padding: 9px 10px; }
+    .verify-btn { width: 100%; padding: 10px; }
+
+    /* SECTION */
+    .section { padding: 36px 12px; }
+    .eyebrow { font-size: 9px; letter-spacing: 3px; }
+    .sec-title { font-size: clamp(20px, 6vw, 36px); margin-bottom: 20px; }
+
+    /* GUESTBOOK FORM */
+    .gb-form { padding: 16px 12px; }
+    .gb-row { grid-template-columns: 1fr; }
+    .gb-field input, .gb-field select { font-size: 13px; padding: 8px 10px; }
+    textarea.gb-msg { font-size: 13px; }
+    .gb-btn { font-size: 11px; padding: 10px 18px; }
+
+    /* GUESTBOOK ENTRIES */
+    .gb-entry { padding: 12px 14px; }
+    .gb-entry-name { font-size: 13px; }
+    .gb-entry-msg { font-size: 13px; }
+    .gb-avatar { width: 28px; height: 28px; font-size: 12px; }
+
+    /* FOOTER */
+    .site-footer { font-size: 10px; padding: 20px 12px; }
   }
+
+  /* ══════════════════════════════════════
+     SMALL PHONES — 380px and below
+  ══════════════════════════════════════ */
+  @media(max-width:380px) {
+    .behind-title { font-size: 18px; }
+    .station-sel { max-width: 110px; font-size: 10px; }
+    .sec-title { font-size: 18px; }
+    input[type=range].vol { width: 40px; }
+  }
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-modal@1.9.9/dist/index.js"></script>
