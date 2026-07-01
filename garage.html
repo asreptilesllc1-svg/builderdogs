@@ -977,7 +977,7 @@ async function initVerification() {
       updateWalletBadgeVerified(record);
     } else if (record.status === 'pending') {
       document.getElementById('verify-form').style.display = 'none';
-      showVerifyStatus('⏳ Verification pending — we'll badge you within 24 hours.', 'pending');
+      showVerifyStatus('⏳ Verification pending — we will badge you within 24 hours.', 'pending');
     }
   }
 }
@@ -1062,7 +1062,7 @@ async function submitVerification() {
     }, { onConflict: 'wallet' });
 
     document.getElementById('verify-form').style.display = 'none';
-    showVerifyStatus('✓ Submitted! We'll verify your dog on market.doginaldogs.com and badge you within 24 hours.', 'pending');
+    showVerifyStatus('✓ Submitted! Submitted! We will verify your dog on market.doginaldogs.com and badge you within 24 hours.hin 24 hours.', 'pending');
 
   } catch(e) {
     showVerifyStatus('⚠ Something went wrong. Please try again.', 'error');
