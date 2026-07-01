@@ -1068,6 +1068,16 @@ function initWallet() {
 async function connectWallet() {
   const btn = document.getElementById('connect-btn');
   if (walletAddress) { disconnectWallet(); return; }
+
+  // Check if on mobile without an injected wallet
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const hasWallet = window.phantom || window.ethereum;
+
+  if (isMobile && !hasWallet) {
+    showMobileWalletModal();
+    return;
+  }
+
   try {
     btn.textContent = 'Connecting...';
     btn.disabled = true;
@@ -1128,6 +1138,42 @@ function updateWalletUI(address, walletName) {
   badge.className = 'wallet-badge badge-visitor';
   initStreak();
   initVerification();
+}
+
+function showMobileWalletModal() {
+  const currentUrl = encodeURIComponent(window.location.href);
+  const modal = document.createElement('div');
+  modal.id = 'wallet-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:#141414;border:1px solid rgba(249,115,22,0.3);border-top:3px solid #f97316;padding:28px 20px;max-width:380px;width:100%;text-align:center;">
+      <div style="font-family:'Black Ops One',sans-serif;font-size:18px;color:#f97316;margin-bottom:8px;letter-spacing:2px;">CONNECT WALLET</div>
+      <p style="font-size:13px;color:#666;margin-bottom:20px;line-height:1.7;">On mobile, open this page inside your wallet app's browser to connect.</p>
+
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+
+        <a href="https://phantom.app/ul/browse/${currentUrl}?ref=${currentUrl}"
+           style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:1px;">
+          👻 Open in Phantom App
+        </a>
+
+        <a href="https://go.cb-w.com/dapp?cb_url=${currentUrl}"
+           style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:1px;">
+          🔵 Open in Coinbase Wallet
+        </a>
+
+        <a href="https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}"
+           style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:1px;">
+          🦊 Open in MetaMask App
+        </a>
+      </div>
+
+      <p style="font-size:11px;color:#444;line-height:1.6;margin-bottom:16px;">Read-only — we never ask you to sign transactions. Your funds are always safe.</p>
+      <button onclick="document.getElementById('wallet-modal').remove()" style="font-family:'Black Ops One',sans-serif;font-size:11px;letter-spacing:2px;padding:10px 24px;background:transparent;color:#666;border:1px solid #333;cursor:pointer;width:100%;">CLOSE</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 function showWalletModal() {
