@@ -437,15 +437,17 @@
   .verified-badge {
     display: none;
     align-items: center;
-    gap: 8px;
+    gap: 14px;
     background: rgba(245,200,66,0.08);
-    border: 1px solid rgba(245,200,66,0.2);
-    padding: 8px 14px;
-    font-size: 13px;
+    border: 2px solid rgba(245,200,66,0.4);
+    padding: 16px 20px;
+    font-size: 16px;
     color: var(--gold);
   }
 
   .verified-badge.show { display: flex; }
+
+  .verified-badge.show ~ .verify-desc { display: none; }
 
   /* WEATHER */
   .weather-bar {
@@ -1076,8 +1078,10 @@ async function initVerification() {
 function showVerifiedBadge(record) {
   document.getElementById('verify-form').style.display = 'none';
   const traitLabel = record.trait ? ' · ' + record.trait : '';
-  document.getElementById('verified-badge-text').textContent = 'Dog #' + record.inscription_number + traitLabel + ' · Verified Holder';
+  document.getElementById('verified-badge-text').innerHTML = '<span style="font-family:Black Ops One,sans-serif;font-size:20px;letter-spacing:2px;">Dog #' + record.inscription_number + traitLabel + '</span><br><span style="font-size:11px;letter-spacing:3px;color:#8a7020;text-transform:uppercase;">Verified Doginal Holder</span>';
   document.getElementById('verified-badge').classList.add('show');
+  const desc = document.querySelector('.verify-desc');
+  if (desc) desc.style.display = 'none';
 }
 
 function updateWalletBadgeVerified(record) {
