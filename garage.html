@@ -828,6 +828,116 @@ function showGarage() {
   window.scrollTo(0, 0);
 }
 
+
+// ── WALLET CONNECTION ──
+let walletAddress = null;
+
+function initWallet() {
+  const saved = localStorage.getItem('bd-wallet');
+  if (saved) {
+    walletAddress = saved;
+    updateWalletUI(saved);
+  }
+}
+
+async function connectWallet() {
+  const btn = document.getElementById('connect-btn');
+  if (walletAddress) { disconnectWallet(); return; }
+
+  try {
+    btn.textContent = 'Connecting...';
+    btn.disabled = true;
+
+    // Detect available wallet — Phantom, MetaMask, or any injected provider
+    const provider = window.phantom?.ethereum || window.ethereum || window.phantom?.solana;
+
+    if (window.phantom?.ethereum) {
+      // Phantom EVM
+      const accounts = await window.phantom.ethereum.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
+      walletAddress = address;
+      localStorage.setItem('bd-wallet', address);
+      localStorage.setItem('bd-wallet-type', 'phantom-evm');
+      updateWalletUI(address, 'Phantom');
+    } else if (window.phantom?.solana) {
+      // Phantom Solana
+      const resp = await window.phantom.solana.connect();
+      const address = resp.publicKey.toString();
+      walletAddress = address;
+      localStorage.setItem('bd-wallet', address);
+      localStorage.setItem('bd-wallet-type', 'phantom-sol');
+      updateWalletUI(address, 'Phantom');
+    } else if (typeof window.ethereum !== 'undefined') {
+      // MetaMask or other EVM wallet
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
+      walletAddress = address;
+      localStorage.setItem('bd-wallet', address);
+      localStorage.setItem('bd-wallet-type', 'evm');
+      updateWalletUI(address, 'MetaMask');
+    } else {
+      btn.textContent = '🔗 Connect Wallet';
+      btn.disabled = false;
+      showWalletModal();
+    }
+  } catch(err) {
+    btn.textContent = '🔗 Connect Wallet';
+    btn.disabled = false;
+    if (err.code === 4001) document.getElementById('wallet-status-text').textContent = 'Connection cancelled';
+  }
+}
+
+function disconnectWallet() {
+  walletAddress = null;
+  localStorage.removeItem('bd-wallet');
+  document.getElementById('wallet-dot').classList.remove('connected');
+  document.getElementById('wallet-status-text').textContent = 'No wallet connected';
+  document.getElementById('wallet-address').style.display = 'none';
+  document.getElementById('wallet-badge').style.display = 'none';
+  document.getElementById('connect-btn').textContent = '🔗 Connect Wallet';
+  document.getElementById('connect-btn').classList.remove('connected');
+  document.getElementById('connect-btn').disabled = false;
+  document.getElementById('holder-banner').classList.remove('show');
+}
+
+function updateWalletUI(address, walletName) {
+  const short = address.slice(0,6) + '...' + address.slice(-4);
+  document.getElementById('wallet-dot').classList.add('connected');
+  document.getElementById('wallet-status-text').textContent = 'Connected' + (walletName ? ' via ' + walletName : '');
+  document.getElementById('wallet-address').textContent = short;
+  document.getElementById('wallet-address').style.display = 'block';
+  document.getElementById('connect-btn').textContent = 'Disconnect';
+  document.getElementById('connect-btn').classList.add('connected');
+  document.getElementById('connect-btn').disabled = false;
+
+  const badge = document.getElementById('wallet-badge');
+  badge.style.display = 'inline';
+  badge.textContent = '🐕 Community Member';
+  badge.className = 'wallet-badge badge-visitor';
+}
+
+function showWalletModal() {
+  const modal = document.createElement('div');
+  modal.id = 'wallet-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
+  modal.innerHTML = `
+    <div style="background:#141414;border:1px solid rgba(249,115,22,0.3);border-top:3px solid #f97316;padding:32px;max-width:400px;width:100%;text-align:center;">
+      <div style="font-family:'Black Ops One',sans-serif;font-size:20px;color:#f97316;margin-bottom:8px;letter-spacing:2px;">CONNECT WALLET</div>
+      <p style="font-size:13px;color:#666;margin-bottom:24px;line-height:1.6;">Install a wallet to connect. This is read-only — we never ask you to sign transactions or approve contracts. Your funds are always safe.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+        <a href="https://metamask.io/download/" target="_blank" style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;">🦊 Install MetaMask</a>
+        <a href="https://www.coinbase.com/wallet" target="_blank" style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;">🔵 Install Coinbase Wallet</a>
+        <a href="https://mydoge.com" target="_blank" style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;">🐕 MyDoge Wallet</a>
+      </div>
+      <p style="font-size:11px;color:#444;line-height:1.6;margin-bottom:16px;">Already have MetaMask installed on another browser? Open this page in that browser to connect.</p>
+      <button onclick="document.getElementById('wallet-modal').remove()" style="font-family:'Black Ops One',sans-serif;font-size:11px;letter-spacing:2px;padding:10px 24px;background:transparent;color:#666;border:1px solid #333;cursor:pointer;">CLOSE</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+
 function initSite() {
   initWallet();
   initStreak();
