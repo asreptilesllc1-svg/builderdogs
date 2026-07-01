@@ -1108,12 +1108,18 @@ function showVerifyStatus(msg, type) {
   el.className = 'verify-status ' + type;
 }
 
+function formatXHandle(input) {
+  let val = input.value.replace(/@/g, '').trim();
+  if (val) input.value = '@' + val;
+}
+
 async function submitVerification() {
   if (!walletAddress) { showVerifyStatus('Please connect your wallet first.', 'error'); return; }
   if (!_supa) { showVerifyStatus('Database unavailable. Try again later.', 'error'); return; }
   const inscription = document.getElementById('inscription-input').value.trim().replace('#', '');
   const twitter = document.getElementById('twitter-input').value.trim().replace('@', '');
   if (!inscription || isNaN(inscription)) { showVerifyStatus('Please enter a valid inscription number.', 'error'); return; }
+  if (!twitter) { showVerifyStatus('Your X handle is required to qualify for a badge.', 'error'); return; }
   const btn = document.getElementById('verify-btn');
   btn.disabled = true;
   btn.textContent = 'Submitting...';
