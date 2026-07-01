@@ -1450,44 +1450,130 @@ function initVisitors() {
 // ════════════════════════════════════════
 // GUESTBOOK
 // ════════════════════════════════════════
-function getEntries() {
-  try { return JSON.parse(localStorage.getItem('bd-gb') || '[]'); } catch(e) { return []; }
-}
-
-function renderGB() {
-  const entries = getEntries();
+async function renderGB() {
   const el = document.getElementById('gblist');
-  if (!entries.length) {
+  el.innerHTML = '<div class="gb-empty" style="padding:24px;text-align:center;color:var(--muted);">Loading...</div>';
+
+  let supaEntries = [];
+  let localEntries = [];
+
+  // Load verified entries from Supabase
+  if (_supa) {
+    try {
+      const { data } = await _supa
+        .from('guestbook')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      supaEntries = data || [];
+    } catch(e) {}
+  }
+
+  // Load temp local entries (unverified)
+  try {
+    localEntries = JSON.parse(localStorage.getItem('bd-gb-temp') || '[]');
+  } catch(e) {}
+
+  if (!supaEntries.length && !localEntries.length) {
     el.innerHTML = '<div class="gb-empty">🔨 No entries yet — be the first to sign the wall!</div>';
     return;
   }
-  el.innerHTML = '<div class="gb-entries">' + entries.slice().reverse().map(e => `
-    <div class="gb-entry">
-      <div class="gb-entry-head">
-        <div class="gb-avatar">${e.name.charAt(0).toUpperCase()}</div>
-        <div><div class="gb-entry-name">${e.name}</div><div class="gb-entry-trade">${e.trade || 'Builder'}</div></div>
-        <div class="gb-entry-date">${e.date}</div>
-      </div>
-      <div class="gb-entry-msg">${e.msg}</div>
-    </div>
-  `).join('') + '</div>';
+
+  const renderEntry = (e, isVerified) => {
+    const name = e.name || 'Anonymous';
+    const trade = e.trade || 'Builder';
+    const msg = e.message || e.msg || '';
+    const date = e.created_at
+      ? new Date(e.created_at).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})
+      : e.date || '';
+    const trait = e.trait ? ` · ${e.trait}` : '';
+    const verifiedBadge = isVerified
+      ? `<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 6px;background:rgba(245,200,66,0.15);color:var(--gold);border:1px solid rgba(245,200,66,0.3);margin-left:6px;">✓ VERIFIED${trait}</span>`
+      : `<span style="font-size:8px;letter-spacing:1px;color:#333;margin-left:6px;">guest</span>`;
+    return `
+      <div class="gb-entry" ${!isVerified ? 'style="opacity:0.6;border-left-color:#333;"' : ''}>
+        <div class="gb-entry-head">
+          <div class="gb-avatar" style="${isVerified ? 'background:var(--gold);color:#0d0d0d;' : 'background:#333;'}">${name.charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="gb-entry-name">${name}${verifiedBadge}</div>
+            <div class="gb-entry-trade">${trade}</div>
+          </div>
+          <div class="gb-entry-date">${date}</div>
+        </div>
+        <div class="gb-entry-msg">${msg}</div>
+      </div>`;
+  };
+
+  let out = '<div class="gb-entries">';
+  supaEntries.forEach(e => out += renderEntry(e, true));
+  if (localEntries.length) {
+    if (supaEntries.length) out += `<div style="font-size:10px;letter-spacing:2px;color:#333;text-align:center;padding:12px;text-transform:uppercase;">— Your temporary entries (not saved) —</div>`;
+    localEntries.slice().reverse().forEach(e => out += renderEntry(e, false));
+  }
+  out += '</div>';
+  el.innerHTML = out;
 }
 
-function submitEntry() {
+async function submitEntry() {
   const name = document.getElementById('gname').value.trim();
   const trade = document.getElementById('gtrade').value;
   const msg = document.getElementById('gmsg').value.trim();
   if (!name || !msg) { alert('Please enter your name and a message!'); return; }
-  const entries = getEntries();
-  entries.push({ name, trade, msg, date: new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) });
-  localStorage.setItem('bd-gb', JSON.stringify(entries));
+
+  const date = new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+
+  // Check if user is a verified holder
+  let isVerified = false;
+  let trait = null;
+  if (walletAddress && _supa) {
+    try {
+      const { data } = await _supa
+        .from('doginal_verifications')
+        .select('status,trait')
+        .eq('wallet', walletAddress.toLowerCase())
+        .single();
+      if (data && data.status === 'approved') {
+        isVerified = true;
+        trait = data.trait || null;
+      }
+    } catch(e) {}
+  }
+
+  if (isVerified && _supa) {
+    // Save permanently to Supabase
+    try {
+      await _supa.from('guestbook').insert({
+        wallet: walletAddress.toLowerCase(),
+        name, trade,
+        message: msg,
+        verified: true,
+        trait,
+        created_at: new Date().toISOString()
+      });
+    } catch(e) {
+      console.log('Guestbook save error:', e);
+    }
+  } else {
+    // Save temporarily to localStorage
+    try {
+      const entries = JSON.parse(localStorage.getItem('bd-gb-temp') || '[]');
+      entries.push({ name, trade, msg, date });
+      // Keep max 10 temp entries
+      if (entries.length > 10) entries.shift();
+      localStorage.setItem('bd-gb-temp', JSON.stringify(entries));
+    } catch(e) {}
+  }
+
   document.getElementById('gname').value = '';
   document.getElementById('gtrade').value = '';
   document.getElementById('gmsg').value = '';
   document.getElementById('gchars').textContent = '0/200';
+
   const ok = document.getElementById('gok');
+  ok.textContent = isVerified ? '✓ Signed the wall permanently!' : '✓ Signed! Connect wallet and get verified to make it permanent.';
   ok.style.display = 'block';
-  setTimeout(() => ok.style.display = 'none', 3000);
+  setTimeout(() => ok.style.display = 'none', 4000);
+
   renderGB();
 }
 
