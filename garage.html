@@ -476,7 +476,7 @@
     <div class="intro-controls">
       <span style="font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">The Garage</span>
       <div class="status-dot" id="sdot"></div>
-      <button class="open-btn" id="obtn" onclick="openDoor()">▲</button>
+      <button class="open-btn" id="obtn" onclick="toggleDoor()">▲</button>
     </div>
   </div>
 
@@ -517,12 +517,29 @@
 
   <nav>
     <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
-    <div class="nav-links">
-      <a class="nav-a" href="index.html">Home</a>
+    <div class="nav-links" style="display:flex;align-items:center;gap:8px;">
+      <button onclick="showGarage()" style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;color:var(--muted);border:1px solid var(--border);background:transparent;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--muted)'">🚪 Garage</button>
+    <a class="nav-a" href="index.html">Home</a>
       <a class="nav-a" href="https://shop.builderdogs.com" target="_blank">🛒 Shop</a>
       <a class="nav-a nav-solid" href="custom.html">Custom Order</a>
     </div>
   </nav>
+
+
+  <!-- DAILY LOGIN STREAK -->
+  <div id="daily-streak-bar" style="background:linear-gradient(90deg,#0a1f0a,#0d2b0d);border-bottom:1px solid rgba(34,197,94,0.2);padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:20px;" id="streak-fire">🔥</span>
+      <div>
+        <div style="font-family:'Black Ops One',sans-serif;font-size:15px;color:var(--green);" id="streak-count">0 Day Streak</div>
+        <div style="font-size:10px;letter-spacing:2px;color:#3a6a3a;text-transform:uppercase;" id="streak-sub">Come back daily to build your streak</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;" id="streak-days"></div>
+    <div id="checkin-btn-wrap">
+      <button onclick="dailyCheckin()" id="checkin-btn" style="font-family:'Black Ops One',sans-serif;font-size:11px;letter-spacing:2px;padding:8px 16px;background:var(--green);color:#0d0d0d;border:none;cursor:pointer;transition:all 0.2s;">✓ CHECK IN</button>
+    </div>
+  </div>
 
   <!-- WEATHER -->
   <div class="weather-bar">
@@ -628,7 +645,6 @@
 let opened = false;
 
 function openDoor() {
-  if (opened) return;
   opened = true;
   document.getElementById('door').classList.add('up');
   document.getElementById('sdot').classList.add('green');
@@ -641,6 +657,26 @@ function openDoor() {
     document.getElementById('bsub').classList.add('show');
     document.getElementById('ebtn').classList.add('show');
   }, 600);
+}
+
+function closeDoor() {
+  opened = false;
+  document.getElementById('door').classList.remove('up');
+  document.getElementById('sdot').classList.remove('green');
+  document.getElementById('obtn').textContent = '▲';
+  document.getElementById('ihint').style.opacity = '1';
+  document.getElementById('bdог').classList.remove('show');
+  document.getElementById('btitle').classList.remove('show');
+  document.getElementById('bsub').classList.remove('show');
+  document.getElementById('ebtn').classList.remove('show');
+}
+
+function toggleDoor() {
+  if (opened) {
+    closeDoor();
+  } else {
+    openDoor();
+  }
 }
 
 function enterSite() {
@@ -658,7 +694,19 @@ function enterSite() {
 setTimeout(() => { if (!opened) openDoor(); }, 2000);
 
 // ── SITE INIT ──
+function showGarage() {
+  const intro = document.getElementById('intro');
+  const site = document.getElementById('site');
+  site.style.display = 'none';
+  intro.style.display = 'flex';
+  intro.style.opacity = '1';
+  // Close door first then let user open it
+  closeDoor();
+  window.scrollTo(0, 0);
+}
+
 function initSite() {
+  initStreak();
   // Load saved location or default to NYC
   const savedLat = localStorage.getItem('bd-weather-lat');
   const savedLon = localStorage.getItem('bd-weather-lon');
@@ -670,6 +718,97 @@ function initSite() {
   }
   initVisitors();
   renderGB();
+}
+
+
+// ── DAILY STREAK ──
+function initStreak() {
+  const today = new Date().toDateString();
+  const lastVisit = localStorage.getItem('bd-last-visit');
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  let streak = parseInt(localStorage.getItem('bd-streak') || '0');
+  let checkedIn = localStorage.getItem('bd-checkedin') === today;
+
+  if (!checkedIn) {
+    // Check if streak continues
+    if (lastVisit === yesterday) {
+      // streak continues — don't increment until they check in
+    } else if (lastVisit !== today) {
+      // streak broken
+      if (lastVisit !== yesterday) streak = 0;
+    }
+  }
+
+  updateStreakDisplay(streak, checkedIn);
+
+  if (checkedIn) {
+    document.getElementById('checkin-btn').textContent = '✓ CHECKED IN';
+    document.getElementById('checkin-btn').style.background = '#166a16';
+    document.getElementById('checkin-btn').disabled = true;
+  }
+}
+
+function dailyCheckin() {
+  const today = new Date().toDateString();
+  const lastVisit = localStorage.getItem('bd-last-visit');
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  let streak = parseInt(localStorage.getItem('bd-streak') || '0');
+
+  if (lastVisit === yesterday || streak === 0) {
+    streak++;
+  } else if (lastVisit !== today) {
+    streak = 1;
+  }
+
+  localStorage.setItem('bd-streak', streak);
+  localStorage.setItem('bd-last-visit', today);
+  localStorage.setItem('bd-checkedin', today);
+
+  updateStreakDisplay(streak, true);
+
+  const btn = document.getElementById('checkin-btn');
+  btn.textContent = '✓ CHECKED IN';
+  btn.style.background = '#166a16';
+  btn.disabled = true;
+
+  // Reward message
+  const msgs = [
+    'Day 1 — Welcome to the garage!',
+    'Day 2 — You came back!',
+    'Day 3 — 3 day streak! 🔥',
+    'Day 7 — One week! Builder status unlocked 🔨',
+    'Day 14 — Two weeks! OG Builder 🏆',
+    'Day 30 — 30 days! Legend status 👑',
+  ];
+
+  const sub = document.getElementById('streak-sub');
+  if (streak === 7) sub.textContent = '🔨 Builder status unlocked!';
+  else if (streak === 14) sub.textContent = '🏆 OG Builder unlocked!';
+  else if (streak === 30) sub.textContent = '👑 Legend status unlocked!';
+  else sub.textContent = `Day ${streak} checked in! Come back tomorrow.`;
+}
+
+function updateStreakDisplay(streak, checkedIn) {
+  document.getElementById('streak-count').textContent = streak + ' Day Streak';
+
+  // Show last 7 days as dots
+  const daysEl = document.getElementById('streak-days');
+  daysEl.innerHTML = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = document.createElement('div');
+    const isActive = i < streak && checkedIn ? true : (i < streak - 1);
+    d.style.cssText = `width:10px;height:10px;border-radius:50%;background:${isActive ? 'var(--green)' : '#1a3a1a'};box-shadow:${isActive ? '0 0 6px var(--green)' : 'none'};transition:all 0.3s;`;
+    d.title = `Day ${streak - i}`;
+    daysEl.appendChild(d);
+  }
+
+  // Update fire emoji based on streak
+  const fire = document.getElementById('streak-fire');
+  if (streak >= 30) fire.textContent = '👑';
+  else if (streak >= 14) fire.textContent = '🏆';
+  else if (streak >= 7) fire.textContent = '🔨';
+  else if (streak >= 3) fire.textContent = '🔥';
+  else fire.textContent = '⭐';
 }
 
 // ── WEATHER ──
