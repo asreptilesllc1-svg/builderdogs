@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder Dogs — Verification Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #181818;
+    --border: rgba(249,115,22,0.15);
+    --orange: #f97316;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed',sans-serif; min-height:100vh; }
+
+  /* LOGIN */
+  .login { min-height:100vh; display:grid; place-items:center; }
+  .login-box { width:340px; padding:40px; background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--gold); }
+  .login-title { font-family:'Black Ops One',sans-serif; font-size:18px; color:var(--gold); margin-bottom:4px; }
+  .login-sub { font-size:11px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:24px; }
+  .field label { display:block; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .field input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:15px; padding:10px 12px; outline:none; margin-bottom:12px; transition:border 0.2s; }
+  .field input:focus { border-color:var(--gold); }
+  .login-btn { width:100%; background:var(--gold); color:#0a0a0a; border:none; font-family:'Black Ops One',sans-serif; font-size:13px; letter-spacing:2px; padding:13px; cursor:pointer; }
+  .login-btn:hover { background:#d4a832; }
+  .err { color:var(--red); font-size:11px; margin-top:8px; }
+
+  /* LAYOUT */
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:200px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; position:fixed; top:0; bottom:0; }
+  .sidebar-logo { padding:18px 16px; border-bottom:1px solid var(--border); }
+  .sidebar-logo-text { font-family:'Black Ops One',sans-serif; font-size:14px; color:var(--gold); }
+  .sidebar-logo span { color:var(--white); }
+  .sidebar-sub { font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+  .nav-item { padding:11px 16px; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); cursor:pointer; transition:all 0.15s; border-left:3px solid transparent; }
+  .nav-item:hover { color:var(--white); }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:var(--surface2); }
+  .nav-badge { margin-left:auto; background:var(--gold); color:#0a0a0a; font-size:9px; font-weight:700; padding:2px 6px; display:inline-block; float:right; }
+  .sidebar-footer { padding:16px; border-top:1px solid var(--border); margin-top:auto; }
+  .logout-btn { width:100%; background:transparent; border:1px solid var(--border); color:var(--muted); font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; padding:9px; cursor:pointer; }
+  .logout-btn:hover { border-color:var(--red); color:var(--red); }
+
+  /* MAIN */
+  .main { margin-left:200px; flex:1; padding:28px; }
+  .page-title { font-family:'Black Ops One',sans-serif; font-size:24px; margin-bottom:6px; }
+  .page-title span { color:var(--gold); }
+  .page-sub { font-size:13px; color:var(--muted); letter-spacing:1px; margin-bottom:24px; }
+
+  /* STATS */
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--border); margin-bottom:20px; }
+  .stat { background:var(--surface); padding:16px 20px; }
+  .stat-val { font-family:'Black Ops One',sans-serif; font-size:28px; line-height:1; margin-bottom:4px; }
+  .stat-lbl { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+
+  /* TABLE */
+  .table-wrap { background:var(--surface); border:1px solid var(--border); overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  thead { background:var(--surface2); border-bottom:1px solid var(--border); }
+  th { text-align:left; padding:10px 14px; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  td { padding:12px 14px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--surface2); }
+
+  .badge { display:inline-block; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:3px 8px; }
+  .badge-pending { background:rgba(234,179,8,0.15); color:var(--yellow); border:1px solid rgba(234,179,8,0.3); }
+  .badge-approved { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+  .badge-rejected { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+
+  .wallet-cell { font-family:monospace; font-size:12px; color:var(--muted); }
+  .inscription-cell { font-family:'Black Ops One',sans-serif; font-size:16px; color:var(--gold); }
+
+  .action-btns { display:flex; gap:6px; }
+  .btn-approve { background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:var(--green); font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 12px; cursor:pointer; transition:all 0.15s; }
+  .btn-approve:hover { background:rgba(34,197,94,0.3); }
+  .btn-reject { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:var(--red); font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 12px; cursor:pointer; transition:all 0.15s; }
+  .btn-reject:hover { background:rgba(239,68,68,0.25); }
+
+  /* TRAIT SELECT */
+  .trait-select { background:var(--surface2); border:1px solid var(--border); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:13px; padding:5px 8px; outline:none; }
+  .trait-select:focus { border-color:var(--gold); }
+  .trait-select option { background:var(--surface2); }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; display:none; place-items:center; }
+  .modal-overlay.open { display:grid; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--gold); width:100%; max-width:500px; }
+  .modal-header { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-title { font-family:'Black Ops One',sans-serif; font-size:16px; color:var(--gold); }
+  .modal-close { background:transparent; border:none; color:var(--muted); font-size:18px; cursor:pointer; }
+  .modal-body { padding:20px; }
+  .modal-row { display:grid; grid-template-columns:120px 1fr; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:13px; }
+  .modal-row:last-child { border-bottom:none; }
+  .modal-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); padding-top:2px; }
+  .modal-val { color:var(--white); font-weight:500; }
+  .modal-actions { padding:14px 20px; border-top:1px solid var(--border); background:var(--surface2); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .notes-input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:13px; padding:8px 10px; outline:none; resize:vertical; min-height:50px; }
+  .notes-input:focus { border-color:var(--gold); }
+  .btn-save { background:var(--gold); color:#0a0a0a; border:none; font-family:'Black Ops One',sans-serif; font-size:11px; letter-spacing:2px; padding:9px 18px; cursor:pointer; }
+  .btn-save:hover { background:#d4a832; }
+
+  .link-ext { color:var(--gold); text-decoration:none; font-size:11px; letter-spacing:1px; }
+  .link-ext:hover { text-decoration:underline; }
+
+  .empty { text-align:center; padding:48px; color:var(--muted); }
+
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+const ADMIN_PW = 'builderdogs2024';
+let authed = false;
+let records = [];
+let currentFilter = 'pending';
+let selected = null;
+
+const TRAITS = ['Builder Hat','Crown Hat','Wizard Hat','Pirate Hat','Captain Hat','Firefighter Hat','Jester Hat','Helicopter Hat','Bear Hat','Afro Hat','Sombrero Hat','Painter Hat','Army Hat','Helmet Hat','Birthday Hat','Snapback Hat','Bandana Hat','Trucker Hat','Cowboy Hat','Dad Hat','Top Hat','Gameday Hat','Chef Hat','Rasta Hat','Beanie Hat','Other'];
+
+function render() {
+  document.getElementById('root').innerHTML = authed ? renderApp() : renderLogin();
+  if (authed) {
+    loadRecords();
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.addEventListener('click', () => {
+        currentFilter = el.dataset.filter;
+        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        renderTable();
+      });
+    });
+  }
+}
+
+function renderLogin() {
+  return `<div class="login">
+    <div class="login-box">
+      <div class="login-title">BUILDER<span style="color:var(--white)">DOGS</span></div>
+      <div class="login-sub">Verification Admin</div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="pw" onkeydown="if(event.key==='Enter') login()" placeholder="••••••••" />
+      </div>
+      <button class="login-btn" onclick="login()">ENTER</button>
+      <div class="err" id="err"></div>
+    </div>
+  </div>`;
+}
+
+function login() {
+  if (document.getElementById('pw').value === ADMIN_PW) { authed = true; render(); }
+  else document.getElementById('err').textContent = '⚠ Incorrect password';
+}
+
+function renderApp() {
+  return `
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-text">BUILDER<span>DOGS</span></div>
+          <div class="sidebar-sub">Verification Admin</div>
+        </div>
+        <nav style="padding:12px 0;flex:1;">
+          <div class="nav-item active" data-filter="pending">⏳ Pending <span class="nav-badge" id="pending-badge">0</span></div>
+          <div class="nav-item" data-filter="approved">✓ Approved</div>
+          <div class="nav-item" data-filter="rejected">✕ Rejected</div>
+          <div class="nav-item" data-filter="all">☰ All</div>
+        </nav>
+        <div class="sidebar-footer">
+          <a href="https://market.doginaldogs.com" target="_blank" style="display:block;text-align:center;font-size:10px;letter-spacing:2px;color:var(--gold);text-decoration:none;margin-bottom:10px;">🐕 Marketplace</a>
+          <button class="logout-btn" onclick="authed=false;render()">Sign Out</button>
+        </div>
+      </div>
+      <div class="main">
+        <div class="page-title">Doginal <span>Verifications</span></div>
+        <div class="page-sub">Review and approve holder verification requests</div>
+        <div class="stats" id="stats">
+          <div class="stat"><div class="stat-val">—</div><div class="stat-lbl">Total</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--yellow)">—</div><div class="stat-lbl">Pending</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--green)">—</div><div class="stat-lbl">Approved</div></div>
+        </div>
+        <div id="table-wrap"><div class="empty">Loading...</div></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title" id="modal-title">Verification Request</div>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>`;
+}
+
+async function loadRecords() {
+  const { data } = await db.from('doginal_verifications').select('*').order('submitted_at', { ascending: false });
+  records = data || [];
+
+  const pending = records.filter(r => r.status === 'pending').length;
+  const approved = records.filter(r => r.status === 'approved').length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-val">${records.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--yellow)">${pending}</div><div class="stat-lbl">Pending</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--green)">${approved}</div><div class="stat-lbl">Approved</div></div>`;
+
+  const pb = document.getElementById('pending-badge');
+  if (pb) pb.textContent = pending;
+
+  renderTable();
+}
+
+function renderTable() {
+  const filtered = currentFilter === 'all' ? records : records.filter(r => r.status === currentFilter);
+
+  if (!filtered.length) {
+    document.getElementById('table-wrap').innerHTML = `<div class="table-wrap"><div class="empty">No ${currentFilter} requests</div></div>`;
+    return;
+  }
+
+  document.getElementById('table-wrap').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Inscription</th>
+          <th>Wallet</th>
+          <th>X Handle</th>
+          <th>Trait</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr></thead>
+        <tbody>
+          ${filtered.map(r => `
+            <tr>
+              <td class="inscription-cell">#${r.inscription_number}</td>
+              <td class="wallet-cell">${r.wallet.slice(0,8)}...${r.wallet.slice(-4)}</td>
+              <td style="color:var(--muted);font-size:12px;">${r.twitter_handle ? '@'+r.twitter_handle : '—'}</td>
+              <td>${r.trait ? `<span class="badge badge-approved">${r.trait}</span>` : '<span style="color:#333;font-size:11px;">Not set</span>'}</td>
+              <td><span class="badge badge-${r.status}">${r.status}</span></td>
+              <td style="color:var(--muted);font-size:11px;">${new Date(r.submitted_at).toLocaleDateString()}</td>
+              <td><button onclick="openModal('${r.id}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">Review</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openModal(id) {
+  selected = records.find(r => r.id === id);
+  if (!selected) return;
+
+  const marketUrl = `https://market.doginaldogs.com/dog/${selected.inscription_number}`;
+
+  document.getElementById('modal-title').textContent = 'Dog #' + selected.inscription_number;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-row"><div class="modal-label">Status</div><div class="modal-val"><span class="badge badge-${selected.status}">${selected.status}</span></div></div>
+    <div class="modal-row"><div class="modal-label">Inscription</div><div class="modal-val" style="font-family:'Black Ops One',sans-serif;font-size:18px;color:var(--gold);">#${selected.inscription_number}</div></div>
+    <div class="modal-row"><div class="modal-label">Wallet</div><div class="modal-val" style="font-family:monospace;font-size:12px;word-break:break-all;">${selected.wallet}</div></div>
+    <div class="modal-row"><div class="modal-label">X Handle</div><div class="modal-val">${selected.twitter_handle ? '@'+selected.twitter_handle : '—'}</div></div>
+    <div class="modal-row"><div class="modal-label">Submitted</div><div class="modal-val">${new Date(selected.submitted_at).toLocaleString()}</div></div>
+    <div class="modal-row"><div class="modal-label">Verify</div><div class="modal-val"><a href="${marketUrl}" target="_blank" class="link-ext">🔗 View on market.doginaldogs.com ↗</a></div></div>
+    <div style="margin-top:14px;">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Hat Trait</div>
+      <select class="trait-select" id="modal-trait">
+        <option value="">— Select trait —</option>
+        ${TRAITS.map(t => `<option value="${t}" ${selected.trait===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div style="margin-top:14px;">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Admin Notes</div>
+      <textarea class="notes-input" id="modal-notes" placeholder="Notes, reason for rejection, etc...">${selected.admin_notes || ''}</textarea>
+    </div>`;
+
+  document.getElementById('modal-actions').innerHTML = `
+    <button class="btn-approve" onclick="approveRecord()">✓ Approve</button>
+    <button class="btn-reject" onclick="rejectRecord()">✕ Reject</button>
+    <button class="btn-save" onclick="saveNotes()" style="margin-left:auto;">Save Notes</button>
+    <button onclick="closeModal()" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;cursor:pointer;">Close</button>`;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  selected = null;
+}
+
+async function approveRecord() {
+  if (!selected) return;
+  const trait = document.getElementById('modal-trait').value;
+  const notes = document.getElementById('modal-notes').value;
+
+  await db.from('doginal_verifications').update({
+    status: 'approved',
+    trait: trait || null,
+    admin_notes: notes,
+    approved_at: new Date().toISOString()
+  }).eq('id', selected.id);
+
+  closeModal();
+  loadRecords();
+}
+
+async function rejectRecord() {
+  if (!selected) return;
+  const notes = document.getElementById('modal-notes').value;
+
+  await db.from('doginal_verifications').update({
+    status: 'rejected',
+    admin_notes: notes
+  }).eq('id', selected.id);
+
+  closeModal();
+  loadRecords();
+}
+
+async function saveNotes() {
+  if (!selected) return;
+  const trait = document.getElementById('modal-trait').value;
+  const notes = document.getElementById('modal-notes').value;
+
+  await db.from('doginal_verifications').update({
+    trait: trait || null,
+    admin_notes: notes
+  }).eq('id', selected.id);
+
+  closeModal();
+  loadRecords();
+}
+
+document.getElementById('modal')?.addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
+});
+
+render();
+</script>
+</body>
+</html>

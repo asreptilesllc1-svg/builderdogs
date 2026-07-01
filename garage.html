@@ -360,6 +360,93 @@
 
   .holder-banner.show { display: block; }
 
+
+  /* VERIFICATION */
+  .verify-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    padding: 20px 24px;
+    margin: 0 0 2px;
+  }
+
+  .verify-title {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 15px;
+    color: var(--gold);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .verify-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .verify-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .verify-input {
+    flex: 1;
+    min-width: 160px;
+    background: var(--surface2);
+    border: 1px solid rgba(245,200,66,0.2);
+    color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border 0.2s;
+  }
+
+  .verify-input:focus { border-color: var(--gold); }
+  .verify-input::placeholder { color: #444; }
+
+  .verify-btn {
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    background: var(--gold);
+    color: #0d0d0d;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .verify-btn:hover { background: #d4a832; }
+  .verify-btn:disabled { background: #3a3000; color: #5a5000; cursor: not-allowed; }
+
+  .verify-status {
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    display: none;
+  }
+
+  .verify-status.success { color: var(--green); display: block; }
+  .verify-status.error { color: var(--red); display: block; }
+  .verify-status.pending { color: var(--gold); display: block; }
+
+  .verified-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245,200,66,0.08);
+    border: 1px solid rgba(245,200,66,0.2);
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--gold);
+  }
+
+  .verified-badge.show { display: flex; }
+
   /* WEATHER */
   .weather-bar {
     background: var(--surface);
@@ -649,6 +736,31 @@
   </div>
 
 
+
+  <!-- DOGINAL VERIFICATION -->
+  <div id="verify-section" style="display:none;">
+    <div class="verify-section">
+      <div class="verify-title">🐕 Verify Your Doginal Dog</div>
+      <p class="verify-desc">Own a Doginal Dog? Enter your inscription number to get your holder badge. We'll verify it on <a href="https://market.doginaldogs.com" target="_blank" style="color:var(--gold);">market.doginaldogs.com</a> and badge your wallet within 24 hours.</p>
+      <div id="verified-badge" class="verified-badge">
+        <span style="font-size:18px;">✓</span>
+        <div>
+          <div style="font-family:'Black Ops One',sans-serif;font-size:13px;" id="verified-badge-text">Verified Holder</div>
+          <div style="font-size:10px;letter-spacing:2px;color:#8a7020;">DOGINAL DOGS VERIFIED</div>
+        </div>
+      </div>
+      <div id="verify-form">
+        <div class="verify-row">
+          <input type="text" class="verify-input" id="inscription-input" placeholder="Inscription # (e.g. 9826)" maxlength="10" onkeydown="if(event.key==='Enter') submitVerification()" />
+          <input type="text" class="verify-input" id="twitter-input" placeholder="Your X handle (optional)" maxlength="30" style="max-width:200px;" />
+          <button class="verify-btn" id="verify-btn" onclick="submitVerification()">Submit</button>
+        </div>
+        <div class="verify-status" id="verify-status"></div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- DAILY LOGIN STREAK -->
   <div id="daily-streak-bar" style="background:linear-gradient(90deg,#0a1f0a,#0d2b0d);border-bottom:1px solid rgba(34,197,94,0.2);padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:8px;">
@@ -829,6 +941,137 @@ function showGarage() {
 }
 
 
+
+// ── DOGINAL VERIFICATION ──
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+async function checkVerificationStatus(wallet) {
+  if (!wallet) return null;
+  try {
+    const { data } = await db
+      .from('doginal_verifications')
+      .select('*')
+      .eq('wallet', wallet.toLowerCase())
+      .single();
+    return data;
+  } catch(e) { return null; }
+}
+
+async function initVerification() {
+  if (!walletAddress) {
+    document.getElementById('verify-section').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('verify-section').style.display = 'block';
+
+  // Check if already verified
+  const record = await checkVerificationStatus(walletAddress);
+  if (record) {
+    if (record.status === 'approved') {
+      showVerifiedBadge(record);
+      updateWalletBadgeVerified(record);
+    } else if (record.status === 'pending') {
+      document.getElementById('verify-form').style.display = 'none';
+      showVerifyStatus('⏳ Verification pending — we'll badge you within 24 hours.', 'pending');
+    }
+  }
+}
+
+function showVerifiedBadge(record) {
+  document.getElementById('verify-form').style.display = 'none';
+  const badge = document.getElementById('verified-badge');
+  const traitLabel = record.trait ? ' · ' + record.trait : '';
+  document.getElementById('verified-badge-text').textContent =
+    'Dog #' + record.inscription_number + traitLabel + ' · Verified Holder';
+  badge.classList.add('show');
+}
+
+function updateWalletBadgeVerified(record) {
+  const badge = document.getElementById('wallet-badge');
+  badge.style.display = 'inline';
+  const trait = record.trait || '';
+  if (trait.includes('Builder')) {
+    badge.textContent = '🔨 Builder Hat Holder';
+    badge.className = 'wallet-badge badge-builder';
+    document.getElementById('holder-banner').classList.add('show');
+  } else if (trait.includes('Crown')) {
+    badge.textContent = '👑 Crown Hat Holder';
+    badge.className = 'wallet-badge badge-holder';
+    document.getElementById('holder-banner').classList.add('show');
+  } else if (trait.includes('Wizard')) {
+    badge.textContent = '🧙 Wizard Holder';
+    badge.className = 'wallet-badge badge-holder';
+    document.getElementById('holder-banner').classList.add('show');
+  } else {
+    badge.textContent = '🐕 Verified Doginal Holder';
+    badge.className = 'wallet-badge badge-holder';
+  }
+}
+
+function showVerifyStatus(msg, type) {
+  const el = document.getElementById('verify-status');
+  el.textContent = msg;
+  el.className = 'verify-status ' + type;
+}
+
+async function submitVerification() {
+  if (!walletAddress) {
+    showVerifyStatus('⚠ Please connect your wallet first.', 'error');
+    return;
+  }
+
+  const inscription = document.getElementById('inscription-input').value.trim().replace('#', '');
+  const twitter = document.getElementById('twitter-input').value.trim().replace('@', '');
+
+  if (!inscription || isNaN(inscription)) {
+    showVerifyStatus('⚠ Please enter a valid inscription number.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('verify-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  try {
+    // Check if this inscription is already claimed by another wallet
+    const { data: existing } = await db
+      .from('doginal_verifications')
+      .select('wallet')
+      .eq('inscription_number', inscription)
+      .single();
+
+    if (existing && existing.wallet !== walletAddress.toLowerCase()) {
+      showVerifyStatus('⚠ This inscription number is already linked to another wallet.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Submit';
+      return;
+    }
+
+    // Save verification request
+    await db.from('doginal_verifications').upsert({
+      wallet: walletAddress.toLowerCase(),
+      inscription_number: inscription,
+      twitter_handle: twitter || null,
+      status: 'pending',
+      submitted_at: new Date().toISOString()
+    }, { onConflict: 'wallet' });
+
+    document.getElementById('verify-form').style.display = 'none';
+    showVerifyStatus('✓ Submitted! We'll verify your dog on market.doginaldogs.com and badge you within 24 hours.', 'pending');
+
+  } catch(e) {
+    showVerifyStatus('⚠ Something went wrong. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Submit';
+  }
+}
+
+
 // ── WALLET CONNECTION ──
 let walletAddress = null;
 
@@ -898,6 +1141,9 @@ function disconnectWallet() {
   document.getElementById('connect-btn').classList.remove('connected');
   document.getElementById('connect-btn').disabled = false;
   document.getElementById('holder-banner').classList.remove('show');
+  // Reload streak for guest
+  initStreak();
+  document.getElementById('verify-section').style.display = 'none';
 }
 
 function updateWalletUI(address, walletName) {
@@ -909,6 +1155,10 @@ function updateWalletUI(address, walletName) {
   document.getElementById('connect-btn').textContent = 'Disconnect';
   document.getElementById('connect-btn').classList.add('connected');
   document.getElementById('connect-btn').disabled = false;
+
+  // Reload streak and verification for this wallet
+  initStreak();
+  initVerification();
 
   const badge = document.getElementById('wallet-badge');
   badge.style.display = 'inline';
@@ -941,6 +1191,7 @@ function showWalletModal() {
 function initSite() {
   initWallet();
   initStreak();
+  // initVerification called after wallet connects
   // Load saved location or default to NYC
   const savedLat = localStorage.getItem('bd-weather-lat');
   const savedLon = localStorage.getItem('bd-weather-lon');
@@ -955,48 +1206,62 @@ function initSite() {
 }
 
 
-// ── DAILY STREAK ──
+// ── DAILY STREAK (wallet-bound) ──
+function getStreakKey(key) {
+  const wallet = walletAddress ? walletAddress.toLowerCase() : 'guest';
+  return 'bd-' + key + '-' + wallet;
+}
+
 function initStreak() {
   const today = new Date().toDateString();
-  const lastVisit = localStorage.getItem('bd-last-visit');
+  const lastVisit = localStorage.getItem(getStreakKey('last-visit'));
   const yesterday = new Date(Date.now() - 86400000).toDateString();
-  let streak = parseInt(localStorage.getItem('bd-streak') || '0');
-  let checkedIn = localStorage.getItem('bd-checkedin') === today;
+  let streak = parseInt(localStorage.getItem(getStreakKey('streak')) || '0');
+  let checkedIn = localStorage.getItem(getStreakKey('checkedin')) === today;
 
-  if (!checkedIn) {
-    // Check if streak continues
-    if (lastVisit === yesterday) {
-      // streak continues — don't increment until they check in
-    } else if (lastVisit !== today) {
-      // streak broken
-      if (lastVisit !== yesterday) streak = 0;
-    }
+  // If streak was broken (missed a day) reset it
+  if (!checkedIn && lastVisit && lastVisit !== yesterday && lastVisit !== today) {
+    streak = 0;
+    localStorage.setItem(getStreakKey('streak'), 0);
   }
 
   updateStreakDisplay(streak, checkedIn);
 
+  const btn = document.getElementById('checkin-btn');
   if (checkedIn) {
-    document.getElementById('checkin-btn').textContent = '✓ CHECKED IN';
-    document.getElementById('checkin-btn').style.background = '#166a16';
-    document.getElementById('checkin-btn').disabled = true;
+    btn.textContent = '✓ CHECKED IN';
+    btn.style.background = '#166a16';
+    btn.disabled = true;
+  } else {
+    btn.textContent = walletAddress ? '✓ CHECK IN' : '✓ CHECK IN (Guest)';
+    btn.style.background = 'var(--green)';
+    btn.disabled = false;
+  }
+
+  // Show wallet notice if not connected
+  const sub = document.getElementById('streak-sub');
+  if (!walletAddress && streak > 0) {
+    sub.textContent = '⚠ Connect wallet to save streak across devices';
   }
 }
 
 function dailyCheckin() {
   const today = new Date().toDateString();
-  const lastVisit = localStorage.getItem('bd-last-visit');
+  const lastVisit = localStorage.getItem(getStreakKey('last-visit'));
   const yesterday = new Date(Date.now() - 86400000).toDateString();
-  let streak = parseInt(localStorage.getItem('bd-streak') || '0');
+  let streak = parseInt(localStorage.getItem(getStreakKey('streak')) || '0');
 
   if (lastVisit === yesterday || streak === 0) {
     streak++;
   } else if (lastVisit !== today) {
-    streak = 1;
+    streak = 1; // reset broken streak
+  } else {
+    return; // already checked in today
   }
 
-  localStorage.setItem('bd-streak', streak);
-  localStorage.setItem('bd-last-visit', today);
-  localStorage.setItem('bd-checkedin', today);
+  localStorage.setItem(getStreakKey('streak'), streak);
+  localStorage.setItem(getStreakKey('last-visit'), today);
+  localStorage.setItem(getStreakKey('checkedin'), today);
 
   updateStreakDisplay(streak, true);
 
@@ -1005,21 +1270,18 @@ function dailyCheckin() {
   btn.style.background = '#166a16';
   btn.disabled = true;
 
-  // Reward message
-  const msgs = [
-    'Day 1 — Welcome to the garage!',
-    'Day 2 — You came back!',
-    'Day 3 — 3 day streak! 🔥',
-    'Day 7 — One week! Builder status unlocked 🔨',
-    'Day 14 — Two weeks! OG Builder 🏆',
-    'Day 30 — 30 days! Legend status 👑',
-  ];
-
   const sub = document.getElementById('streak-sub');
-  if (streak === 7) sub.textContent = '🔨 Builder status unlocked!';
-  else if (streak === 14) sub.textContent = '🏆 OG Builder unlocked!';
-  else if (streak === 30) sub.textContent = '👑 Legend status unlocked!';
-  else sub.textContent = `Day ${streak} checked in! Come back tomorrow.`;
+  if (!walletAddress) {
+    sub.textContent = '⚠ Connect wallet to save your streak across devices!';
+  } else if (streak === 7) {
+    sub.textContent = '🔨 Builder status unlocked!';
+  } else if (streak === 14) {
+    sub.textContent = '🏆 OG Builder unlocked!';
+  } else if (streak === 30) {
+    sub.textContent = '👑 Legend status unlocked!';
+  } else {
+    sub.textContent = `Day ${streak} checked in! Come back tomorrow. ${walletAddress ? '(Saved to wallet)' : ''}`;
+  }
 }
 
 function updateStreakDisplay(streak, checkedIn) {
