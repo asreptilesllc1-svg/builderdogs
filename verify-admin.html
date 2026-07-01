@@ -116,6 +116,25 @@
 
   ::-webkit-scrollbar { width:3px; }
   ::-webkit-scrollbar-thumb { background:var(--border); }
+
+  .gb-admin-entry {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 2px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .gb-admin-entry.pinned { border-left-color: var(--orange); }
+  .gb-admin-entry .gb-body { flex: 1; }
+  .gb-admin-entry .gb-name { font-family: 'Black Ops One', sans-serif; font-size: 14px; margin-bottom: 4px; }
+  .gb-admin-entry .gb-meta { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
+  .gb-admin-entry .gb-msg { font-size: 13px; color: var(--white); line-height: 1.5; }
+  .btn-delete { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--red); font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .btn-delete:hover { background: rgba(239,68,68,0.25); }
+  #guestbook-section { display: none; }
 </style>
 </head>
 <body>
@@ -145,10 +164,70 @@ function render() {
         currentFilter = el.dataset.filter;
         document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
         el.classList.add('active');
-        renderTable();
+        if (currentFilter === 'guestbook') {
+          document.getElementById('table-wrap').style.display = 'none';
+          document.querySelector('.page-title').style.display = 'none';
+          document.querySelector('.page-sub').style.display = 'none';
+          document.getElementById('stats').style.display = 'none';
+          document.getElementById('guestbook-section').style.display = 'block';
+          loadGuestbook();
+        } else {
+          document.getElementById('table-wrap').style.display = 'block';
+          document.querySelector('.page-title').style.display = 'block';
+          document.querySelector('.page-sub').style.display = 'block';
+          document.getElementById('stats').style.display = 'grid';
+          document.getElementById('guestbook-section').style.display = 'none';
+          renderTable();
+        }
       });
     });
   }
+}
+
+async function loadGuestbook() {
+  const listEl = document.getElementById('gb-list');
+  listEl.innerHTML = '<div class="empty">Loading...</div>';
+  try {
+    const { data } = await db.from('guestbook').select('*').order('created_at', { ascending: false });
+    const entries = data || [];
+    const verified = entries.filter(e => e.verified).length;
+    document.getElementById('gb-total').textContent = entries.length;
+    document.getElementById('gb-verified').textContent = verified;
+    document.getElementById('gb-unverified').textContent = entries.length - verified;
+
+    if (!entries.length) {
+      listEl.innerHTML = '<div class="empty">No guestbook entries yet</div>';
+      return;
+    }
+
+    // Pin BooMetaX to top
+    const pinned = entries.find(e => e.name === 'BooMetaX');
+    const rest = entries.filter(e => e.name !== 'BooMetaX');
+    const sorted = pinned ? [pinned, ...rest] : entries;
+
+    listEl.innerHTML = sorted.map(e => `
+      <div class="gb-admin-entry ${e.name === 'BooMetaX' ? 'pinned' : ''}">
+        <div class="gb-body">
+          <div class="gb-name">
+            ${e.name}
+            ${e.verified ? '<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;padding:2px 6px;background:rgba(245,200,66,0.15);color:#f5c842;border:1px solid rgba(245,200,66,0.3);margin-left:6px;">✓ VERIFIED</span>' : '<span style="font-size:8px;color:#444;margin-left:6px;">guest</span>'}
+            ${e.name === 'BooMetaX' ? '<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;padding:2px 6px;background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3);margin-left:6px;">📌 FOUNDER</span>' : ''}
+          </div>
+          <div class="gb-meta">${e.trade || 'Builder'} · ${e.trait || ''} · ${new Date(e.created_at).toLocaleString()}</div>
+          <div class="gb-msg">${e.message}</div>
+        </div>
+        ${e.name !== 'BooMetaX' ? `<button class="btn-delete" onclick="deleteEntry('${e.id}')">✕ Remove</button>` : '<span style="font-size:10px;color:#333;padding:5px;">📌 Pinned</span>'}
+      </div>
+    `).join('');
+  } catch(err) {
+    listEl.innerHTML = '<div class="empty">Error loading guestbook</div>';
+  }
+}
+
+async function deleteEntry(id) {
+  if (!confirm('Remove this entry from the wall? This cannot be undone.')) return;
+  await db.from('guestbook').delete().eq('id', id);
+  loadGuestbook();
 }
 
 function renderLogin() {
@@ -180,6 +259,7 @@ function renderApp() {
           <div class="sidebar-sub">Verification Admin</div>
         </div>
         <nav style="padding:12px 0;flex:1;">
+          <div class="nav-item" data-filter="guestbook" id="nav-guestbook">💬 Guestbook</div>
           <div class="nav-item active" data-filter="pending">⏳ Pending <span class="nav-badge" id="pending-badge">0</span></div>
           <div class="nav-item" data-filter="approved">✓ Approved</div>
           <div class="nav-item" data-filter="rejected">✕ Rejected</div>
