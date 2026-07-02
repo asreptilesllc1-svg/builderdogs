@@ -1022,7 +1022,7 @@
   <div class="stats-section">
     <div class="stats-header">
       <div class="stats-title">LIVE PRICES</div>
-      <div class="stats-live"><span class="live-dot"></span> Updates every 60 seconds</div>
+      <div class="stats-live"><span class="live-dot"></span> Updates every 15 seconds</div>
     </div>
     <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
       <div class="stat-card">
@@ -1753,7 +1753,7 @@ async function loadCryptoPrices() {
 function initSite() {
   initWallet();
   loadCryptoPrices();
-  setInterval(loadCryptoPrices, 60000); // refresh every minute
+  setInterval(loadCryptoPrices, 15000); // refresh every 15 seconds
   initStreak();
   initVisitors();
   renderGB();
