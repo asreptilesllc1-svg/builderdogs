@@ -914,7 +914,10 @@
       <div class="wallet-address" id="wallet-address" style="display:none;"></div>
       <span class="wallet-badge badge-visitor" id="wallet-badge" style="display:none;"></span>
     </div>
-    <button class="connect-btn" id="connect-btn" onclick="connectWallet()">🔗 Connect Wallet</button>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:9px;letter-spacing:1px;color:#444;" title="We only request your public address. We never ask you to sign transactions or approve contracts.">🔒 Read-only, no signatures ever</span>
+      <button class="connect-btn" id="connect-btn" onclick="connectWallet()">🔗 Connect Wallet</button>
+    </div>
   </div>
 
   <!-- HOLDER BANNER -->
@@ -1346,7 +1349,9 @@ async function initVerification() {
 function showVerifiedBadge(record) {
   document.getElementById('verify-form').style.display = 'none';
   const traitLabel = record.trait ? ' · ' + record.trait : '';
-  document.getElementById('verified-badge-text').innerHTML = '<span style="font-family:Black Ops One,sans-serif;font-size:20px;letter-spacing:2px;">Dog #' + record.inscription_number + traitLabel + '</span><br><span style="font-size:11px;letter-spacing:3px;color:#8a7020;text-transform:uppercase;">Verified Doginal Holder</span>';
+  const safeInscription = escapeHtml(String(record.inscription_number || ''));
+  const safeTraitLabel = escapeHtml(traitLabel);
+  document.getElementById('verified-badge-text').innerHTML = '<span style="font-family:Black Ops One,sans-serif;font-size:20px;letter-spacing:2px;">Dog #' + safeInscription + safeTraitLabel + '</span><br><span style="font-size:11px;letter-spacing:3px;color:#8a7020;text-transform:uppercase;">Verified Doginal Holder</span>';
   document.getElementById('verified-badge').classList.add('show');
   const desc = document.querySelector('.verify-desc');
   if (desc) desc.style.display = 'none';
@@ -1672,6 +1677,12 @@ async function refreshVisitorCounts() {
 // ════════════════════════════════════════
 // GUESTBOOK
 // ════════════════════════════════════════
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 async function renderGB() {
   const el = document.getElementById('gblist');
   el.innerHTML = '<div class="gb-empty" style="padding:24px;text-align:center;color:var(--muted);">Loading...</div>';
@@ -1707,9 +1718,9 @@ async function renderGB() {
   }
 
   const renderEntry = (e, isVerified) => {
-    const name = e.name || 'Anonymous';
-    const trade = e.trade || 'Builder';
-    const msg = e.message || e.msg || '';
+    const name = escapeHtml(e.name || 'Anonymous');
+    const trade = escapeHtml(e.trade || 'Builder');
+    const msg = escapeHtml(e.message || e.msg || '');
     const date = e.created_at
       ? new Date(e.created_at).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'})
       : e.date || '';
