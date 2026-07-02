@@ -996,7 +996,7 @@
     <div class="radio-controls">
       <select class="station-sel" id="ssel" onchange="changeStation()">
         <option value="">— Pick a station —</option>
-        <option value="https://ice4.somafm.com/dancetronica-128-mp3" data-n="Dance Party">⚡ Dance Party (Pumped)</option>
+        <option value="https://ice4.somafm.com/thetrip-128-mp3" data-n="The Trip">⚡ The Trip (Pumped)</option>
         <option value="https://ice4.somafm.com/groovesalad-128-mp3" data-n="Groove Salad">🌿 Groove Salad</option>
         <option value="https://ice4.somafm.com/metal-128-mp3" data-n="Metal Detector">🤘 Metal Detector</option>
         <option value="https://ice4.somafm.com/lush-128-mp3" data-n="Lush">✨ Lush</option>
@@ -1584,14 +1584,89 @@ function setVol(v) { audio.volume = parseFloat(v); }
 // ════════════════════════════════════════
 // VISITORS
 // ════════════════════════════════════════
-function initVisitors() {
-  let total = parseInt(localStorage.getItem('bd-g-visits') || '0') + 1;
-  localStorage.setItem('bd-g-visits', total);
-  document.getElementById('vcnt').textContent = Math.floor(Math.random() * 9) + 2;
-  document.getElementById('vtot').textContent = total.toLocaleString();
-  setInterval(() => {
-    document.getElementById('vcnt').textContent = Math.floor(Math.random() * 14) + 1;
-  }, 30000);
+// ── REAL VISITOR TRACKING ──
+let mySessionId = null;
+let pingInterval = null;
+
+function getSessionId() {
+  let sid = sessionStorage.getItem('bd-session-id');
+  if (!sid) {
+    sid = 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    sessionStorage.setItem('bd-session-id', sid);
+  }
+  return sid;
+}
+
+async function initVisitors() {
+  if (!_supa) {
+    document.getElementById('vcnt').textContent = '—';
+    document.getElementById('vtot').textContent = '—';
+    return;
+  }
+
+  mySessionId = getSessionId();
+  const alreadyCountedThisSession = sessionStorage.getItem('bd-visit-counted');
+
+  try {
+    // Add this session to the "active now" tracker
+    await _supa.from('garage_visits').upsert({
+      session_id: mySessionId,
+      wallet: walletAddress ? walletAddress.toLowerCase() : null,
+      visited_at: new Date().toISOString(),
+      last_ping: new Date().toISOString()
+    }, { onConflict: 'session_id' });
+
+    // Only increment the permanent lifetime counter once per browser session
+    if (!alreadyCountedThisSession) {
+      sessionStorage.setItem('bd-visit-counted', '1');
+      await _supa.rpc('increment_total_visits');
+    }
+
+    // Ping every 20s to stay counted as "active"
+    pingInterval = setInterval(async () => {
+      try {
+        await _supa
+          .from('garage_visits')
+          .update({ last_ping: new Date().toISOString() })
+          .eq('session_id', mySessionId);
+      } catch(e) {}
+    }, 20000);
+
+    await refreshVisitorCounts();
+    setInterval(refreshVisitorCounts, 20000);
+  } catch(e) {
+    console.log('Visitor tracking error:', e);
+    document.getElementById('vcnt').textContent = '—';
+    document.getElementById('vtot').textContent = '—';
+  }
+}
+
+async function refreshVisitorCounts() {
+  if (!_supa) return;
+  try {
+    // Prune sessions inactive for 2+ minutes — keeps the active table tiny
+    const staleCutoff = new Date(Date.now() - 120000).toISOString();
+    _supa.from('garage_visits').delete().lt('last_ping', staleCutoff).then(() => {});
+
+    // Active now = pinged within last 60 seconds
+    const activeCutoff = new Date(Date.now() - 60000).toISOString();
+    const { count: activeCount } = await _supa
+      .from('garage_visits')
+      .select('*', { count: 'exact', head: true })
+      .gte('last_ping', activeCutoff);
+
+    // Total visits = permanent lifetime counter, never pruned
+    const { data: statsData } = await _supa
+      .from('garage_stats')
+      .select('total_visits')
+      .eq('id', 1)
+      .single();
+
+    document.getElementById('vcnt').textContent = activeCount ?? '—';
+    document.getElementById('vtot').textContent = (statsData?.total_visits ?? 0).toLocaleString();
+  } catch(e) {
+    console.log('Refresh visitor counts error:', e);
+  }
 }
 
 // ════════════════════════════════════════
