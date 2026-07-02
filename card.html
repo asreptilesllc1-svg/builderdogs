@@ -235,6 +235,127 @@
   @media(max-width: 480px) {
     .trait-grid { grid-template-columns: repeat(5, 1fr); }
   }
+
+  /* HOLOGRAPHIC & PREMIUM EFFECTS */
+  .card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease-out, box-shadow 0.3s;
+  }
+
+  .card-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.15) 55%, transparent 70%);
+    background-size: 200% 200%;
+    background-position: -100% -100%;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 14px;
+  }
+
+  .card-wrap:hover .card-shine {
+    opacity: 1;
+    animation: shine-sweep 1.2s ease forwards;
+  }
+
+  @keyframes shine-sweep {
+    0% { background-position: -150% -150%; }
+    100% { background-position: 150% 150%; }
+  }
+
+  /* Legendary — animated holo foil */
+  .card.tier-legendary {
+    border-color: var(--orange);
+    box-shadow: 0 20px 60px rgba(249,115,22,0.3), 0 0 40px rgba(249,115,22,0.15);
+  }
+  .card.tier-legendary .card-holo {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg,
+      rgba(249,115,22,0.15) 0%,
+      rgba(245,200,66,0.15) 20%,
+      rgba(168,85,247,0.15) 40%,
+      rgba(34,197,94,0.15) 60%,
+      rgba(249,115,22,0.15) 80%,
+      rgba(245,200,66,0.15) 100%);
+    background-size: 300% 300%;
+    animation: holo-shift 4s ease infinite;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 14px;
+  }
+
+  @keyframes holo-shift {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Rare — purple accent glow */
+  .card.tier-rare {
+    border-color: var(--purple);
+    box-shadow: 0 20px 60px rgba(168,85,247,0.25), 0 0 30px rgba(168,85,247,0.12);
+  }
+  .card.tier-rare .card-holo {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(168,85,247,0.12) 50%, transparent 60%);
+    background-size: 250% 250%;
+    animation: holo-shift 5s ease infinite;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 14px;
+  }
+
+  /* Common — subtle silver sheen */
+  .card.tier-common {
+    border-color: #888;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .card.tier-common .card-holo { display: none; }
+
+  /* Card entrance animation */
+  .card-wrap {
+    animation: card-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes card-enter {
+    0% { opacity: 0; transform: scale(0.8) rotateY(-20deg); }
+    100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+  }
+
+  /* Rarity badge glow */
+  .rarity-legendary {
+    background: rgba(249,115,22,0.25);
+    box-shadow: 0 0 12px rgba(249,115,22,0.5);
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(249,115,22,0.4); }
+    50% { box-shadow: 0 0 16px rgba(249,115,22,0.7); }
+  }
+
+  /* Stat bar visual */
+  .rarity-bar-wrap {
+    margin-top: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .rarity-bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .rarity-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
 </style>
 </head>
 <body>
@@ -254,7 +375,9 @@
 
   <!-- CARD PREVIEW -->
   <div class="card-wrap">
-    <div class="card" id="card">
+    <div class="card" id="card" onmousemove="tiltCard(event)" onmouseleave="resetTilt()">
+      <div class="card-holo"></div>
+      <div class="card-shine"></div>
       <div class="rarity-badge rarity-common" id="rarity-badge">Common</div>
       <div class="card-header">
         <div class="card-logo">BUILDER<span>DOGS</span></div>
@@ -274,6 +397,9 @@
           <div class="card-stat-lbl">Trait Count</div>
           <div class="card-stat-val" id="card-count">86</div>
         </div>
+      </div>
+      <div class="rarity-bar-wrap">
+        <div class="rarity-bar-track"><div class="rarity-bar-fill" id="rarity-bar-fill"></div></div>
       </div>
       <div class="card-footer">DOGINAL DOGS · BUILDERDOGS.COM</div>
     </div>
@@ -326,7 +452,7 @@ const TRAITS = [
   { name: "Helicopter", img: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAAAHTklEQVR4nO3dv47rxhXH8d8Mqc3FGjCQlAGMvICR2oVfwI2rW7jNI6RLkQSxYbdOFyDvkOcIYPgBXNhujKROEThO9opzUswM/60oUaJ0V0N+P8C1h3u1FDU8nMMZjuZKAAAAAAAAAAAAAAAAAAAAwALupQ/gbfn9H/9kXkGSFOQlF8uyXN5L8vFP+7Ogzz/9/GgdffaHT838kyRp72rVwSs4KUiqTc/LLqi2vX62l373xRebqf8p9UsfwNviFeRcPN/Ombylc+9Mkkmq0itd+plTI39yv42PYessyCsGWHy/GHDDcpC3eAHsT+96EzZWDUHeYhDEdimM/n5UHXa6enZNDKjG1Qf2N61uNlb1EzbTAgYnudwiWfezpddgTKs+tmyu2/dh3XvZ5pNvtJkAlHl5xegYBt78VuuQxqvXqvb3e+L3CEBJm0vB17cLe8mF9n5vrnpZ3K/GZlrAV3upqaWHJm4/VafLP824PCvb63+qJdV61YTZ+94RgJI2NAyzxE6yRtKDpEZxMGen2G/+8ey2DziXk8kpjdf4VPa2O9HlwGncA85lkvoD2C7ozUsez0oQgHO07Vzotk16WNiDBgE4T++JBkn3ugjAuXpdjVxpxOJyBOBclh/e+TbxVsdej1kIwDkGz4TDgRIuRQAuQApejgCcwx1u60jByxGAc0xMyyIFL0cALkAKXo4AXIAUvBwBuAApeDkCcAFS8HKbmUrk5S1Po2oUJ5DubDi9qpE0fk07CeFAezceHXxI5TTlT9WR8k7Sjxuq/ylbqgDT6DshUvqK5qgUtxRrxyQvr3DlhPso6T/bqv+DtpeCB3nTtxUwrgg/esW1K4r7x2gzU/LVptO+rl0Lep5S4/Pf24RKc/olm7CdALTuPm4qpN5mq7STmNCqjaXge/qw+5c+gDtxT+fk5sLkHV/+2aaq4y5sphf2/Sd/jauyhFpyaSEie+he4P6bCl5NGlBxJv3qt//Qv9/9Vg/OKcjLnFcV4pfbzUm//vpjyfKdTP9O8ni5Cl7f/+ajzdT/lNXcA1by1igvEKS0EkI83b/Uo97716O60cADLZ2LPwuq1aT1ibx5Vc0/9Y77TnUVZKm68hoL5qQf3vmFpDqtqLWPwZhW1jpaliQn82mcsTuqttuzieBcTQDmDq5rN0IbiFJctaqSk7mpJ7iVLAVhlXZUBZO8l3wV9+limJjrQsQsda/NpXdv0vufKo8vgl5/+2CPfZ1Wc9NTS5IbrrmSB5xjyOW1/3IAhtEfH1dlU2z9YrmStJdPawe6Xk86v659SuKezjtgFyTz7ZqBAzNW5VqL1XzSdlwtLu03zeUHbqNOh1WSVXIWuu3+r6WgcJMt0+HHdbOcOuYVW00AWvqPbze6BSKfj/75UXm8rRSojSTfLi7ZtXh9KZjtwl706Ji3ZjUBWCtIXoOVWnIKfv4w7UBL5aafTfjgZanX+2xdP0sLU7oLR/acNr26zGo6IfGj7CV7TNs57J7k8jyVnFZdd98nqyT3RpPXonXZ0VLvOP+//z7RRA/7mH7wbbAVLOraq+Qtr+YcFNSkKVVBj3rz0ZdS83OZeyO5fbcIZV5w3KavtfrPf1FIceNDDLDcmYnrP4+Dbp73v3qtbx4/mPxS0xSTV/X6g0HPPt8mesVpX2uZylVUC2hpaCUopldvufMRtHevUuOzk5MftiYnepXBPw+uqtcj7qfd8fZRbt8Nes8WBgHbb1MbJ9mR+YklKuoeMM9QGU+pGp+Mc9dfdqNg64ZhruX8YLHeb7Ufx7ycfG8SWfmKagGnplTFez8vuab7VxfO2W16fQ7cfgCPU+/tFxf37TIgccvHlj+/v+Js7bUo6lLyvVQ6HEau5dzTxa1W8M+Drx+U4dJaaodmzt2BVzdcHrpJFKnzdKs5ii+hqACc7mMe72ScMhW4V2v5LnyyMbzc1I1vLjiUe1NYCg4Kg+GPqfnMZ+72QACOW8LLhbP7q24UYsNvrQTVks588He3igpAb1NXfxoDvPDj5F7wdTse0pI5huFvf5c0vO3N5Z8k+dcf2nRLWM7Q9npS8IKPcruU1vsHEW+z527rzLHGe1FUAOZ5c1G/wpcF4G3dOjhC9yy5wCC817N20PTB5hR8meom6Ve6+TR/191fljqhoagAvFUKvp3bpWBJMfhcf8ywPEV1QqSp+7VlAXi9Hu8h5/eCz1L40ExRF83RFHzujOT+fkM34HzdJx03TMEuFJlyx4pqAXM79/xqD/Fbbflc20MXkLPKw/1fj+/S7606CHa4RkpRzHiRpPhvth0ciO4/8soP6Podkznlck/iUPu9wCIUc6BSbE9Cf2s1QXNNZQVgUfeA99rXxeUKO59TA9EoVVEBWNTBYpaizikpeH2KO58kXgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALy0/wObC1e4I8XVJQAAAABJRU5ErkJggg==" },
 ];
 
-const RARITY = {"Wizard": 86, "Crown": 110, "Builder": 158, "Pirate": 200, "Captain": 200, "Firefighter": 220, "Jester": 240, "Helicopter": 240, "Bear": 260, "Afro": 280, "Sombrero": 300, "Painter": 300, "Army Hat": 320, "Helmet": 340, "Birthday": 350, "Snapback": 380, "Bandana": 400, "Trucker": 400, "Cowboy": 420, "Dad Hat": 450, "Top Hat": 180, "Gameday": 350, "Chef": 320, "Rasta": 280, "Beanie": 400};
+const RARITY = {"Wizard": 86, "Builder": 158, "Afro": 34, "Army Hat": 22, "Bandana": 99, "Beanie": 154, "Bear": 60, "Birthday": 39, "Captain": 50, "Chef": 55, "Cowboy": 311, "Crown": 110, "Dad Hat": 26, "Firefighter": 72, "Gameday": 53, "Helicopter": 39, "Helmet": 47, "Jester": 49, "Painter": 124, "Pirate": 65, "Rasta": 60, "Snapback": 141, "Sombrero": 160, "Top Hat": 75, "Trucker": 18};
 
 
 let selectedTrait = TRAITS[0];
@@ -346,9 +472,26 @@ TRAITS.forEach((t, i) => {
   grid.appendChild(btn);
 });
 
+
+function tiltCard(e) {
+  const card = document.getElementById('card');
+  const rect = card.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+  const rotateX = ((y - cy) / cy) * -8;
+  const rotateY = ((x - cx) / cx) * 8;
+  card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+}
+
+function resetTilt() {
+  document.getElementById('card').style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale(1)';
+}
+
 function getRarityTier(count) {
-  if (count <= 158) return { label: 'Legendary', cls: 'rarity-legendary' };
-  if (count <= 240) return { label: 'Rare', cls: 'rarity-rare' };
+  if (count <= 39) return { label: 'Legendary', cls: 'rarity-legendary' };
+  if (count <= 99) return { label: 'Rare', cls: 'rarity-rare' };
   return { label: 'Common', cls: 'rarity-common' };
 }
 
@@ -368,6 +511,16 @@ function updateCard() {
   const badge = document.getElementById('rarity-badge');
   badge.textContent = tier.label;
   badge.className = 'rarity-badge ' + tier.cls;
+
+  const card = document.getElementById('card');
+  card.className = 'card tier-' + tier.label.toLowerCase();
+
+  // Rarity bar — inverse of count (lower count = fuller bar = rarer)
+  const maxCount = 311;
+  const pct = Math.max(6, 100 - (count / maxCount * 100));
+  const barFill = document.getElementById('rarity-bar-fill');
+  barFill.style.width = pct + '%';
+  barFill.style.background = tier.label === 'Legendary' ? 'var(--orange)' : tier.label === 'Rare' ? 'var(--purple)' : '#888';
 }
 
 async function downloadCard() {
