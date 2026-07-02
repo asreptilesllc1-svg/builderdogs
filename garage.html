@@ -830,7 +830,7 @@
   }
   .stats-footer a { color: var(--orange); text-decoration: none; }
   @media(max-width:600px) {
-    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; } .stat-card-val { font-size: 18px; }
     .stats-section { padding: 24px 12px; }
     .stat-card-val { font-size: 20px; }
   }
@@ -1024,7 +1024,7 @@
       <div class="stats-title">LIVE PRICES</div>
       <div class="stats-live"><span class="live-dot"></span> Updates every 15 seconds</div>
     </div>
-    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
       <div class="stat-card">
         <div class="stat-card-val" id="stat-doge-price">$0.092</div>
         <div class="stat-card-lbl">Dogecoin (DOGE)</div>
@@ -1034,6 +1034,16 @@
         <div class="stat-card-val" id="stat-sol-price">$0.00</div>
         <div class="stat-card-lbl">Solana (SOL)</div>
         <div class="stat-card-sub" id="stat-sol-change">Live</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-val" id="stat-btc-price">$0.00</div>
+        <div class="stat-card-lbl">Bitcoin (BTC)</div>
+        <div class="stat-card-sub" id="stat-btc-change">Live</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-val" id="stat-eth-price">$0.00</div>
+        <div class="stat-card-lbl">Ethereum (ETH)</div>
+        <div class="stat-card-sub" id="stat-eth-change">Live</div>
       </div>
     </div>
     <div class="stats-footer">
@@ -1721,29 +1731,27 @@ async function submitEntry() {
 // ── LIVE CRYPTO PRICES (DOGE + SOL) ──
 async function loadCryptoPrices() {
   try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=dogecoin,solana&vs_currencies=usd&include_24hr_change=true');
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=dogecoin,solana,bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
     const d = await r.json();
 
-    // DOGE
-    const dogePrice = d.dogecoin.usd;
-    const dogeChange = d.dogecoin.usd_24h_change;
-    document.getElementById('stat-doge-price').textContent = '$' + dogePrice.toFixed(4);
-    const dogeChangeEl = document.getElementById('stat-doge-change');
-    const dogeSign = dogeChange >= 0 ? '+' : '';
-    dogeChangeEl.textContent = dogeSign + dogeChange.toFixed(1) + '% (24h)';
-    dogeChangeEl.style.color = dogeChange >= 0 ? 'var(--green)' : 'var(--red)';
+    function updateCoin(id, priceElId, changeElId, decimals) {
+      const price = d[id].usd;
+      const change = d[id].usd_24h_change;
+      document.getElementById(priceElId).textContent = '$' + price.toFixed(decimals);
+      const changeEl = document.getElementById(changeElId);
+      const sign = change >= 0 ? '+' : '';
+      changeEl.textContent = sign + change.toFixed(1) + '% (24h)';
+      changeEl.style.color = change >= 0 ? 'var(--green)' : 'var(--red)';
+    }
 
-    // SOL
-    const solPrice = d.solana.usd;
-    const solChange = d.solana.usd_24h_change;
-    document.getElementById('stat-sol-price').textContent = '$' + solPrice.toFixed(2);
-    const solChangeEl = document.getElementById('stat-sol-change');
-    const solSign = solChange >= 0 ? '+' : '';
-    solChangeEl.textContent = solSign + solChange.toFixed(1) + '% (24h)';
-    solChangeEl.style.color = solChange >= 0 ? 'var(--green)' : 'var(--red)';
+    updateCoin('dogecoin', 'stat-doge-price', 'stat-doge-change', 4);
+    updateCoin('solana', 'stat-sol-price', 'stat-sol-change', 2);
+    updateCoin('bitcoin', 'stat-btc-price', 'stat-btc-change', 0);
+    updateCoin('ethereum', 'stat-eth-price', 'stat-eth-change', 2);
   } catch(e) {
-    document.getElementById('stat-doge-change').textContent = 'Price unavailable';
-    document.getElementById('stat-sol-change').textContent = 'Price unavailable';
+    ['stat-doge-change','stat-sol-change','stat-btc-change','stat-eth-change'].forEach(id => {
+      document.getElementById(id).textContent = 'Price unavailable';
+    });
   }
 }
 
