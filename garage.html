@@ -1018,37 +1018,26 @@
   </div>
 
 
-  <!-- LIVE MARKET STATS -->
+  <!-- LIVE CRYPTO PRICES -->
   <div class="stats-section">
     <div class="stats-header">
-      <div class="stats-eyebrow">▸ Doginal Dogs Market</div>
-      <div class="stats-title">LIVE STATS</div>
-      <div class="stats-live"><span class="live-dot"></span> DOGE price updates live</div>
+      <div class="stats-title">LIVE PRICES</div>
+      <div class="stats-live"><span class="live-dot"></span> Updates every 60 seconds</div>
     </div>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card-val" id="stat-floor-doge">48,900</div>
-        <div class="stat-card-lbl">Floor (DOGE)</div>
-        <div class="stat-card-sub" id="stat-floor-usd">~$4,505</div>
-      </div>
+    <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
       <div class="stat-card">
         <div class="stat-card-val" id="stat-doge-price">$0.092</div>
-        <div class="stat-card-lbl">DOGE Price</div>
+        <div class="stat-card-lbl">Dogecoin (DOGE)</div>
         <div class="stat-card-sub" id="stat-doge-change">Live</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-val">$45M+</div>
-        <div class="stat-card-lbl">Market Cap</div>
-        <div class="stat-card-sub">Ranked #1</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-val green">2.18%</div>
-        <div class="stat-card-lbl">Supply Listed</div>
-        <div class="stat-card-sub">218 / 10,000</div>
+        <div class="stat-card-val" id="stat-sol-price">$0.00</div>
+        <div class="stat-card-lbl">Solana (SOL)</div>
+        <div class="stat-card-sub" id="stat-sol-change">Live</div>
       </div>
     </div>
     <div class="stats-footer">
-      Trade on <a href="https://market.doginaldogs.com" target="_blank">market.doginaldogs.com</a> · <a href="card.html">🎴 Make a Collector Card</a> · DOGE price live
+      Trade Doginal Dogs on <a href="https://market.doginaldogs.com" target="_blank">market.doginaldogs.com</a> · <a href="card.html">🎴 Make a Collector Card</a>
     </div>
   </div>
 
@@ -1729,26 +1718,32 @@ async function submitEntry() {
 }
 
 
-// ── LIVE DOGE PRICE ──
-const FLOOR_DOGE = 48900; // Update this manually when floor changes
-
-async function loadDogePrice() {
+// ── LIVE CRYPTO PRICES (DOGE + SOL) ──
+async function loadCryptoPrices() {
   try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=dogecoin&vs_currencies=usd&include_24hr_change=true');
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=dogecoin,solana&vs_currencies=usd&include_24hr_change=true');
     const d = await r.json();
-    const price = d.dogecoin.usd;
-    const change = d.dogecoin.usd_24h_change;
 
-    document.getElementById('stat-doge-price').textContent = '$' + price.toFixed(4);
-    const floorUsd = Math.round(FLOOR_DOGE * price);
-    document.getElementById('stat-floor-usd').textContent = '~$' + floorUsd.toLocaleString();
+    // DOGE
+    const dogePrice = d.dogecoin.usd;
+    const dogeChange = d.dogecoin.usd_24h_change;
+    document.getElementById('stat-doge-price').textContent = '$' + dogePrice.toFixed(4);
+    const dogeChangeEl = document.getElementById('stat-doge-change');
+    const dogeSign = dogeChange >= 0 ? '+' : '';
+    dogeChangeEl.textContent = dogeSign + dogeChange.toFixed(1) + '% (24h)';
+    dogeChangeEl.style.color = dogeChange >= 0 ? 'var(--green)' : 'var(--red)';
 
-    const changeEl = document.getElementById('stat-doge-change');
-    const sign = change >= 0 ? '+' : '';
-    changeEl.textContent = sign + change.toFixed(1) + '% (24h)';
-    changeEl.style.color = change >= 0 ? 'var(--green)' : 'var(--red)';
+    // SOL
+    const solPrice = d.solana.usd;
+    const solChange = d.solana.usd_24h_change;
+    document.getElementById('stat-sol-price').textContent = '$' + solPrice.toFixed(2);
+    const solChangeEl = document.getElementById('stat-sol-change');
+    const solSign = solChange >= 0 ? '+' : '';
+    solChangeEl.textContent = solSign + solChange.toFixed(1) + '% (24h)';
+    solChangeEl.style.color = solChange >= 0 ? 'var(--green)' : 'var(--red)';
   } catch(e) {
     document.getElementById('stat-doge-change').textContent = 'Price unavailable';
+    document.getElementById('stat-sol-change').textContent = 'Price unavailable';
   }
 }
 
@@ -1757,8 +1752,8 @@ async function loadDogePrice() {
 // ════════════════════════════════════════
 function initSite() {
   initWallet();
-  loadDogePrice();
-  setInterval(loadDogePrice, 60000); // refresh every minute
+  loadCryptoPrices();
+  setInterval(loadCryptoPrices, 60000); // refresh every minute
   initStreak();
   initVisitors();
   renderGB();
