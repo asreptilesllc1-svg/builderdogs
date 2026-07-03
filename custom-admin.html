@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Builder Dogs — Custom Requests Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #181818;
+    --border: rgba(249,115,22,0.15);
+    --orange: #f97316;
+    --orange-dim: #c45a0f;
+    --gold: #f5c842;
+    --white: #f0ece0;
+    --muted: #666;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--white); font-family: 'Barlow Condensed', sans-serif; min-height: 100vh; }
+
+  /* LOGIN */
+  .login-screen { min-height: 100vh; display: grid; place-items: center; }
+  .login-box { width: 360px; padding: 48px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--orange); }
+  .login-logo { font-family: 'Black Ops One', sans-serif; font-size: 20px; color: var(--orange); margin-bottom: 4px; }
+  .login-logo span { color: var(--white); }
+  .login-sub { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 28px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 15px; padding: 11px 13px; outline: none; transition: border 0.2s; }
+  .field input:focus { border-color: var(--orange); }
+  .btn-login { width: 100%; background: var(--orange); color: #0a0a0a; border: none; font-family: 'Black Ops One', sans-serif; font-size: 13px; letter-spacing: 2px; padding: 14px; cursor: pointer; margin-top: 6px; }
+  .btn-login:hover { background: var(--orange-dim); }
+  .error-msg { color: var(--red); font-size: 11px; margin-top: 10px; }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: 200px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; position: fixed; top: 0; bottom: 0; left: 0; }
+  .sidebar-logo { padding: 20px 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo-text { font-family: 'Black Ops One', sans-serif; font-size: 14px; color: var(--orange); }
+  .sidebar-logo-text span { color: var(--white); }
+  .sidebar-sub { font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+  .sidebar-nav { padding: 16px 0; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 11px 16px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { color: var(--white); background: var(--surface2); }
+  .nav-item.active { color: var(--orange); border-left-color: var(--orange); background: var(--surface2); }
+  .nav-badge { margin-left: auto; background: var(--orange); color: #0a0a0a; font-size: 9px; font-weight: 700; padding: 2px 6px; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .btn-logout { width: 100%; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 9px; cursor: pointer; transition: all 0.2s; }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* MAIN */
+  .main { margin-left: 200px; flex: 1; padding: 28px; }
+  .page-title { font-family: 'Black Ops One', sans-serif; font-size: 26px; margin-bottom: 6px; }
+  .page-title span { color: var(--orange); }
+  .page-sub { font-size: 13px; color: var(--muted); letter-spacing: 1px; margin-bottom: 24px; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); margin-bottom: 24px; }
+  .stat-card { background: var(--surface); padding: 18px 22px; }
+  .stat-val { font-family: 'Black Ops One', sans-serif; font-size: 28px; line-height: 1; margin-bottom: 5px; }
+  .stat-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+  /* FILTERS */
+  .filters { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 7px 14px; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--orange); color: var(--white); }
+  .filter-btn.active { background: var(--orange); color: #0a0a0a; border-color: var(--orange); }
+
+  /* TABLE */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  th { text-align: left; padding: 11px 14px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  td { padding: 13px 14px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .name-cell { font-weight: 700; font-size: 14px; }
+  .name-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; }
+  .badge-pending { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .badge-quoted { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-approved { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-completed { background: rgba(249,115,22,0.15); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+  .badge-declined { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+  .btn-action { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 10px; cursor: pointer; transition: all 0.15s; }
+  .btn-view:hover { border-color: var(--white); color: var(--white); }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 14px; }
+  .empty-text { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
+  .loading { text-align: center; padding: 60px; color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; place-items: center; padding: 20px; }
+  .modal-overlay.open { display: grid; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--orange); width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+  .modal-title { font-family: 'Black Ops One', sans-serif; font-size: 17px; }
+  .modal-close { background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .modal-close:hover { color: var(--white); }
+  .modal-body { padding: 24px; }
+
+  .detail-row { display: grid; grid-template-columns: 130px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+  .detail-val { color: var(--white); font-weight: 500; line-height: 1.5; }
+
+  .ref-image { width: 100%; max-height: 300px; object-fit: contain; border: 1px solid var(--border); margin-top: 8px; cursor: pointer; }
+
+  .modal-actions { padding: 16px 24px; border-top: 1px solid var(--border); background: var(--surface2); display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .status-select { background: var(--bg); border: 1px solid var(--border); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; padding: 8px 10px; outline: none; flex: 1; }
+  .status-select:focus { border-color: var(--orange); }
+
+  .btn-save { background: var(--orange); color: #0a0a0a; border: none; font-family: 'Black Ops One', sans-serif; font-size: 11px; letter-spacing: 2px; padding: 9px 18px; cursor: pointer; transition: background 0.2s; }
+  .btn-save:hover { background: var(--orange-dim); }
+
+  .notes-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 13px; padding: 9px 12px; outline: none; resize: vertical; min-height: 60px; margin-bottom: 8px; transition: border 0.2s; }
+  .notes-input:focus { border-color: var(--orange); }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Only allow safe http(s) URLs for reference images
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' || u.protocol === 'http:') return u.href;
+  } catch(e) {}
+  return '';
+}
+
+const ADMIN_PW = 'builderdogs2024';
+let authed = false;
+let requests = [];
+let currentFilter = 'all';
+let selected = null;
+
+// ── RENDER ──
+function render() {
+  document.getElementById('root').innerHTML = authed ? renderDashboard() : renderLogin();
+  if (authed) {
+    loadRequests();
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.addEventListener('click', () => {
+        currentFilter = el.dataset.filter;
+        document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        renderTable();
+      });
+    });
+  }
+}
+
+// ── LOGIN ──
+function renderLogin() {
+  return `
+    <div class="login-screen">
+      <div class="login-box">
+        <div class="login-logo">BUILDER<span>DOGS</span></div>
+        <div class="login-sub">Custom Requests Admin</div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="pw" placeholder="Enter password" onkeydown="if(event.key==='Enter') login()" />
+        </div>
+        <button class="btn-login" onclick="login()">ENTER</button>
+        <div class="error-msg" id="login-err"></div>
+      </div>
+    </div>`;
+}
+
+function login() {
+  const pw = document.getElementById('pw').value;
+  if (pw === ADMIN_PW) {
+    authed = true;
+    render();
+  } else {
+    document.getElementById('login-err').textContent = '⚠ Incorrect password';
+  }
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  return `
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-text">BUILDER<span>DOGS</span></div>
+          <div class="sidebar-sub">Custom Requests</div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-item active" data-filter="all">☰ All Requests</div>
+          <div class="nav-item" data-filter="pending">⏳ Pending <span class="nav-badge" id="pending-count">0</span></div>
+          <div class="nav-item" data-filter="quoted">💬 Quoted</div>
+          <div class="nav-item" data-filter="approved">✓ Approved</div>
+          <div class="nav-item" data-filter="completed">🔨 Completed</div>
+          <div class="nav-item" data-filter="declined">✕ Declined</div>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="btn-logout" onclick="authed=false;render()">Sign Out</button>
+        </div>
+      </div>
+      <div class="main">
+        <div class="page-title">Custom <span>Requests</span></div>
+        <div class="page-sub">Manage incoming custom product orders</div>
+        <div class="stats-row" id="stats-row">
+          <div class="stat-card"><div class="stat-val" style="color:var(--white)">—</div><div class="stat-lbl">Total</div></div>
+          <div class="stat-card"><div class="stat-val" style="color:var(--yellow)">—</div><div class="stat-lbl">Pending</div></div>
+          <div class="stat-card"><div class="stat-val" style="color:var(--green)">—</div><div class="stat-lbl">Completed</div></div>
+        </div>
+        <div id="table-container"><div class="loading">Loading requests...</div></div>
+      </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title" id="modal-title">Request Details</div>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>`;
+}
+
+// ── LOAD DATA ──
+async function loadRequests() {
+  const { data } = await db.from('custom_requests').select('*').order('created_at', { ascending: false });
+  requests = data || [];
+  
+  const pending = requests.filter(r => r.status === 'pending').length;
+  const completed = requests.filter(r => r.status === 'completed').length;
+  
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-val" style="color:var(--white)">${requests.length}</div><div class="stat-lbl">Total Requests</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--yellow)">${pending}</div><div class="stat-lbl">Pending Review</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--green)">${completed}</div><div class="stat-lbl">Completed</div></div>`;
+
+  const pendingBadge = document.getElementById('pending-count');
+  if (pendingBadge) pendingBadge.textContent = pending;
+
+  renderTable();
+}
+
+function renderTable() {
+  const filtered = currentFilter === 'all' ? requests : requests.filter(r => r.status === currentFilter);
+  
+  if (filtered.length === 0) {
+    document.getElementById('table-container').innerHTML = `
+      <div class="table-wrap">
+        <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No ${currentFilter === 'all' ? '' : currentFilter} requests</div></div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('table-container').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Qty</th>
+            <th>Budget</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(r => `
+            <tr>
+              <td>
+                <div class="name-cell">${escapeHtml(r.full_name)}</div>
+                <div class="name-sub">${escapeHtml(r.email)}</div>
+              </td>
+              <td style="color:var(--muted);font-size:12px;">${escapeHtml(r.product_type)}</td>
+              <td style="color:var(--muted);font-size:12px;">${escapeHtml(r.quantity)}</td>
+              <td style="color:var(--orange);font-size:12px;">${escapeHtml(r.budget)}</td>
+              <td><span class="badge badge-${escapeHtml(r.status)}">${escapeHtml(r.status)}</span></td>
+              <td style="color:var(--muted);font-size:12px;">${new Date(r.created_at).toLocaleDateString()}</td>
+              <td><button class="btn-action btn-view" onclick="openModal('${escapeHtml(r.id)}')">View</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── MODAL ──
+function openModal(id) {
+  const r = requests.find(x => x.id === id);
+  if (!r) return;
+  selected = r;
+
+  document.getElementById('modal-title').textContent = r.full_name;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-row"><div class="detail-label">Status</div><div class="detail-val"><span class="badge badge-${escapeHtml(r.status)}">${escapeHtml(r.status)}</span></div></div>
+    <div class="detail-row"><div class="detail-label">Email</div><div class="detail-val"><a href="mailto:${escapeHtml(r.email)}" style="color:var(--orange)">${escapeHtml(r.email)}</a></div></div>
+    <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-val">${escapeHtml(r.phone) || '—'}</div></div>
+    <div class="detail-row"><div class="detail-label">Product</div><div class="detail-val">${escapeHtml(r.product_type)}</div></div>
+    <div class="detail-row"><div class="detail-label">Quantity</div><div class="detail-val">${escapeHtml(r.quantity)}</div></div>
+    <div class="detail-row"><div class="detail-label">Colors</div><div class="detail-val">${escapeHtml(r.colors) || '—'}</div></div>
+    <div class="detail-row"><div class="detail-label">Budget</div><div class="detail-val" style="color:var(--orange);font-weight:700;">${escapeHtml(r.budget)}</div></div>
+    <div class="detail-row"><div class="detail-label">Design</div><div class="detail-val">${escapeHtml(r.design_description)}</div></div>
+    <div class="detail-row"><div class="detail-label">Instructions</div><div class="detail-val">${escapeHtml(r.special_instructions) || '—'}</div></div>
+    <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-val">${new Date(r.created_at).toLocaleString()}</div></div>
+    ${r.ref_image_url && safeUrl(r.ref_image_url) ? `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-val"><img src="${escapeHtml(safeUrl(r.ref_image_url))}" class="ref-image" onclick="window.open('${escapeHtml(safeUrl(r.ref_image_url))}','_blank')" /></div></div>` : ''}
+    <div style="margin-top:16px;">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Admin Notes</div>
+      <textarea class="notes-input" id="modal-notes" placeholder="Add notes, quote details, follow-up info...">${escapeHtml(r.admin_notes || '')}</textarea>
+    </div>`;
+
+  document.getElementById('modal-actions').innerHTML = `
+    <select class="status-select" id="modal-status">
+      <option value="pending" ${r.status==='pending'?'selected':''}>Pending</option>
+      <option value="quoted" ${r.status==='quoted'?'selected':''}>Quoted</option>
+      <option value="approved" ${r.status==='approved'?'selected':''}>Approved</option>
+      <option value="completed" ${r.status==='completed'?'selected':''}>Completed</option>
+      <option value="declined" ${r.status==='declined'?'selected':''}>Declined</option>
+    </select>
+    <button class="btn-save" onclick="saveRequest()">Save</button>
+    <button class="btn-action" onclick="closeModal()" style="margin-left:auto;">Close</button>`;
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  selected = null;
+}
+
+async function saveRequest() {
+  if (!selected) return;
+  const status = document.getElementById('modal-status').value;
+  const notes = document.getElementById('modal-notes').value;
+  
+  await db.from('custom_requests').update({ status, admin_notes: notes }).eq('id', selected.id);
+  closeModal();
+  loadRequests();
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+render();
+</script>
+</body>
+</html>

@@ -147,6 +147,16 @@ const db = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
 );
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 const ADMIN_PW = 'builderdogs2024';
 let authed = false;
 let records = [];
@@ -209,14 +219,14 @@ async function loadGuestbook() {
       <div class="gb-admin-entry ${e.name === 'BooMetaX' ? 'pinned' : ''}">
         <div class="gb-body">
           <div class="gb-name">
-            ${e.name}
+            ${escapeHtml(e.name)}
             ${e.verified ? '<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;padding:2px 6px;background:rgba(245,200,66,0.15);color:#f5c842;border:1px solid rgba(245,200,66,0.3);margin-left:6px;">✓ VERIFIED</span>' : '<span style="font-size:8px;color:#444;margin-left:6px;">guest</span>'}
             ${e.name === 'BooMetaX' ? '<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;padding:2px 6px;background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3);margin-left:6px;">📌 FOUNDER</span>' : ''}
           </div>
-          <div class="gb-meta">${e.trade || 'Builder'} · ${e.trait || ''} · ${new Date(e.created_at).toLocaleString()}</div>
-          <div class="gb-msg">${e.message}</div>
+          <div class="gb-meta">${escapeHtml(e.trade || 'Builder')} · ${escapeHtml(e.trait || '')} · ${new Date(e.created_at).toLocaleString()}</div>
+          <div class="gb-msg">${escapeHtml(e.message)}</div>
         </div>
-        ${e.name !== 'BooMetaX' ? `<button class="btn-delete" onclick="deleteEntry('${e.id}')">✕ Remove</button>` : '<span style="font-size:10px;color:#333;padding:5px;">📌 Pinned</span>'}
+        ${e.name !== 'BooMetaX' ? `<button class="btn-delete" onclick="deleteEntry('${escapeHtml(e.id)}')">✕ Remove</button>` : '<span style="font-size:10px;color:#333;padding:5px;">📌 Pinned</span>'}
       </div>
     `).join('');
   } catch(err) {
@@ -335,13 +345,13 @@ function renderTable() {
         <tbody>
           ${filtered.map(r => `
             <tr>
-              <td class="inscription-cell">#${r.inscription_number}</td>
-              <td class="wallet-cell">${r.wallet.slice(0,8)}...${r.wallet.slice(-4)}</td>
-              <td style="color:var(--muted);font-size:12px;">${r.twitter_handle ? '@'+r.twitter_handle : '—'}</td>
-              <td>${r.trait ? `<span class="badge badge-approved">${r.trait}</span>` : '<span style="color:#333;font-size:11px;">Not set</span>'}</td>
-              <td><span class="badge badge-${r.status}">${r.status}</span></td>
+              <td class="inscription-cell">#${escapeHtml(r.inscription_number)}</td>
+              <td class="wallet-cell">${escapeHtml(r.wallet.slice(0,8))}...${escapeHtml(r.wallet.slice(-4))}</td>
+              <td style="color:var(--muted);font-size:12px;">${r.twitter_handle ? '@'+escapeHtml(r.twitter_handle) : '—'}</td>
+              <td>${r.trait ? `<span class="badge badge-approved">${escapeHtml(r.trait)}</span>` : '<span style="color:#333;font-size:11px;">Not set</span>'}</td>
+              <td><span class="badge badge-${escapeHtml(r.status)}">${escapeHtml(r.status)}</span></td>
               <td style="color:var(--muted);font-size:11px;">${new Date(r.submitted_at).toLocaleDateString()}</td>
-              <td><button onclick="openModal('${r.id}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">Review</button></td>
+              <td><button onclick="openModal('${escapeHtml(r.id)}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">Review</button></td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -352,14 +362,14 @@ function openModal(id) {
   selected = records.find(r => r.id === id);
   if (!selected) return;
 
-  const marketUrl = `https://market.doginaldogs.com/dog/${selected.inscription_number}`;
+  const marketUrl = `https://market.doginaldogs.com/dog/${encodeURIComponent(selected.inscription_number)}`;
 
   document.getElementById('modal-title').textContent = 'Dog #' + selected.inscription_number;
   document.getElementById('modal-body').innerHTML = `
-    <div class="modal-row"><div class="modal-label">Status</div><div class="modal-val"><span class="badge badge-${selected.status}">${selected.status}</span></div></div>
-    <div class="modal-row"><div class="modal-label">Inscription</div><div class="modal-val" style="font-family:'Black Ops One',sans-serif;font-size:18px;color:var(--gold);">#${selected.inscription_number}</div></div>
-    <div class="modal-row"><div class="modal-label">Wallet</div><div class="modal-val" style="font-family:monospace;font-size:12px;word-break:break-all;">${selected.wallet}</div></div>
-    <div class="modal-row"><div class="modal-label">X Handle</div><div class="modal-val">${selected.twitter_handle ? '@'+selected.twitter_handle : '—'}</div></div>
+    <div class="modal-row"><div class="modal-label">Status</div><div class="modal-val"><span class="badge badge-${escapeHtml(selected.status)}">${escapeHtml(selected.status)}</span></div></div>
+    <div class="modal-row"><div class="modal-label">Inscription</div><div class="modal-val" style="font-family:'Black Ops One',sans-serif;font-size:18px;color:var(--gold);">#${escapeHtml(selected.inscription_number)}</div></div>
+    <div class="modal-row"><div class="modal-label">Wallet</div><div class="modal-val" style="font-family:monospace;font-size:12px;word-break:break-all;">${escapeHtml(selected.wallet)}</div></div>
+    <div class="modal-row"><div class="modal-label">X Handle</div><div class="modal-val">${selected.twitter_handle ? '@'+escapeHtml(selected.twitter_handle) : '—'}</div></div>
     <div class="modal-row"><div class="modal-label">Submitted</div><div class="modal-val">${new Date(selected.submitted_at).toLocaleString()}</div></div>
     <div class="modal-row"><div class="modal-label">Verify</div><div class="modal-val"><a href="${marketUrl}" target="_blank" class="link-ext">🔗 View on market.doginaldogs.com ↗</a></div></div>
     <div style="margin-top:14px;">
@@ -371,7 +381,7 @@ function openModal(id) {
     </div>
     <div style="margin-top:14px;">
       <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Admin Notes</div>
-      <textarea class="notes-input" id="modal-notes" placeholder="Notes, reason for rejection, etc...">${selected.admin_notes || ''}</textarea>
+      <textarea class="notes-input" id="modal-notes" placeholder="Notes, reason for rejection, etc...">${escapeHtml(selected.admin_notes || '')}</textarea>
     </div>`;
 
   document.getElementById('modal-actions').innerHTML = `
