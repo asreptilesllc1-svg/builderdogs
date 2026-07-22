@@ -261,104 +261,8 @@
 
 
   /* WALLET */
-  .wallet-bar {
-    background: #080808;
-    border-bottom: 1px solid var(--border);
-    padding: 8px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .wallet-left { display: flex; align-items: center; gap: 10px; }
-
-  .wallet-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .wallet-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #333;
-    flex-shrink: 0;
-  }
-
-  .wallet-dot.connected {
-    background: var(--green);
-    box-shadow: 0 0 8px var(--green);
-    animation: blink 2s ease-in-out infinite;
-  }
-
-  .wallet-address {
-    font-family: 'Barlow Condensed', monospace;
-    font-size: 13px;
-    color: var(--white);
-    letter-spacing: 1px;
-  }
-
-  .wallet-badge {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 2px;
-  }
-
-  .badge-holder {
-    background: rgba(245,200,66,0.15);
-    color: var(--gold);
-    border: 1px solid rgba(245,200,66,0.3);
-  }
-
-  .badge-builder {
-    background: rgba(249,115,22,0.15);
-    color: var(--orange);
-    border: 1px solid rgba(249,115,22,0.3);
-  }
-
-  .badge-visitor {
-    background: rgba(102,102,102,0.15);
-    color: var(--muted);
-    border: 1px solid rgba(102,102,102,0.2);
-  }
-
-  .connect-btn {
-    font-family: 'Black Ops One', sans-serif;
-    font-size: 11px;
-    letter-spacing: 2px;
-    padding: 8px 16px;
-    background: transparent;
-    color: var(--orange);
-    border: 1px solid rgba(249,115,22,0.4);
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .connect-btn:hover { background: rgba(249,115,22,0.1); border-color: var(--orange); }
-  .connect-btn.connected { color: var(--muted); border-color: var(--border); font-size: 10px; }
-  .connect-btn.connected:hover { color: var(--red); border-color: var(--red); }
 
   /* HOLDER PERKS BANNER */
-  .holder-banner {
-    display: none;
-    background: linear-gradient(90deg, #1a1200, #0d0d0d, #1a1200);
-    border-bottom: 1px solid rgba(245,200,66,0.2);
-    padding: 10px 24px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--gold);
-    letter-spacing: 2px;
-  }
-
-  .holder-banner.show { display: block; }
 
 
   /* VERIFICATION */
@@ -672,12 +576,6 @@
     .nav-a:last-child { display: block; } /* keep last nav item */
 
     /* WALLET BAR */
-    .wallet-bar { padding: 8px 12px; gap: 8px; }
-    .wallet-left { flex-wrap: wrap; gap: 6px; }
-    .wallet-status { font-size: 11px; }
-    .wallet-address { font-size: 11px; }
-    .wallet-badge { font-size: 8px; padding: 2px 6px; }
-    .connect-btn { font-size: 10px; padding: 6px 12px; letter-spacing: 1px; }
 
     /* DAILY STREAK BAR */
     #daily-streak-bar { padding: 8px 12px; flex-wrap: wrap; gap: 8px; }
@@ -838,8 +736,6 @@
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-modal@1.9.9/dist/index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
 
@@ -902,53 +798,6 @@
     </div>
   </nav>
 
-
-
-  <!-- WALLET BAR -->
-  <div class="wallet-bar">
-    <div class="wallet-left">
-      <div class="wallet-status">
-        <div class="wallet-dot" id="wallet-dot"></div>
-        <span id="wallet-status-text">No wallet connected</span>
-      </div>
-      <div class="wallet-address" id="wallet-address" style="display:none;"></div>
-      <span class="wallet-badge badge-visitor" id="wallet-badge" style="display:none;"></span>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:9px;letter-spacing:1px;color:#444;" title="We only request your public address. We never ask you to sign transactions or approve contracts.">🔒 Read-only, no signatures ever</span>
-      <button class="connect-btn" id="connect-btn" onclick="connectWallet()">🔗 Connect Wallet</button>
-    </div>
-  </div>
-
-  <!-- HOLDER BANNER -->
-  <div class="holder-banner" id="holder-banner">
-    🐕 Doginal Dogs Holder Detected — Welcome to the inner circle!
-  </div>
-
-
-
-  <!-- DOGINAL VERIFICATION -->
-  <div id="verify-section" style="display:none;">
-    <div class="verify-section">
-      <div class="verify-title">🐕 Verify Your Doginal Dog</div>
-      <p class="verify-desc">Own a Doginal Dog? Enter your inscription number to get your holder badge. We'll verify it on <a href="https://market.doginaldogs.com" target="_blank" style="color:var(--gold);">market.doginaldogs.com</a> and badge your wallet. You must have your X account attached to your wallet in order to qualify for a badge.</p>
-      <div id="verified-badge" class="verified-badge">
-        <span style="font-size:18px;">✓</span>
-        <div>
-          <div style="font-family:'Black Ops One',sans-serif;font-size:13px;" id="verified-badge-text">Verified Holder</div>
-          <div style="font-size:10px;letter-spacing:2px;color:#8a7020;">DOGINAL DOGS VERIFIED</div>
-        </div>
-      </div>
-      <div id="verify-form">
-        <div class="verify-row">
-          <input type="text" class="verify-input" id="inscription-input" placeholder="Inscription # (e.g. 9826)" maxlength="10" onkeydown="if(event.key==='Enter') submitVerification()" />
-          <input type="text" class="verify-input" id="twitter-input" placeholder="Your X handle (optional)" maxlength="30" style="max-width:200px;" />
-          <button class="verify-btn" id="verify-btn" onclick="submitVerification()">Submit</button>
-        </div>
-        <div class="verify-status" id="verify-status"></div>
-      </div>
-    </div>
-  </div>
 
 
   <!-- DAILY LOGIN STREAK -->
@@ -1108,7 +957,6 @@
 // ALL VARIABLES DECLARED FIRST
 // ════════════════════════════════════════
 let opened = false;
-let walletAddress = null;
 let playing = false;
 let clickInterval = null;
 let winStreak = 0;
@@ -1184,246 +1032,11 @@ function showGarage() {
 setTimeout(() => { if (!opened) openDoor(); }, 2000);
 
 // ════════════════════════════════════════
-// WALLET
-// ════════════════════════════════════════
-function initWallet() {
-  const saved = localStorage.getItem('bd-wallet');
-  if (saved) { walletAddress = saved; updateWalletUI(saved); }
-}
-
-async function connectWallet() {
-  const btn = document.getElementById('connect-btn');
-  if (walletAddress) { disconnectWallet(); return; }
-
-  // Check if on mobile without an injected wallet
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const hasWallet = window.phantom || window.ethereum;
-
-  if (isMobile && !hasWallet) {
-    showMobileWalletModal();
-    return;
-  }
-
-  try {
-    btn.textContent = 'Connecting...';
-    btn.disabled = true;
-    if (window.phantom?.ethereum) {
-      const accounts = await window.phantom.ethereum.request({ method: 'eth_requestAccounts' });
-      walletAddress = accounts[0];
-      localStorage.setItem('bd-wallet', walletAddress);
-      updateWalletUI(walletAddress, 'Phantom');
-    } else if (window.phantom?.solana) {
-      const resp = await window.phantom.solana.connect();
-      walletAddress = resp.publicKey.toString();
-      localStorage.setItem('bd-wallet', walletAddress);
-      updateWalletUI(walletAddress, 'Phantom');
-    } else if (typeof window.ethereum !== 'undefined') {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      walletAddress = accounts[0];
-      localStorage.setItem('bd-wallet', walletAddress);
-      updateWalletUI(walletAddress, 'MetaMask');
-    } else {
-      btn.textContent = '🔗 Connect Wallet';
-      btn.disabled = false;
-      showWalletModal();
-    }
-  } catch(err) {
-    btn.textContent = '🔗 Connect Wallet';
-    btn.disabled = false;
-    if (err.code === 4001) document.getElementById('wallet-status-text').textContent = 'Connection cancelled';
-  }
-}
-
-function disconnectWallet() {
-  walletAddress = null;
-  localStorage.removeItem('bd-wallet');
-  document.getElementById('wallet-dot').classList.remove('connected');
-  document.getElementById('wallet-status-text').textContent = 'No wallet connected';
-  document.getElementById('wallet-address').style.display = 'none';
-  document.getElementById('wallet-badge').style.display = 'none';
-  document.getElementById('connect-btn').textContent = '🔗 Connect Wallet';
-  document.getElementById('connect-btn').classList.remove('connected');
-  document.getElementById('connect-btn').disabled = false;
-  document.getElementById('holder-banner').classList.remove('show');
-  document.getElementById('verify-section').style.display = 'none';
-  initStreak();
-}
-
-function updateWalletUI(address, walletName) {
-  const short = address.slice(0,6) + '...' + address.slice(-4);
-  document.getElementById('wallet-dot').classList.add('connected');
-  document.getElementById('wallet-status-text').textContent = 'Connected' + (walletName ? ' via ' + walletName : '');
-  document.getElementById('wallet-address').textContent = short;
-  document.getElementById('wallet-address').style.display = 'block';
-  document.getElementById('connect-btn').textContent = 'Disconnect';
-  document.getElementById('connect-btn').classList.add('connected');
-  document.getElementById('connect-btn').disabled = false;
-  const badge = document.getElementById('wallet-badge');
-  badge.style.display = 'inline';
-  badge.textContent = '🐕 Community Member';
-  badge.className = 'wallet-badge badge-visitor';
-  initStreak();
-  initVerification();
-}
-
-function showMobileWalletModal() {
-  const currentUrl = encodeURIComponent(window.location.href);
-  const modal = document.createElement('div');
-  modal.id = 'wallet-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  modal.innerHTML = `
-    <div style="background:#141414;border:1px solid rgba(249,115,22,0.3);border-top:3px solid #f97316;padding:28px 20px;max-width:380px;width:100%;text-align:center;">
-      <div style="font-family:'Black Ops One',sans-serif;font-size:18px;color:#f97316;margin-bottom:8px;letter-spacing:2px;">CONNECT WALLET</div>
-      <p style="font-size:13px;color:#666;margin-bottom:20px;line-height:1.7;">On mobile, open this page inside your wallet app's browser to connect.</p>
-
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-
-        <a href="https://phantom.app/ul/browse/${currentUrl}?ref=${currentUrl}"
-           style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:1px;">
-          👻 Open in Phantom App
-        </a>
-
-        <a href="https://go.cb-w.com/dapp?cb_url=${currentUrl}"
-           style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:1px;">
-          🔵 Open in Coinbase Wallet
-        </a>
-
-        <a href="https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}"
-           style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:1px;">
-          🦊 Open in MetaMask App
-        </a>
-      </div>
-
-      <p style="font-size:11px;color:#444;line-height:1.6;margin-bottom:16px;">Read-only — we never ask you to sign transactions. Your funds are always safe.</p>
-      <button onclick="document.getElementById('wallet-modal').remove()" style="font-family:'Black Ops One',sans-serif;font-size:11px;letter-spacing:2px;padding:10px 24px;background:transparent;color:#666;border:1px solid #333;cursor:pointer;width:100%;">CLOSE</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-}
-
-function showWalletModal() {
-  const modal = document.createElement('div');
-  modal.id = 'wallet-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;';
-  modal.innerHTML = `
-    <div style="background:#141414;border:1px solid rgba(249,115,22,0.3);border-top:3px solid #f97316;padding:32px;max-width:400px;width:100%;text-align:center;">
-      <div style="font-family:'Black Ops One',sans-serif;font-size:20px;color:#f97316;margin-bottom:8px;letter-spacing:2px;">CONNECT WALLET</div>
-      <p style="font-size:13px;color:#666;margin-bottom:24px;line-height:1.6;">Install a wallet to connect. Read-only — we never ask you to sign transactions or approve contracts. Your funds are always safe.</p>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-        <a href="https://metamask.io/download/" target="_blank" style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;">🦊 Install MetaMask</a>
-        <a href="https://www.coinbase.com/wallet" target="_blank" style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;">🔵 Install Coinbase Wallet</a>
-        <a href="https://mydoge.com" target="_blank" style="display:block;padding:14px;background:#1a1a1a;border:1px solid #333;color:#f0ece0;text-decoration:none;font-size:14px;font-weight:700;">🐕 MyDoge Wallet</a>
-      </div>
-      <button onclick="document.getElementById('wallet-modal').remove()" style="font-family:'Black Ops One',sans-serif;font-size:11px;letter-spacing:2px;padding:10px 24px;background:transparent;color:#666;border:1px solid #333;cursor:pointer;">CLOSE</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-}
-
-// ════════════════════════════════════════
-// DOGINAL VERIFICATION
-// ════════════════════════════════════════
-async function initVerification() {
-  if (!walletAddress) {
-    document.getElementById('verify-section').style.display = 'none';
-    return;
-  }
-  document.getElementById('verify-section').style.display = 'block';
-  if (!_supa) return;
-  try {
-    const { data } = await _supa.from('doginal_verifications').select('*').eq('wallet', walletAddress.toLowerCase()).single();
-    if (data) {
-      if (data.status === 'approved') {
-        showVerifiedBadge(data);
-        updateWalletBadgeVerified(data);
-      } else if (data.status === 'pending') {
-        document.getElementById('verify-form').style.display = 'none';
-        showVerifyStatus('Verification pending — we will badge you within 24 hours.', 'pending');
-      }
-    }
-  } catch(e) {}
-}
-
-function showVerifiedBadge(record) {
-  document.getElementById('verify-form').style.display = 'none';
-  const traitLabel = record.trait ? ' · ' + record.trait : '';
-  const safeInscription = escapeHtml(String(record.inscription_number || ''));
-  const safeTraitLabel = escapeHtml(traitLabel);
-  document.getElementById('verified-badge-text').innerHTML = '<span style="font-family:Black Ops One,sans-serif;font-size:20px;letter-spacing:2px;">Dog #' + safeInscription + safeTraitLabel + '</span><br><span style="font-size:11px;letter-spacing:3px;color:#8a7020;text-transform:uppercase;">Verified Doginal Holder</span>';
-  document.getElementById('verified-badge').classList.add('show');
-  const desc = document.querySelector('.verify-desc');
-  if (desc) desc.style.display = 'none';
-}
-
-function updateWalletBadgeVerified(record) {
-  const badge = document.getElementById('wallet-badge');
-  badge.style.display = 'inline';
-  const trait = record.trait || '';
-  if (trait.includes('Builder')) {
-    badge.textContent = '🔨 Builder Hat Holder';
-    badge.className = 'wallet-badge badge-builder';
-    document.getElementById('holder-banner').classList.add('show');
-  } else if (trait.includes('Crown')) {
-    badge.textContent = '👑 Crown Hat Holder';
-    badge.className = 'wallet-badge badge-holder';
-    document.getElementById('holder-banner').classList.add('show');
-  } else if (trait.includes('Wizard')) {
-    badge.textContent = '🧙 Wizard Holder';
-    badge.className = 'wallet-badge badge-holder';
-    document.getElementById('holder-banner').classList.add('show');
-  } else {
-    badge.textContent = '🐕 Verified Doginal Holder';
-    badge.className = 'wallet-badge badge-holder';
-  }
-}
-
-function showVerifyStatus(msg, type) {
-  const el = document.getElementById('verify-status');
-  el.textContent = msg;
-  el.className = 'verify-status ' + type;
-}
-
-function formatXHandle(input) {
-  let val = input.value.replace(/@/g, '').trim();
-  if (val) input.value = '@' + val;
-}
-
-async function submitVerification() {
-  if (!walletAddress) { showVerifyStatus('Please connect your wallet first.', 'error'); return; }
-  if (!_supa) { showVerifyStatus('Database unavailable. Try again later.', 'error'); return; }
-  const inscription = document.getElementById('inscription-input').value.trim().replace('#', '');
-  const twitter = document.getElementById('twitter-input').value.trim().replace('@', '');
-  if (!inscription || isNaN(inscription)) { showVerifyStatus('Please enter a valid inscription number.', 'error'); return; }
-  if (!twitter) { showVerifyStatus('Your X handle is required to qualify for a badge.', 'error'); return; }
-  const btn = document.getElementById('verify-btn');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  try {
-    const { data: existing } = await _supa.from('doginal_verifications').select('wallet').eq('inscription_number', inscription).maybeSingle();
-    if (existing && existing.wallet !== walletAddress.toLowerCase()) {
-      showVerifyStatus('This inscription is already linked to another wallet.', 'error');
-      btn.disabled = false; btn.textContent = 'Submit'; return;
-    }
-    await _supa.from('doginal_verifications').upsert({
-      wallet: walletAddress.toLowerCase(), inscription_number: inscription,
-      twitter_handle: twitter || null, status: 'pending', submitted_at: new Date().toISOString()
-    }, { onConflict: 'wallet' });
-    document.getElementById('verify-form').style.display = 'none';
-    showVerifyStatus('Submitted! We will verify on market.doginaldogs.com and badge you within 24 hours.', 'pending');
-  } catch(e) {
-    showVerifyStatus('Something went wrong. Please try again.', 'error');
-    btn.disabled = false; btn.textContent = 'Submit';
-  }
-}
-
-// ════════════════════════════════════════
 // DAILY STREAK
 // ════════════════════════════════════════
 function getStreakKey(key) {
-  const wallet = walletAddress ? walletAddress.toLowerCase() : 'guest';
-  return 'bd-' + key + '-' + wallet;
+  // Device-based for now; switches to account-based when X login is added
+  return 'bd-' + key + '-guest';
 }
 
 // Returns days between two date strings (0 = same day, 1 = yesterday, etc)
@@ -1455,11 +1068,11 @@ function initStreak() {
   if (checkedIn) {
     btn.textContent = '✓ CHECKED IN'; btn.style.background = '#166a16'; btn.disabled = true;
   } else {
-    btn.textContent = walletAddress ? '✓ CHECK IN' : '✓ CHECK IN (Guest)';
+    btn.textContent = '✓ CHECK IN';
     btn.style.background = 'var(--green)'; btn.disabled = false;
   }
-  if (!walletAddress && streak > 0) {
-    document.getElementById('streak-sub').textContent = 'Connect wallet to save streak across devices';
+  if (streak > 0) {
+    document.getElementById('streak-sub').textContent = 'Streak saved on this device';
   }
 }
 
@@ -1488,8 +1101,7 @@ function dailyCheckin() {
   const btn = document.getElementById('checkin-btn');
   btn.textContent = '✓ CHECKED IN'; btn.style.background = '#166a16'; btn.disabled = true;
   const sub = document.getElementById('streak-sub');
-  if (!walletAddress) sub.textContent = 'Connect wallet to save your streak across devices!';
-  else if (streak === 7) sub.textContent = 'Builder status unlocked!';
+  if (streak === 7) sub.textContent = 'Builder status unlocked!';
   else if (streak === 14) sub.textContent = 'OG Builder unlocked!';
   else if (streak === 30) sub.textContent = 'Legend status unlocked!';
   else sub.textContent = 'Day ' + streak + ' checked in! Come back tomorrow.';
@@ -1616,7 +1228,6 @@ async function initVisitors() {
     // Add this session to the "active now" tracker
     await _supa.from('garage_visits').upsert({
       session_id: mySessionId,
-      wallet: walletAddress ? walletAddress.toLowerCase() : null,
       visited_at: new Date().toISOString(),
       last_ping: new Date().toISOString()
     }, { onConflict: 'session_id' });
@@ -1728,12 +1339,12 @@ async function renderGB() {
     const isPinned = name === 'BooMetaX';
     const verifiedBadge = isVerified
       ? `<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 6px;background:rgba(245,200,66,0.15);color:var(--gold);border:1px solid rgba(245,200,66,0.3);margin-left:6px;">✓ VERIFIED${trait}</span>`
-      : `<span style="font-size:8px;letter-spacing:1px;color:#333;margin-left:6px;">guest</span>`;
+      : '';
     const pinnedBadge = isPinned ? `<span style="font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 6px;background:rgba(249,115,22,0.15);color:var(--orange);border:1px solid rgba(249,115,22,0.3);margin-left:6px;">📌 FOUNDER</span>` : '';
     return `
-      <div class="gb-entry" ${isPinned ? 'style="border-left-color:var(--orange);background:rgba(249,115,22,0.03);"' : !isVerified ? 'style="opacity:0.6;border-left-color:#333;"' : ''}>
+      <div class="gb-entry" ${isPinned ? 'style="border-left-color:var(--orange);background:rgba(249,115,22,0.03);"' : ''}>
         <div class="gb-entry-head">
-          <div class="gb-avatar" style="${isVerified ? 'background:var(--gold);color:#0d0d0d;' : 'background:#333;'}">${name.charAt(0).toUpperCase()}</div>
+          <div class="gb-avatar" style="${isPinned ? 'background:var(--orange);color:#0d0d0d;' : isVerified ? 'background:var(--gold);color:#0d0d0d;' : ''}">${name.charAt(0).toUpperCase()}</div>
           <div>
             <div class="gb-entry-name">${name}${verifiedBadge}${isPinned ? pinnedBadge : ''}</div>
             <div class="gb-entry-trade">${trade}</div>
@@ -1747,7 +1358,6 @@ async function renderGB() {
   let out = '<div class="gb-entries">';
   supaEntries.forEach(e => out += renderEntry(e, true));
   if (localEntries.length) {
-    if (supaEntries.length) out += `<div style="font-size:10px;letter-spacing:2px;color:#333;text-align:center;padding:12px;text-transform:uppercase;">— Your temporary entries (not saved) —</div>`;
     localEntries.slice().reverse().forEach(e => out += renderEntry(e, false));
   }
   out += '</div>';
@@ -1762,43 +1372,30 @@ async function submitEntry() {
 
   const date = new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
 
-  // Check if user is a verified holder
-  let isVerified = false;
-  let trait = null;
-  if (walletAddress && _supa) {
-    try {
-      const { data } = await _supa
-        .from('doginal_verifications')
-        .select('status,trait')
-        .eq('wallet', walletAddress.toLowerCase())
-        .single();
-      if (data && data.status === 'approved') {
-        isVerified = true;
-        trait = data.trait || null;
-      }
-    } catch(e) {}
-  }
-
-  if (isVerified && _supa) {
-    // Save permanently to Supabase
+  // All entries save to the permanent wall for now.
+  // Verified badges return when X login is added.
+  let saved = false;
+  if (_supa) {
     try {
       await _supa.from('guestbook').insert({
-        wallet: walletAddress.toLowerCase(),
+        wallet: null,
         name, trade,
         message: msg,
-        verified: true,
-        trait,
+        verified: false,
+        trait: null,
         created_at: new Date().toISOString()
       });
+      saved = true;
     } catch(e) {
       console.log('Guestbook save error:', e);
     }
-  } else {
-    // Save temporarily to localStorage
+  }
+
+  if (!saved) {
+    // Fallback if the database is unreachable
     try {
       const entries = JSON.parse(localStorage.getItem('bd-gb-temp') || '[]');
       entries.push({ name, trade, msg, date });
-      // Keep max 10 temp entries
       if (entries.length > 10) entries.shift();
       localStorage.setItem('bd-gb-temp', JSON.stringify(entries));
     } catch(e) {}
@@ -1810,7 +1407,7 @@ async function submitEntry() {
   document.getElementById('gchars').textContent = '0/200';
 
   const ok = document.getElementById('gok');
-  ok.textContent = isVerified ? '✓ Signed the wall permanently!' : '✓ Signed! Connect wallet and get verified to make it permanent.';
+  ok.textContent = saved ? '✓ Signed the wall!' : '✓ Signed! (saved locally)';
   ok.style.display = 'block';
   setTimeout(() => ok.style.display = 'none', 4000);
 
@@ -1849,7 +1446,6 @@ async function loadCryptoPrices() {
 // SITE INIT
 // ════════════════════════════════════════
 function initSite() {
-  initWallet();
   loadCryptoPrices();
   setInterval(loadCryptoPrices, 15000); // refresh every 15 seconds
   initStreak();

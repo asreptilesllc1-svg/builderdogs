@@ -178,51 +178,56 @@ body {
   background: linear-gradient(180deg, #0a1f0a 0%, #0d2b0d 50%, #0a1f0a 100%);
   overflow: hidden;
   position: relative;
-  height: 260px;
+  height: 300px;
 }
 
-/* WIN LINE */
+/* PAYLINE WINDOW — frames the center row */
 .win-line {
   position: absolute;
   left: 0; right: 0;
   top: 50%;
   transform: translateY(-50%);
-  height: 3px;
-  background: rgba(245,200,66,0.5);
-  box-shadow: 0 0 8px rgba(245,200,66,0.8);
+  height: 100px;
+  border-top: 3px solid rgba(245,200,66,0.9);
+  border-bottom: 3px solid rgba(245,200,66,0.9);
+  background: rgba(245,200,66,0.06);
+  box-shadow: 0 0 18px rgba(245,200,66,0.35), inset 0 0 24px rgba(245,200,66,0.08);
   z-index: 15;
   pointer-events: none;
 }
 
 .win-line::before, .win-line::after {
-  content: '◄';
+  content: '\25B6';
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
+  font-size: 15px;
   color: #f5c842;
-  text-shadow: 0 0 6px #f5c842;
+  text-shadow: 0 0 8px #f5c842;
 }
-.win-line::before { left: 4px; }
-.win-line::after { right: 4px; content: '►'; }
+.win-line::before { left: 5px; }
+.win-line::after { right: 5px; content: '\25C0'; }
+
+/* Dim the non-winning rows so the payline row stands out */
+.reels-fade-top, .reels-fade-bot { background: rgba(0,0,0,0.55) !important; }
 
 /* TOP/BOTTOM FADE */
 .reels-fade-top, .reels-fade-bot {
   position: absolute;
   left: 0; right: 0;
-  height: 70px;
+  height: 100px;
   z-index: 10;
   pointer-events: none;
 }
-.reels-fade-top { top: 0; background: linear-gradient(to bottom, #0a1f0a 0%, transparent 100%); }
-.reels-fade-bot { bottom: 0; background: linear-gradient(to top, #0a1f0a 0%, transparent 100%); }
+.reels-fade-top { top: 0; }
+.reels-fade-bot { bottom: 0; }
 
 /* REEL DIVIDERS */
 .reels {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  height: 260px;
+  height: 300px;
 }
 
 .reel {
@@ -902,8 +907,9 @@ let winStreak = 0;
 let clickInterval = null;
 const isMobile = window.innerWidth <= 560;
 const isSmall = window.innerWidth <= 380;
-const ITEM_H = isSmall ? 69 : isMobile ? 77 : 101;
-const REEL_H = isSmall ? 180 : isMobile ? 200 : 260;
+// box-sizing:border-box means border is INSIDE the height — must match CSS exactly
+const ITEM_H = isSmall ? 68 : isMobile ? 76 : 100;
+const REEL_H = ITEM_H * 3;  // exactly 3 rows so the center row frames cleanly
 
 // MARQUEE LIGHTS
 const ml = document.getElementById('mlights');
