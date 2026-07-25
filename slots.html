@@ -181,44 +181,114 @@ body {
   height: 300px;
 }
 
-/* PAYLINE WINDOW — frames the center row */
-.win-line {
+/* PAYLINE OVERLAY */
+.payline-svg {
   position: absolute;
-  left: 0; right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 100px;
-  border-top: 3px solid rgba(245,200,66,0.9);
-  border-bottom: 3px solid rgba(245,200,66,0.9);
-  background: rgba(245,200,66,0.06);
-  box-shadow: 0 0 18px rgba(245,200,66,0.35), inset 0 0 24px rgba(245,200,66,0.08);
-  z-index: 15;
+  inset: 0;
+  width: 100%; height: 100%;
+  z-index: 16;
   pointer-events: none;
 }
-
-.win-line::before, .win-line::after {
-  content: '\25B6';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 15px;
-  color: #f5c842;
-  text-shadow: 0 0 8px #f5c842;
+.pl {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  vector-effect: non-scaling-stroke;
+  transition: opacity 0.15s;
 }
-.win-line::before { left: 5px; }
-.win-line::after { right: 5px; content: '\25C0'; }
+.pl.on { opacity: 1; animation: pl-flash 0.45s ease-in-out 4; }
+@keyframes pl-flash { 0%,100%{opacity:1} 50%{opacity:0.25} }
+#pl-0 { stroke: #f5c842; }
+#pl-1 { stroke: #22c55e; }
+#pl-2 { stroke: #38bdf8; }
+#pl-3 { stroke: #f97316; }
+#pl-4 { stroke: #c084fc; }
 
-/* Dim the non-winning rows so the payline row stands out */
-.reels-fade-top, .reels-fade-bot { background: rgba(0,0,0,0.55) !important; }
+/* Row separators so the 3 rows read clearly */
+.row-guides { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+.row-guides span {
+  position: absolute; left: 0; right: 0;
+  height: 1px;
+  background: rgba(245,200,66,0.18);
+}
+.row-guides span:nth-child(1) { top: 33.333%; }
+.row-guides span:nth-child(2) { top: 66.666%; }
+
+/* FREE SPINS OVERLAY */
+.fs-overlay {
+  position: absolute; inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(10,5,0,0.82);
+  backdrop-filter: blur(2px);
+}
+.fs-overlay.show { display: flex; animation: fs-in 0.4s ease; }
+@keyframes fs-in { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+.fs-inner { text-align: center; }
+.fs-title {
+  font-family: 'Black Ops One', sans-serif;
+  font-size: 22px; letter-spacing: 5px; color: #f5c842;
+  text-shadow: 0 0 20px #f5c842;
+}
+.fs-count {
+  font-family: 'Black Ops One', sans-serif;
+  font-size: 64px; line-height: 1; color: #f97316;
+  text-shadow: 0 0 30px #f97316;
+  margin: 6px 0;
+}
+.fs-sub { font-size: 12px; letter-spacing: 4px; color: #c87020; }
+
+/* FREE SPINS ACTIVE BADGE */
+.fs-badge {
+  display: none;
+  background: linear-gradient(90deg,#3a1a00,#7a3a00,#3a1a00);
+  border: 2px solid #f97316;
+  padding: 7px; text-align: center; margin-bottom: 10px;
+}
+.fs-badge.show { display: block; animation: streak-pulse 0.6s ease-in-out infinite; }
+.fs-badge span {
+  font-family: 'Black Ops One', sans-serif;
+  font-size: 13px; letter-spacing: 3px; color: #f5c842;
+}
+
+/* BET TOTAL */
+.bet-total { font-size: 9px; letter-spacing: 2px; color: #5a3a10; text-transform: uppercase; margin-left: 6px; }
+.bet-total strong { color: #f5c842; font-family: 'Oswald', sans-serif; font-size: 13px; }
+
+/* TRAIT COLLECTION DEX */
+.dex { background: #000; border: 2px solid #3a2000; margin-top: 8px; }
+.dex-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; cursor: pointer;
+  border-bottom: 1px solid #1a0d00;
+}
+.dex-title { font-family: 'Black Ops One', sans-serif; font-size: 10px; letter-spacing: 3px; color: #f5c842; }
+.dex-progress { margin-left: auto; font-family: 'Oswald', sans-serif; font-size: 13px; color: #7a5a30; }
+.dex-progress strong { color: #f5c842; }
+.dex-toggle { color: #5a3a10; font-size: 10px; transition: transform 0.2s; }
+.dex-toggle.open { transform: rotate(180deg); }
+.dex-body { display: none; padding: 10px 12px 12px; }
+.dex-body.open { display: block; }
+.dex-bar { height: 5px; background: #1a0d00; border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+.dex-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#f97316,#f5c842); transition: width 0.5s ease; }
+.dex-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.dex-cell {
+  aspect-ratio: 1; background: #0d0600; border: 1px solid #1a0d00;
+  border-radius: 3px; display: flex; align-items: center; justify-content: center;
+  padding: 2px; position: relative;
+}
+.dex-cell img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; opacity: 0.13; filter: grayscale(1); transition: all 0.3s; }
+.dex-cell.got { border-color: rgba(245,200,66,0.45); background: #150a00; }
+.dex-cell.got img { opacity: 1; filter: none; }
+.dex-cell.new { animation: dex-pop 0.6s ease; }
+@keyframes dex-pop { 0%{transform:scale(1)} 40%{transform:scale(1.35)} 100%{transform:scale(1)} }
+.dex-note { font-size: 10px; color: #5a3a10; letter-spacing: 1px; margin-top: 9px; text-align: center; }
 
 /* TOP/BOTTOM FADE */
-.reels-fade-top, .reels-fade-bot {
-  position: absolute;
-  left: 0; right: 0;
-  height: 100px;
-  z-index: 10;
-  pointer-events: none;
-}
+.reels-fade-top, .reels-fade-bot { display: none; }
 .reels-fade-top { top: 0; }
 .reels-fade-bot { bottom: 0; }
 
@@ -725,13 +795,27 @@ body {
     <!-- WINDOW -->
     <div class="window-frame">
       <div class="reels-bg">
-        <div class="win-line"></div>
-        <div class="reels-fade-top"></div>
-        <div class="reels-fade-bot"></div>
         <div class="reels">
           <div class="reel"><div class="reel-strip" id="strip-0"></div></div>
           <div class="reel"><div class="reel-strip" id="strip-1"></div></div>
           <div class="reel"><div class="reel-strip" id="strip-2"></div></div>
+        </div>
+        <!-- PAYLINE OVERLAY -->
+        <svg class="payline-svg" id="payline-svg" viewBox="0 0 300 300" preserveAspectRatio="none">
+          <polyline class="pl" id="pl-0" points="0,150 300,150" />
+          <polyline class="pl" id="pl-1" points="0,50 300,50" />
+          <polyline class="pl" id="pl-2" points="0,250 300,250" />
+          <polyline class="pl" id="pl-3" points="0,50 150,150 300,250" />
+          <polyline class="pl" id="pl-4" points="0,250 150,150 300,50" />
+        </svg>
+        <div class="row-guides"><span></span><span></span></div>
+        <!-- FREE SPINS OVERLAY -->
+        <div class="fs-overlay" id="fs-overlay">
+          <div class="fs-inner">
+            <div class="fs-title">FREE SPINS</div>
+            <div class="fs-count" id="fs-count">10</div>
+            <div class="fs-sub">2× ALL WINS</div>
+          </div>
         </div>
       </div>
       <div class="result-panel">
@@ -764,10 +848,12 @@ body {
       </div>
     </div>
 
+    <div class="fs-badge" id="fs-badge"><span>🎁 FREE SPINS: <strong id="fs-remaining">0</strong> LEFT · 2× WINS</span></div>
+
     <div class="displays-row">
       <div class="display-box">
         <span class="display-label">Credits</span>
-        <span class="display-val" id="credits">50</span>
+        <span class="display-val" id="credits">200</span>
       </div>
       <div class="display-box">
         <span class="display-label">Wins</span>
@@ -776,10 +862,11 @@ body {
     </div>
 
     <div class="bet-row">
-      <span class="bet-label">Bet</span>
+      <span class="bet-label">Bet / Line</span>
       <button class="bet-btn" onclick="changeBet(-1)">−</button>
       <span class="bet-val" id="bet-val">1</span>
       <button class="bet-btn" onclick="changeBet(1)">+</button>
+      <span class="bet-total">5 LINES · TOTAL <strong id="bet-total">5</strong></span>
     </div>
 
     <div class="spin-area">
@@ -789,12 +876,26 @@ body {
     </div>
 
     <div class="paytable">
-      <div class="paytable-title">✦ PAY TABLE ✦</div>
-      <div class="paytable-row"><span class="pay-combo">🔥 Triple Rare (Builder/Crown/Wizard)</span><span class="pay-award">×25</span></div>
-      <div class="paytable-row"><span class="pay-combo">💰 Triple Any Trait</span><span class="pay-award">×15</span></div>
-      <div class="paytable-row"><span class="pay-combo">🧙🔨 Wizard + Builder Combo</span><span class="pay-award">×8</span></div>
-      <div class="paytable-row"><span class="pay-combo">✨ Double Rare Trait</span><span class="pay-award">×5</span></div>
-      <div class="paytable-row"><span class="pay-combo">⭐ Double Any Trait</span><span class="pay-award">×3</span></div>
+      <div class="paytable-title">✦ PAY TABLE ✦ <span style="color:#5a3a10;font-size:8px;">PER LINE · LEFT TO RIGHT</span></div>
+      <div class="paytable-row"><span class="pay-combo">🚨 3× Builder Hat <span style="color:#5a3a10;">(middle line)</span></span><span class="pay-award">JACKPOT</span></div>
+      <div class="paytable-row"><span class="pay-combo">🔥 3× Rare Trait <span style="color:#5a3a10;">(under 40 minted)</span></span><span class="pay-award">×75</span></div>
+      <div class="paytable-row"><span class="pay-combo">💰 3× Any Trait</span><span class="pay-award">×22</span></div>
+      <div class="paytable-row"><span class="pay-combo">⭐ 2× Any Trait <span style="color:#5a3a10;">(reels 1–2)</span></span><span class="pay-award">×3</span></div>
+      <div class="paytable-row"><span class="pay-combo">👑 3× Crown anywhere</span><span class="pay-award">10 FREE SPINS</span></div>
+    </div>
+
+    <!-- TRAIT COLLECTION -->
+    <div class="dex">
+      <div class="dex-head" onclick="toggleDex()">
+        <span class="dex-title">🗂 TRAIT COLLECTION</span>
+        <span class="dex-progress"><strong id="dex-count">0</strong>/25</span>
+        <span class="dex-toggle" id="dex-toggle">▼</span>
+      </div>
+      <div class="dex-body" id="dex-body">
+        <div class="dex-bar"><div class="dex-bar-fill" id="dex-bar-fill"></div></div>
+        <div class="dex-grid" id="dex-grid"></div>
+        <div class="dex-note" id="dex-note">Land a trait on the middle row to collect it.</div>
+      </div>
     </div>
 
   </div>
@@ -898,18 +999,34 @@ function playCoin() {
 }
 
 // ── GAME STATE ──
-let credits = parseInt(localStorage.getItem('bd-slots-credits') || '50');
+let credits = parseInt(localStorage.getItem('bd-slots-credits') || '200');
 let wins = parseInt(localStorage.getItem('bd-slots-wins') || '0');
 let jackpot = parseInt(localStorage.getItem('bd-slots-jackpot') || '1000');
-let bet = 1;
+let bet = 1;                 // per line
 let spinning = false;
 let winStreak = 0;
 let clickInterval = null;
+let freeSpins = 0;           // remaining free spins
+let dex = [];                // collected trait names
+const LINES = 5;
+const SCATTER = 'Crown';     // 3+ anywhere triggers free spins
+const FREE_SPIN_AWARD = 10;
+const FREE_SPIN_MULT = 2;
+// Row index on each reel: 0 = top, 1 = middle, 2 = bottom
+const PAYLINES = [
+  [1,1,1],   // middle
+  [0,0,0],   // top
+  [2,2,2],   // bottom
+  [0,1,2],   // diagonal down
+  [2,1,0],   // diagonal up
+];
 const isMobile = window.innerWidth <= 560;
 const isSmall = window.innerWidth <= 380;
 // box-sizing:border-box means border is INSIDE the height — must match CSS exactly
 const ITEM_H = isSmall ? 68 : isMobile ? 76 : 100;
 const REEL_H = ITEM_H * 3;  // exactly 3 rows so the center row frames cleanly
+
+try { dex = JSON.parse(localStorage.getItem('bd-slots-dex') || '[]'); } catch(e) { dex = []; }
 
 // MARQUEE LIGHTS
 const ml = document.getElementById('mlights');
@@ -950,7 +1067,6 @@ function initReels() {
 }
 
 function weightedRandom() {
-  if (Math.random() < 0.05) return { name: 'WILD', img: TRAITS[13].img, isWild: true };
   const total = TRAITS.reduce((s, t) => s + (RARITY[t.name] || 300), 0);
   let r = Math.random() * total;
   for (const t of TRAITS) {
@@ -961,21 +1077,28 @@ function weightedRandom() {
 }
 
 function changeBet(d) {
+  if (freeSpins > 0) return;   // locked during free spins
   bet = Math.max(1, Math.min(5, bet + d));
-  document.getElementById('bet-val').textContent = bet;
+  updateBetDisplay();
   playCoin();
 }
 
+function updateBetDisplay() {
+  document.getElementById('bet-val').textContent = bet;
+  document.getElementById('bet-total').textContent = bet * LINES;
+}
+
 function maxBet() {
+  if (freeSpins > 0) return;
   bet = 5;
-  document.getElementById('bet-val').textContent = 5;
+  updateBetDisplay();
   playCoin();
 }
 
 function addCredits() {
-  credits += 50;
+  credits += 100;
   saveState(); updateDisplay();
-  setResult('+ 50 CREDITS ADDED!', 'win');
+  setResult('+ 100 CREDITS ADDED!', 'win');
   playCoin();
 }
 
@@ -990,23 +1113,34 @@ function stopClickSound() {
 
 async function spin() {
   if (spinning) return;
-  if (credits < bet) { setResult('NOT ENOUGH CREDITS!', 'lose'); return; }
+
+  const totalBet = bet * LINES;
+  const isFree = freeSpins > 0;
+
+  if (!isFree && credits < totalBet) { setResult('NOT ENOUGH CREDITS!', 'lose'); return; }
 
   getACtx();
   spinning = true;
-  credits -= bet;
-  jackpot += bet;
+
+  if (isFree) {
+    freeSpins--;
+    updateFreeSpinUI();
+  } else {
+    credits -= totalBet;
+    jackpot += 1;   // slow drip keeps the progressive sustainable
+  }
   saveState(); updateDisplay();
 
   document.getElementById('spin-btn').disabled = true;
   document.getElementById('multiplier-display').style.display = 'none';
-  setResult('SPINNING...', 'spinning');
+  setResult(isFree ? 'FREE SPIN...' : 'SPINNING...', 'spinning');
   document.querySelectorAll('.reel-item.winner').forEach(el => el.classList.remove('winner'));
+  clearPaylines();
 
   startClickSound(60);
 
-  const multiplier = Math.random() < 0.1 ? (Math.random() < 0.5 ? 2 : 3) : 1;
-  const nearMiss = Math.random() < 0.15;
+  const multiplier = Math.random() < 0.08 ? (Math.random() < 0.5 ? 2 : 3) : 1;
+  const nearMiss = Math.random() < 0.05;
   let results;
 
   if (nearMiss) {
@@ -1022,11 +1156,18 @@ async function spin() {
     const items = strip.querySelectorAll('.reel-item');
     const spinDur = 1200 + i * 550;
 
+    // Find the intended symbol far enough down the strip for a convincing spin
     let targetIdx = -1;
     items.forEach((el, idx) => {
       if (el.dataset.name === result.name && targetIdx === -1 && idx > 25) targetIdx = idx;
     });
-    if (targetIdx === -1) targetIdx = 35 + Math.floor(Math.random() * 15);
+    // Fallback: any occurrence at all, so we never land on the wrong symbol
+    if (targetIdx === -1) {
+      items.forEach((el, idx) => {
+        if (el.dataset.name === result.name && targetIdx === -1) targetIdx = idx;
+      });
+    }
+    if (targetIdx === -1) targetIdx = 0;
 
     const targetOffset = targetIdx * ITEM_H - (REEL_H / 2 - ITEM_H / 2);
     const currentOffset = parseFloat(strip.dataset.offset);
@@ -1064,62 +1205,127 @@ async function spin() {
     setTimeout(() => document.getElementById('multiplier-display').style.display = 'none', 3000);
   }
 
-  checkResult(results, multiplier, nearMiss);
+  // Authoritative: evaluate what is actually shown on the reels
+  checkResult(getGrid(), multiplier);
   spinning = false;
   document.getElementById('spin-btn').disabled = false;
+  updateFreeSpinUI();
 }
 
-function checkResult(results, multiplier, nearMiss) {
-  const names = results.map(r => r.name);
-  const effectiveNames = names.map((n, i) => n === 'WILD' ? (names.find((x, j) => x !== 'WILD' && j !== i) || n) : n);
+// Reads all 3 visible rows for each reel -> grid[reel][row]
+function getGrid() {
+  const grid = [];
+  for (let i = 0; i < 3; i++) {
+    const strip = document.getElementById('strip-' + i);
+    const offset = parseFloat(strip.dataset.offset) || 0;
+    const midIdx = Math.round((offset + REEL_H / 2 - ITEM_H / 2) / ITEM_H);
+    const items = strip.querySelectorAll('.reel-item');
+    grid.push([
+      items[midIdx - 1] ? items[midIdx - 1].dataset.name : '',
+      items[midIdx]     ? items[midIdx].dataset.name     : '',
+      items[midIdx + 1] ? items[midIdx + 1].dataset.name : '',
+    ]);
+  }
+  return grid;
+}
 
-  let msg = '', cls = 'lose', isWin = false, hcls = '';
+// Highlight one specific cell (reel, row)
+function glowCell(reel, row) {
+  const strip = document.getElementById('strip-' + reel);
+  const offset = parseFloat(strip.dataset.offset) || 0;
+  const midIdx = Math.round((offset + REEL_H / 2 - ITEM_H / 2) / ITEM_H);
+  const items = strip.querySelectorAll('.reel-item');
+  const el = items[midIdx - 1 + row];
+  if (el) el.classList.add('winner');
+}
+
+function checkResult(grid, multiplier) {
+  const rareTraits = ['Trucker','Army Hat','Dad Hat','Afro','Birthday','Helicopter'];
+  const effMult = multiplier * (freeSpins > 0 ? FREE_SPIN_MULT : 1);
+
   let payout = 0;
-  const rareTraits = ['Trucker', 'Army Hat', 'Dad Hat', 'Afro', 'Birthday', 'Helicopter'];
-  const hasWild = names.includes('WILD');
+  let best = null;          // { type, name, payout }
+  const winningLines = [];  // line indices that paid
 
-  if (effectiveNames[0] === 'Builder' && effectiveNames[1] === 'Builder' && effectiveNames[2] === 'Builder') {
-    payout = jackpot * multiplier;
+  // ── Evaluate each payline, left to right ──
+  PAYLINES.forEach((line, li) => {
+    const s = [grid[0][line[0]], grid[1][line[1]], grid[2][line[2]]];
+    if (!s[0]) return;
+
+    let linePay = 0, type = null;
+
+    if (s[0] === s[1] && s[1] === s[2]) {
+      if (s[0] === 'Builder' && li === 0) {
+        linePay = jackpot;              // progressive — middle line only
+        type = 'jackpot';
+      } else if (rareTraits.includes(s[0])) {
+        linePay = bet * 75; type = 'legendary';
+      } else {
+        linePay = bet * 22; type = 'triple';
+      }
+    } else if (s[0] === s[1]) {
+      linePay = bet * 3;    type = 'pair';
+    }
+
+    if (linePay > 0) {
+      linePay *= effMult;
+      payout += linePay;
+      winningLines.push(li);
+
+      // Glow the symbols that formed this win
+      const count = (type === 'pair') ? 2 : 3;
+      for (let r = 0; r < count; r++) glowCell(r, line[r]);
+
+      const rank = { pair:1, triple:2, legendary:3, jackpot:4 };
+      if (!best || rank[type] > rank[best.type]) best = { type, name: s[0], payout: linePay };
+    }
+  });
+
+  // ── Scatter: 3+ Crowns anywhere triggers free spins ──
+  let scatterCount = 0;
+  grid.forEach(reel => reel.forEach(n => { if (n === SCATTER) scatterCount++; }));
+  const triggeredFreeSpins = scatterCount >= 3 && freeSpins === 0;
+
+  // ── Collect traits from the middle row ──
+  const newTraits = collectTraits([grid[0][1], grid[1][1], grid[2][1]]);
+
+  // ── Build the result message ──
+  let msg = '', cls = 'lose', hcls = '';
+
+  if (best && best.type === 'jackpot') {
     msg = `🚨 PROGRESSIVE JACKPOT! +${payout.toLocaleString()} Credits!`;
-    cls = 'jackpot'; hcls = 'jackpot-i'; isWin = true;
+    cls = 'jackpot'; hcls = 'jackpot-i';
     playJackpot(); launchConfetti(100, '#f97316'); screenFlash('#f97316');
-    jackpot = 1000;
-    localStorage.setItem('bd-slots-jackpot', jackpot);
-  }
-  else if (effectiveNames[0] === effectiveNames[1] && effectiveNames[1] === effectiveNames[2]) {
-    const isRare = rareTraits.includes(effectiveNames[0]);
-    payout = bet * (isRare ? 25 : 15) * multiplier;
-    msg = `${isRare?'🔥 LEGENDARY':'💰 JACKPOT'}! Triple ${effectiveNames[0]}!${hasWild?' (WILD!)':''} +${payout} Credits!`;
-    cls = 'jackpot'; hcls = 'jackpot-i'; isWin = true;
-    playJackpot(); launchConfetti(isRare?70:50, isRare?'#f97316':'#f5c842'); screenFlash('#f5c842');
-    highlightWinners(results);
-  }
-  else if (effectiveNames[0]===effectiveNames[1] || effectiveNames[1]===effectiveNames[2] || effectiveNames[0]===effectiveNames[2]) {
-    const matchName = effectiveNames[0]===effectiveNames[1] ? effectiveNames[0] : (effectiveNames[1]===effectiveNames[2] ? effectiveNames[1] : effectiveNames[0]);
-    const isRare = rareTraits.includes(matchName);
-    payout = bet * (isRare ? 5 : 3) * multiplier;
-    msg = `${isRare?'✨ RARE PAIR':'⭐ PAIR'}! Double ${matchName}!${hasWild?' (WILD!)':''} +${payout} Credits!`;
-    cls = isRare ? 'rare' : 'win'; hcls = isRare ? 'rare-i' : 'win-i'; isWin = true;
-    playWin(); if (isRare) launchConfetti(25, '#c084fc'); screenFlash(isRare?'#c084fc':'#f5c842');
-    highlightWinners(results);
-  }
-  else if (names.includes('Builder') && names.includes('Wizard')) {
-    payout = bet * 8 * multiplier;
-    msg = `🔨🧙 Builder + Wizard Combo! +${payout} Credits!`;
-    cls = 'rare'; hcls = 'rare-i'; isWin = true;
-    playWin(); launchConfetti(30, '#a855f7'); screenFlash('#a855f7');
-    highlightWinners(results);
-  }
-  else if (nearMiss) {
-    msg = `${names[0]} · ${names[1]} · ${names[2]} — SO CLOSE!`;
+    jackpot = 1000; localStorage.setItem('bd-slots-jackpot', jackpot);
+  } else if (best && best.type === 'legendary') {
+    msg = `🔥 LEGENDARY! 3× ${best.name}! +${payout} Credits!`;
+    cls = 'jackpot'; hcls = 'jackpot-i';
+    playJackpot(); launchConfetti(70, '#f97316'); screenFlash('#f97316');
+  } else if (best && best.type === 'triple') {
+    msg = `💰 3× ${best.name}! +${payout} Credits!`;
+    cls = 'jackpot'; hcls = 'jackpot-i';
+    playJackpot(); launchConfetti(50, '#f5c842'); screenFlash('#f5c842');
+  } else if (best && best.type === 'pair') {
+    const lineWord = winningLines.length > 1 ? `${winningLines.length} LINES` : `Line ${winningLines[0] + 1}`;
+    msg = `⭐ ${lineWord}! 2× ${best.name}! +${payout} Credits!`;
+    cls = 'win'; hcls = 'win-i';
+    playWin(); screenFlash('#f5c842');
+  } else if (scatterCount === 2) {
+    msg = `👑 Two Crowns — one more for free spins!`;
     cls = 'lose'; playNearMiss(); nearMissEffect();
-  }
-  else {
-    msg = `${names.join(' · ')} — No match`;
+  } else {
+    msg = `${grid[0][1]} · ${grid[1][1]} · ${grid[2][1]} — No win`;
     cls = 'lose';
   }
 
-  if (multiplier > 1 && isWin) msg = `${multiplier}× ` + msg;
+  if (payout > 0 && winningLines.length > 1 && best.type !== 'jackpot') {
+    msg = `${winningLines.length}× LINES — ` + msg.replace(/^[^!]*! /, '');
+  }
+  if (effMult > 1 && payout > 0) msg = `${effMult}× ` + msg;
+
+  showPaylines(winningLines);
+
+  // ── Apply payout ──
   if (payout > 0) { credits += payout; wins++; winStreak++; }
   else winStreak = 0;
 
@@ -1129,6 +1335,104 @@ function checkResult(results, multiplier, nearMiss) {
   }
 
   saveState(); updateDisplay(); setResult(msg, cls); addHistory(msg, hcls);
+
+  if (newTraits.length) {
+    setTimeout(() => {
+      const label = newTraits.length === 1 ? newTraits[0] : `${newTraits.length} new traits`;
+      addHistory(`🗂 Collected ${label}! (${dex.length}/25)`, 'rare-i');
+    }, 300);
+  }
+
+  // ── Trigger free spins last so its banner lands on top ──
+  if (triggeredFreeSpins) {
+    setTimeout(() => startFreeSpins(), 600);
+  }
+}
+
+// ── PAYLINE DISPLAY ──
+function showPaylines(indices) {
+  document.querySelectorAll('.pl').forEach(el => el.classList.remove('on'));
+  indices.forEach(i => {
+    const el = document.getElementById('pl-' + i);
+    if (el) el.classList.add('on');
+  });
+}
+
+function clearPaylines() {
+  document.querySelectorAll('.pl').forEach(el => el.classList.remove('on'));
+}
+
+// ── FREE SPINS ──
+function startFreeSpins() {
+  freeSpins = FREE_SPIN_AWARD;
+  const ov = document.getElementById('fs-overlay');
+  document.getElementById('fs-count').textContent = FREE_SPIN_AWARD;
+  ov.classList.add('show');
+  playJackpot();
+  launchConfetti(80, '#f5c842');
+  updateFreeSpinUI();
+  addHistory(`👑 3× Crown — ${FREE_SPIN_AWARD} FREE SPINS at ${FREE_SPIN_MULT}×!`, 'jackpot-i');
+  setTimeout(() => ov.classList.remove('show'), 2600);
+}
+
+function updateFreeSpinUI() {
+  const badge = document.getElementById('fs-badge');
+  if (freeSpins > 0) {
+    badge.classList.add('show');
+    document.getElementById('fs-remaining').textContent = freeSpins;
+    document.getElementById('spin-btn').textContent = '🎁 FREE SPIN';
+  } else {
+    badge.classList.remove('show');
+    document.getElementById('spin-btn').textContent = '🎰 SPIN';
+  }
+}
+
+// ── TRAIT COLLECTION ──
+function collectTraits(names) {
+  const added = [];
+  names.forEach(n => {
+    if (n && !dex.includes(n)) { dex.push(n); added.push(n); }
+  });
+  if (added.length) {
+    localStorage.setItem('bd-slots-dex', JSON.stringify(dex));
+    renderDex(added);
+    checkDexMilestone();
+  }
+  return added;
+}
+
+function checkDexMilestone() {
+  const milestones = { 5: 25, 10: 50, 15: 100, 20: 200, 25: 500 };
+  const reward = milestones[dex.length];
+  if (reward) {
+    credits += reward;
+    saveState(); updateDisplay();
+    launchConfetti(40, '#f5c842');
+    const note = dex.length === 25
+      ? `🏆 COMPLETE COLLECTION! All 25 traits! +${reward} credits!`
+      : `🗂 ${dex.length} traits collected! +${reward} credits!`;
+    addHistory(note, 'jackpot-i');
+    document.getElementById('dex-note').textContent = note;
+  }
+}
+
+function renderDex(newOnes = []) {
+  const grid = document.getElementById('dex-grid');
+  if (!grid) return;
+  grid.innerHTML = TRAITS.map(t => {
+    const got = dex.includes(t.name);
+    const isNew = newOnes.includes(t.name);
+    return `<div class="dex-cell ${got ? 'got' : ''} ${isNew ? 'new' : ''}" title="${t.name}${got ? '' : ' — not collected'}">
+      <img src="${t.img}" alt="${t.name}" />
+    </div>`;
+  }).join('');
+  document.getElementById('dex-count').textContent = dex.length;
+  document.getElementById('dex-bar-fill').style.width = (dex.length / TRAITS.length * 100) + '%';
+}
+
+function toggleDex() {
+  document.getElementById('dex-body').classList.toggle('open');
+  document.getElementById('dex-toggle').classList.toggle('open');
 }
 
 function screenFlash(color) {
@@ -1149,15 +1453,6 @@ function nearMissEffect() {
   }, 50);
 }
 
-function highlightWinners(results) {
-  results.forEach((result, i) => {
-    const strip = document.getElementById('strip-' + i);
-    const offset = parseFloat(strip.dataset.offset);
-    const centerIdx = Math.round((offset + REEL_H/2 - ITEM_H/2) / ITEM_H);
-    const items = strip.querySelectorAll('.reel-item');
-    if (items[centerIdx]) items[centerIdx].classList.add('winner');
-  });
-}
 
 function setResult(msg, cls) {
   const el = document.getElementById('result-text');
@@ -1200,6 +1495,9 @@ function updateDisplay() {
 }
 
 initReels();
+renderDex();
+updateBetDisplay();
+updateFreeSpinUI();
 </script>
 </body>
 </html>
