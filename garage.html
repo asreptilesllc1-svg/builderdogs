@@ -577,13 +577,6 @@
 
     /* WALLET BAR */
 
-    /* DAILY STREAK BAR */
-    #daily-streak-bar { padding: 8px 12px; flex-wrap: wrap; gap: 8px; }
-    #daily-streak-bar .streak-fire { font-size: 16px; }
-    #streak-count { font-size: 13px; }
-    #streak-sub { font-size: 9px; }
-    #streak-days { gap: 4px; }
-    #checkin-btn { font-size: 10px; padding: 6px 12px; letter-spacing: 1px; }
 
     /* WEATHER */
     .weather-bar { padding: 8px 12px; gap: 8px; }
@@ -804,21 +797,6 @@
 
 
 
-  <!-- DAILY LOGIN STREAK -->
-  <div id="daily-streak-bar" style="background:linear-gradient(90deg,#0a1f0a,#0d2b0d);border-bottom:1px solid rgba(34,197,94,0.2);padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="font-size:20px;" id="streak-fire">🔥</span>
-      <div>
-        <div style="font-family:'Black Ops One',sans-serif;font-size:15px;color:var(--green);" id="streak-count">0 Day Streak</div>
-        <div style="font-size:10px;letter-spacing:2px;color:#3a6a3a;text-transform:uppercase;" id="streak-sub">Come back daily to build your streak</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;" id="streak-days"></div>
-    <div id="checkin-btn-wrap">
-      <button onclick="dailyCheckin()" id="checkin-btn" style="font-family:'Black Ops One',sans-serif;font-size:11px;letter-spacing:2px;padding:8px 16px;background:var(--green);color:#0d0d0d;border:none;cursor:pointer;transition:all 0.2s;">✓ CHECK IN</button>
-    </div>
-  </div>
-
   <!-- WEATHER -->
   <div class="weather-bar">
     <div class="w-left">
@@ -978,7 +956,6 @@
 let opened = false;
 let playing = false;
 let clickInterval = null;
-let winStreak = 0;
 
 const audio = new Audio();
 audio.preload = 'none';
@@ -1046,100 +1023,6 @@ function showGarage() {
 
 // Auto open after 2s
 setTimeout(() => { if (!opened) openDoor(); }, 2000);
-
-// ════════════════════════════════════════
-// DAILY STREAK
-// ════════════════════════════════════════
-function getStreakKey(key) {
-  // Device-based for now; switches to account-based when X login is added
-  return 'bd-' + key + '-guest';
-}
-
-// Returns days between two date strings (0 = same day, 1 = yesterday, etc)
-function daysBetween(dateStr) {
-  if (!dateStr) return null;
-  const d1 = new Date(dateStr);
-  const d2 = new Date(new Date().toDateString());
-  d1.setHours(0,0,0,0);
-  d2.setHours(0,0,0,0);
-  return Math.round((d2 - d1) / 86400000);
-}
-
-function initStreak() {
-  const today = new Date().toDateString();
-  const lastVisit = localStorage.getItem(getStreakKey('last-visit'));
-  let streak = parseInt(localStorage.getItem(getStreakKey('streak')) || '0');
-  const checkedIn = localStorage.getItem(getStreakKey('checkedin')) === today;
-
-  const gap = daysBetween(lastVisit); // null if never, 0 today, 1 yesterday, 2+ missed
-
-  // Only reset if they genuinely missed a day (gap of 2 or more)
-  if (gap !== null && gap >= 2) {
-    streak = 0;
-    localStorage.setItem(getStreakKey('streak'), 0);
-  }
-
-  updateStreakDisplay(streak, checkedIn);
-  const btn = document.getElementById('checkin-btn');
-  if (checkedIn) {
-    btn.textContent = '✓ CHECKED IN'; btn.style.background = '#166a16'; btn.disabled = true;
-  } else {
-    btn.textContent = '✓ CHECK IN';
-    btn.style.background = 'var(--green)'; btn.disabled = false;
-  }
-  if (streak > 0) {
-    document.getElementById('streak-sub').textContent = 'Streak saved on this device';
-  }
-}
-
-function dailyCheckin() {
-  const today = new Date().toDateString();
-  const lastVisit = localStorage.getItem(getStreakKey('last-visit'));
-  let streak = parseInt(localStorage.getItem(getStreakKey('streak')) || '0');
-
-  const gap = daysBetween(lastVisit);
-
-  if (gap === 0) {
-    // Already checked in today
-    return;
-  } else if (gap === 1 || streak === 0) {
-    // Consecutive day, or first ever check-in
-    streak++;
-  } else {
-    // Missed days — restart at 1
-    streak = 1;
-  }
-
-  localStorage.setItem(getStreakKey('streak'), streak);
-  localStorage.setItem(getStreakKey('last-visit'), today);
-  localStorage.setItem(getStreakKey('checkedin'), today);
-  updateStreakDisplay(streak, true);
-  const btn = document.getElementById('checkin-btn');
-  btn.textContent = '✓ CHECKED IN'; btn.style.background = '#166a16'; btn.disabled = true;
-  const sub = document.getElementById('streak-sub');
-  if (streak === 7) sub.textContent = 'Builder status unlocked!';
-  else if (streak === 14) sub.textContent = 'OG Builder unlocked!';
-  else if (streak === 30) sub.textContent = 'Legend status unlocked!';
-  else sub.textContent = 'Day ' + streak + ' checked in! Come back tomorrow.';
-}
-
-function updateStreakDisplay(streak, checkedIn) {
-  document.getElementById('streak-count').textContent = streak + ' Day Streak';
-  const daysEl = document.getElementById('streak-days');
-  daysEl.innerHTML = '';
-  for (let i = 6; i >= 0; i--) {
-    const d = document.createElement('div');
-    const isActive = checkedIn ? i < streak : i < streak - 1;
-    d.style.cssText = 'width:10px;height:10px;border-radius:50%;background:' + (isActive ? 'var(--green)' : '#1a3a1a') + ';box-shadow:' + (isActive ? '0 0 6px var(--green)' : 'none') + ';';
-    daysEl.appendChild(d);
-  }
-  const fire = document.getElementById('streak-fire');
-  if (streak >= 30) fire.textContent = '👑';
-  else if (streak >= 14) fire.textContent = '🏆';
-  else if (streak >= 7) fire.textContent = '🔨';
-  else if (streak >= 3) fire.textContent = '🔥';
-  else fire.textContent = '⭐';
-}
 
 // ════════════════════════════════════════
 // WEATHER
@@ -1465,7 +1348,6 @@ async function loadCryptoPrices() {
 function initSite() {
   loadCryptoPrices();
   setInterval(loadCryptoPrices, 15000); // refresh every 15 seconds
-  initStreak();
   initVisitors();
   renderGB();
   const savedLat = localStorage.getItem('bd-weather-lat');
