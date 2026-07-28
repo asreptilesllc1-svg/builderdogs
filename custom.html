@@ -247,6 +247,7 @@
   .upload-label { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
   .upload-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
   .upload-file { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); padding: 8px 12px; font-size: 12px; color: var(--green); margin-top: 8px; }
+  .upload-file.upload-err { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #f87171; }
 
   /* BUDGET */
   .budget-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -465,10 +466,10 @@
       <div class="field">
         <label>Reference Image <span class="optional">optional — upload a sketch, example, or inspiration</span></label>
         <div class="upload-zone" id="ref-zone">
-          <input type="file" id="ref_image" accept="image/*,.pdf" onchange="handleUpload()" />
+          <input type="file" id="ref_image" accept="image/png,image/jpeg,image/webp,image/gif" onchange="handleUpload()" />
           <div class="upload-icon">🖼️</div>
           <div class="upload-label">Drop an image or click to upload</div>
-          <div class="upload-sub">JPG, PNG, PDF — max 10MB</div>
+          <div class="upload-sub">JPG, PNG, WEBP, GIF — max 10MB</div>
         </div>
         <div id="ref-file-name"></div>
       </div>
@@ -517,7 +518,12 @@ const db = createClient(
 
 let selectedColors = ['Black'];
 let selectedBudget = '';
+// Cloudflare Worker upload endpoint — REPLACE with your deployed Worker URL + /upload
+const UPLOAD_ENDPOINT = 'https://builderdogs-admin.YOUR-SUBDOMAIN.workers.dev/upload';
+
 let refImageFile = null;
+let refImageType = null;
+let refImageExt = null;
 
 function toggleColor(el) {
   const color = el.dataset.color;
@@ -536,13 +542,91 @@ function selectBudget(el) {
   document.getElementById('err-budget').textContent = '';
 }
 
-function handleUpload() {
-  const file = document.getElementById('ref_image').files[0];
-  refImageFile = file || null;
+// Allowed image types, mapped to their magic-byte signatures
+const IMAGE_SIGNATURES = [
+  { type: 'image/png',  ext: 'png',  bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { type: 'image/jpeg', ext: 'jpg',  bytes: [0xFF, 0xD8, 0xFF] },
+  { type: 'image/gif',  ext: 'gif',  bytes: [0x47, 0x49, 0x46, 0x38] },
+  // WEBP = "RIFF"(0-3) then "WEBP"(8-11)
+  { type: 'image/webp', ext: 'webp', bytes: [0x52, 0x49, 0x46, 0x46], offset: 0, secondary: { at: 8, bytes: [0x57, 0x45, 0x42, 0x50] } },
+];
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+// Reads the first bytes and confirms the file REALLY is one of our image types,
+// regardless of its name or the reported MIME type (defeats renamed files).
+function sniffImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const buf = new Uint8Array(reader.result);
+      for (const sig of IMAGE_SIGNATURES) {
+        const off = sig.offset || 0;
+        let match = sig.bytes.every((b, i) => buf[off + i] === b);
+        if (match && sig.secondary) {
+          match = sig.secondary.bytes.every((b, i) => buf[sig.secondary.at + i] === b);
+        }
+        if (match) return resolve(sig);
+      }
+      resolve(null);
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsArrayBuffer(file.slice(0, 16));
+  });
+}
+
+// Second check: confirm the bytes actually decode as a viewable image
+function decodesAsImage(file) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(true); };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(false); };
+    img.src = url;
+  });
+}
+
+function setUploadMsg(html, isError) {
   const nameEl = document.getElementById('ref-file-name');
-  if (file) {
-    nameEl.innerHTML = `<div class="upload-file">✓ ${file.name} — ${(file.size/1024/1024).toFixed(1)}MB</div>`;
+  const cls = isError ? 'upload-file upload-err' : 'upload-file';
+  nameEl.innerHTML = `<div class="${cls}">${html}</div>`;
+}
+
+async function handleUpload() {
+  refImageFile = null;
+  const input = document.getElementById('ref_image');
+  const file = input.files[0];
+  if (!file) { document.getElementById('ref-file-name').innerHTML = ''; return; }
+
+  // Size gate
+  if (file.size > MAX_UPLOAD_BYTES) {
+    input.value = '';
+    setUploadMsg('⚠ File is over 10MB. Please upload a smaller image.', true);
+    return;
   }
+
+  setUploadMsg('Checking image…', false);
+
+  // 1) Magic-byte sniff — is it truly a PNG/JPG/GIF/WEBP?
+  const sig = await sniffImage(file);
+  if (!sig) {
+    input.value = '';
+    setUploadMsg('⚠ That doesn\'t look like a valid image file. Only JPG, PNG, WEBP, or GIF are accepted.', true);
+    return;
+  }
+
+  // 2) Does it actually decode as a viewable image?
+  const ok = await decodesAsImage(file);
+  if (!ok) {
+    input.value = '';
+    setUploadMsg('⚠ That image couldn\'t be read. Please try a different file.', true);
+    return;
+  }
+
+  // Passed both checks — safe to accept. Remember the verified type/ext.
+  refImageFile = file;
+  refImageType = sig.type;
+  refImageExt = sig.ext;
+  setUploadMsg(`✓ ${file.name} — ${(file.size/1024/1024).toFixed(1)}MB`, false);
 }
 
 function val(id) { return (document.getElementById(id)||{}).value?.trim() || ''; }
@@ -571,20 +655,35 @@ async function submitRequest() {
   if (!valid) return;
 
   const btn = document.getElementById('submit-btn');
+  const originalBtnText = '🔨 Submit Custom Request';
   btn.disabled = true;
   btn.textContent = 'Submitting...';
 
   try {
-    // Upload reference image if provided
+    // Upload reference image through the Worker, which re-validates the
+    // file server-side before storing it. The browser can no longer write
+    // to storage directly, so a bad file can't slip past into the bucket.
     let ref_image_url = null;
     if (refImageFile) {
       btn.textContent = 'Uploading image...';
-      const ext = refImageFile.name.split('.').pop();
-      const path = `custom-requests/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: uploadError } = await db.storage.from('media').upload(path, refImageFile);
-      if (!uploadError) {
-        const { data } = db.storage.from('media').getPublicUrl(path);
-        ref_image_url = data.publicUrl;
+      try {
+        const fd = new FormData();
+        fd.append('file', refImageFile);
+        const resp = await fetch(UPLOAD_ENDPOINT, { method: 'POST', body: fd });
+        const result = await resp.json();
+        if (resp.ok && result.url) {
+          ref_image_url = result.url;
+        } else {
+          setUploadMsg('⚠ ' + (result.error || 'Upload rejected. Please try another image.'), true);
+          btn.textContent = originalBtnText;
+          btn.disabled = false;
+          return;
+        }
+      } catch(e) {
+        setUploadMsg('⚠ Image upload failed. Please try again.', true);
+        btn.textContent = originalBtnText;
+        btn.disabled = false;
+        return;
       }
     }
 
