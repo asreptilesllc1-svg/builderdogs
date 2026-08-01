@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Builder Dogs — Custom Requests Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -155,11 +156,15 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-// Only allow safe http(s) URLs for reference images
+// Only allow safe http(s) URLs that point at a real raster image.
+// Blocks javascript:/data: tricks AND non-image files (e.g. .html, .svg with scripts).
 function safeUrl(url) {
   try {
     const u = new URL(url);
-    if (u.protocol === 'https:' || u.protocol === 'http:') return u.href;
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+    // must end in an allowed image extension (ignore any query string)
+    const path = u.pathname.toLowerCase();
+    if (/\.(png|jpe?g|webp|gif)$/.test(path)) return u.href;
   } catch(e) {}
   return '';
 }
