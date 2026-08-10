@@ -181,6 +181,31 @@
   /* ── DECK BUILDER ── */
   .deck-layout { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
   .deck-side { position:sticky; top:120px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  .deck-picker-row { display:flex; gap:6px; margin-bottom:8px; }
+  .deck-picker { flex:1; min-width:0; }
+  .btn-mini {
+    background:var(--surface2); border:1px solid var(--border2); border-radius:6px;
+    color:var(--white); font-size:15px; width:38px; cursor:pointer; transition:all 0.15s;
+  }
+  .btn-mini:hover { border-color:var(--orange); }
+  .deck-stats { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+  .deck-stat-box { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:7px 9px; }
+  .deck-stat-box .k { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .deck-stat-box .v { font-family:'Oswald',sans-serif; font-size:15px; font-weight:600; color:var(--white); }
+  .deck-stat-box .v small { font-size:11px; color:var(--muted2); font-weight:400; }
+  .deck-mix { display:flex; height:6px; border-radius:3px; overflow:hidden; margin-bottom:12px; background:var(--surface2); }
+  .deck-mix span { height:100%; }
+  .own-toggle { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted2); margin-top:10px; cursor:pointer; }
+  .own-toggle input { accent-color:var(--orange); width:15px; height:15px; }
+  .hand-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; overflow:hidden; text-align:center; }
+  .hand-card .hc-art { aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:linear-gradient(150deg,#1c1c22,#111); position:relative; }
+  .hand-card .hc-art img { width:100%; height:100%; object-fit:contain; image-rendering:pixelated; }
+  .hand-card .hc-art .ph { font-family:'Black Ops One',sans-serif; font-size:22px; opacity:0.2; }
+  .hand-card .hc-cost { position:absolute; top:4px; left:4px; width:18px; height:18px; background:var(--blue); color:#0a0a0a; border-radius:4px; font-family:'Oswald',sans-serif; font-weight:700; font-size:11px; display:flex; align-items:center; justify-content:center; }
+  .hand-card .hc-name { font-size:10px; padding:4px 3px; line-height:1.2; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card.missing-own { position:relative; }
+  .card.missing-own::after { content:'NOT OWNED'; position:absolute; top:6px; left:6px; z-index:3; font-size:8px; font-weight:700; letter-spacing:1px; background:rgba(0,0,0,0.7); color:var(--muted2); padding:2px 6px; border-radius:4px; }
+
   .deck-name-input {
     width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:6px;
     color:var(--white); font-family:'Black Ops One',sans-serif; font-size:15px; padding:10px 12px; margin-bottom:6px;
@@ -340,19 +365,44 @@
       </div>
 
       <aside class="deck-side">
-        <input class="deck-name-input" id="deck-name" placeholder="My Deck" value="My Deck" oninput="saveDeck()">
+        <div class="deck-picker-row">
+          <select class="sel deck-picker" id="deck-picker" onchange="switchDeck(this.value)"></select>
+          <button class="btn-mini" title="New deck" onclick="newDeck()">+</button>
+          <button class="btn-mini" title="Delete this deck" onclick="deleteDeck()">🗑</button>
+        </div>
+        <input class="deck-name-input" id="deck-name" placeholder="My Deck" value="My Deck" oninput="renameDeck()">
         <div class="deck-count" id="deck-count"><strong>0</strong> / 40 cards</div>
+
         <div class="curve" id="deck-curve"></div>
+
+        <div class="deck-stats" id="deck-stats"></div>
+
         <div class="deck-list" id="deck-list"></div>
+
         <div class="deck-actions">
-          <button class="btn btn-primary" onclick="shareDeck()">🔗 Share Deck</button>
+          <button class="btn btn-primary" onclick="drawSampleHand()">🎴 Test Hand</button>
+          <button class="btn" onclick="shareDeck()">🔗 Share Deck</button>
           <button class="btn" onclick="copyDeckText()">📋 Copy List</button>
           <button class="btn" onclick="clearDeck()">Clear Deck</button>
         </div>
+        <label class="own-toggle"><input type="checkbox" id="deck-own-only" onchange="renderDeckBrowser()"> Only show cards I own</label>
         <div class="deck-add-hint">Tap a card on the left to add it.</div>
       </aside>
     </div>
   </section>
+
+  <!-- SAMPLE HAND MODAL -->
+  <div class="modal-bg" id="hand-bg" onclick="closeHand(event)">
+    <div class="modal" id="hand-inner" style="max-width:560px">
+      <div style="padding:18px 20px 22px">
+        <span class="modal-close" onclick="closeHand()" style="position:static;float:right">×</span>
+        <div style="font-family:'Black Ops One',sans-serif;font-size:18px;margin-bottom:4px">Opening Hand</div>
+        <div style="font-size:13px;color:var(--muted2);margin-bottom:16px">A random 5-card opening draw from your deck — test its consistency.</div>
+        <div id="hand-cards" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="drawSampleHand()">↻ Draw Again</button>
+      </div>
+    </div>
+  </div>
 
 </div>
 
@@ -380,8 +430,13 @@ const classColor = c => ({Bow:'var(--c-bow)',Crown:'var(--c-crown)',Pirate:'var(
 const rarityColor = r => ({Common:'var(--r-common)',Uncommon:'var(--r-uncommon)',Rare:'var(--r-rare)',Epic:'var(--r-epic)',Legendary:'var(--r-legendary)'})[r] || 'var(--muted)';
 
 let owned = loadOwned();
-let deck = {};           // { cardId: qty }
+let decks = loadDecks();          // { deckId: {name, cards:{cardId:qty}} }
+let currentDeckId = null;         // active deck id
 let collFilter = 'all';
+const MAX_COPIES = 3;             // max copies of one card (adjust when rules confirmed)
+
+// Convenience accessor for the active deck's cards
+function curDeck(){ return (decks[currentDeckId] && decks[currentDeckId].cards) || {}; }
 
 /* ══════════════ INIT ══════════════ */
 function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
@@ -509,87 +564,196 @@ function renderDeckBrowser(){
   const q = document.getElementById('deck-search').value.toLowerCase();
   const cl = document.getElementById('deck-class').value;
   const ty = document.getElementById('deck-type').value;
+  const ownOnly = document.getElementById('deck-own-only').checked;
   const out = CARDS.filter(c =>
     !c.sealed &&
-    (!q||c.name.toLowerCase().includes(q)) && (!cl||c.class===cl) && (!ty||c.type===ty)
+    (!q||c.name.toLowerCase().includes(q)) && (!cl||c.class===cl) && (!ty||c.type===ty) &&
+    (!ownOnly || owned.has(c.id))
   );
   const grid = document.getElementById('deck-browser');
   grid.innerHTML = out.length ? out.map(c => cardTile(c,{onclick:`addToDeck('${c.id}',event)`})).join('')
-    : `<div class="empty-state" style="grid-column:1/-1">No cards match.</div>`;
+    : `<div class="empty-state" style="grid-column:1/-1">${ownOnly?'No owned cards match — uncheck "Only cards I own" to see all.':'No cards match.'}</div>`;
 }
-function deckCount(){ return Object.values(deck).reduce((a,b)=>a+b,0); }
+
+function deckCount(){ return Object.values(curDeck()).reduce((a,b)=>a+b,0); }
+
 function addToDeck(id,e){
   if(e) e.stopPropagation();
-  if(deckCount() >= META.deckSize){ flashCount(); return; }
-  deck[id] = (deck[id]||0)+1;
-  saveDeck(); renderDeck();
+  if(!currentDeckId) newDeck(true);
+  const d = curDeck();
+  if(deckCount() >= META.deckSize){ flashCount('Deck is full ('+META.deckSize+')'); return; }
+  if((d[id]||0) >= MAX_COPIES){ flashCount('Max '+MAX_COPIES+' copies per card'); return; }
+  d[id] = (d[id]||0)+1;
+  saveDecks(); renderDeck();
 }
 function removeFromDeck(id){
-  if(!deck[id]) return;
-  deck[id]--; if(deck[id]<=0) delete deck[id];
-  saveDeck(); renderDeck();
+  const d = curDeck();
+  if(!d[id]) return;
+  d[id]--; if(d[id]<=0) delete d[id];
+  saveDecks(); renderDeck();
 }
 function clearDeck(){
-  if(deckCount()===0 || confirm('Clear this deck?')){ deck={}; saveDeck(); renderDeck(); }
+  if(deckCount()===0 || confirm('Clear this deck?')){ if(decks[currentDeckId]) decks[currentDeckId].cards={}; saveDecks(); renderDeck(); }
 }
+
 function renderDeck(){
+  const d = curDeck();
   const n = deckCount();
   const cEl = document.getElementById('deck-count');
   cEl.innerHTML = `<strong>${n}</strong> / ${META.deckSize} cards`;
   cEl.classList.toggle('full', n===META.deckSize);
 
-  // curve (costs 0..7+, capped display)
+  // ── mana curve ──
   const buckets = [0,0,0,0,0,0,0,0];
-  Object.entries(deck).forEach(([id,q])=>{ const c=byId[id]; if(c){ const b=Math.min(c.cost,7); buckets[b]+=q; }});
+  Object.entries(d).forEach(([id,q])=>{ const c=byId[id]; if(c){ const b=Math.min(c.cost,7); buckets[b]+=q; }});
   const max = Math.max(1,...buckets);
   document.getElementById('deck-curve').innerHTML = buckets.map((v,i)=>`
     <div class="curve-col"><div class="curve-bar" style="height:${v/max*100}%"></div><div class="curve-label">${i===7?'7+':i}</div></div>
   `).join('');
 
-  // list, sorted by cost then name
-  const rows = Object.keys(deck).map(id=>byId[id]).filter(Boolean)
+  // ── stats panel ──
+  renderDeckStats(d, n);
+
+  // ── list ──
+  const rows = Object.keys(d).map(id=>byId[id]).filter(Boolean)
     .sort((a,b)=> a.cost-b.cost || a.name.localeCompare(b.name));
   const list = document.getElementById('deck-list');
-  list.innerHTML = rows.length ? rows.map(c=>`
-    <div class="deck-row">
+  list.innerHTML = rows.length ? rows.map(c=>{
+    const notOwned = !owned.has(c.id);
+    return `<div class="deck-row">
       <div class="deck-row-cost">${c.cost}</div>
-      <div class="deck-row-name">${esc(c.name)}</div>
-      <div class="deck-row-qty">×${deck[c.id]}</div>
+      <div class="deck-row-name" style="color:${classColor(c.class)}">${esc(c.name)}${notOwned?' <span style="color:var(--muted);font-size:11px">(need)</span>':''}</div>
+      <div class="deck-row-qty">×${d[c.id]}</div>
       <div class="deck-row-x" onclick="removeFromDeck('${c.id}')">−</div>
-    </div>`).join('')
+    </div>`;
+  }).join('')
     : `<div class="deck-empty">Your deck is empty.<br>Add cards from the left to reach ${META.deckSize}.</div>`;
 }
-let flashTimer=null;
-function flashCount(){
-  const el=document.getElementById('deck-count');
-  el.style.color='var(--orange)';
-  clearTimeout(flashTimer);
-  flashTimer=setTimeout(()=>el.style.color='',400);
+
+function renderDeckStats(d, n){
+  const ids = Object.keys(d);
+  let creatures=0, spells=0, traps=0, totalCost=0, ownedCount=0, missing=0;
+  const byClass = {};
+  ids.forEach(id=>{
+    const c = byId[id]; if(!c) return; const q=d[id];
+    if(c.type==='Creature') creatures+=q; else if(c.type==='Spell') spells+=q; else if(c.type==='Trap') traps+=q;
+    totalCost += c.cost*q;
+    if(owned.has(id)) ownedCount+=q; else missing+=q;
+    byClass[c.class] = (byClass[c.class]||0)+q;
+  });
+  const avg = n? (totalCost/n).toFixed(1) : '0.0';
+
+  // type mix bar
+  const mix = n ? `<div class="deck-mix">
+    <span style="width:${creatures/n*100}%;background:var(--green)" title="Creatures"></span>
+    <span style="width:${spells/n*100}%;background:var(--blue)" title="Spells"></span>
+    <span style="width:${traps/n*100}%;background:var(--orange)" title="Traps"></span>
+  </div>` : '';
+
+  document.getElementById('deck-stats').innerHTML = `
+    <div class="deck-stat-box"><div class="k">Avg Cost</div><div class="v">${avg}</div></div>
+    <div class="deck-stat-box"><div class="k">You Own</div><div class="v">${ownedCount}<small>/${n||0}</small></div></div>
+    <div class="deck-stat-box"><div class="k">Creatures</div><div class="v">${creatures}</div></div>
+    <div class="deck-stat-box"><div class="k">Spells / Traps</div><div class="v">${spells} <small>/</small> ${traps}</div></div>
+  ` + (mix ? `<div style="grid-column:1/-1">${mix}</div>` : '');
 }
+
+let flashTimer=null;
+function flashCount(msg){
+  const el=document.getElementById('deck-count');
+  const orig = el.innerHTML;
+  el.style.color='var(--orange)';
+  if(msg){ el.dataset.msg = el.dataset.msg||''; }
+  clearTimeout(flashTimer);
+  flashTimer=setTimeout(()=>el.style.color='',600);
+  if(msg) toast(msg);
+}
+
+/* ── MULTIPLE DECKS ── */
+function refreshDeckPicker(){
+  const sel = document.getElementById('deck-picker');
+  const ids = Object.keys(decks);
+  sel.innerHTML = ids.map(id=>`<option value="${id}"${id===currentDeckId?' selected':''}>${esc(decks[id].name||'Untitled')}</option>`).join('')
+    || '<option value="">No decks yet</option>';
+}
+function newDeck(silent){
+  const id = 'd'+Date.now().toString(36);
+  const num = Object.keys(decks).length+1;
+  decks[id] = { name: 'Deck '+num, cards:{} };
+  currentDeckId = id;
+  saveDecks(); refreshDeckPicker();
+  document.getElementById('deck-name').value = decks[id].name;
+  renderDeck();
+  if(!silent) toast('New deck created');
+}
+function switchDeck(id){
+  if(!decks[id]) return;
+  currentDeckId = id;
+  document.getElementById('deck-name').value = decks[id].name || '';
+  saveActive(); renderDeck();
+}
+function deleteDeck(){
+  if(!currentDeckId) return;
+  if(!confirm('Delete "'+(decks[currentDeckId].name||'this deck')+'"?')) return;
+  delete decks[currentDeckId];
+  const ids = Object.keys(decks);
+  currentDeckId = ids[0] || null;
+  if(!currentDeckId) newDeck(true); else document.getElementById('deck-name').value = decks[currentDeckId].name||'';
+  saveDecks(); refreshDeckPicker(); renderDeck();
+}
+function renameDeck(){
+  if(!currentDeckId) return;
+  decks[currentDeckId].name = document.getElementById('deck-name').value;
+  saveDecks(); refreshDeckPicker();
+}
+
+/* ── SAMPLE HAND ── */
+function drawSampleHand(){
+  const d = curDeck();
+  const pool = [];
+  Object.entries(d).forEach(([id,q])=>{ for(let i=0;i<q;i++) pool.push(id); });
+  if(pool.length < 5){ toast('Add at least 5 cards to test a hand'); return; }
+  // Fisher-Yates shuffle, take 5
+  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const hand = pool.slice(0,5).map(id=>byId[id]);
+  document.getElementById('hand-cards').innerHTML = hand.map(c=>{
+    const art = c.image
+      ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="ph" style="display:none">${esc(c.name[0])}</span>`
+      : `<span class="ph">${esc(c.name[0])}</span>`;
+    return `<div class="hand-card"><div class="hc-art"><div class="hc-cost">${c.cost}</div>${art}</div><div class="hc-name">${esc(c.name)}</div></div>`;
+  }).join('');
+  document.getElementById('hand-bg').classList.add('show');
+}
+function closeHand(e){
+  if(e && e.target.id!=='hand-bg' && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('hand-bg').classList.remove('show');
+}
+
 function copyDeckText(){
-  const rows = Object.keys(deck).map(id=>byId[id]).filter(Boolean).sort((a,b)=>a.cost-b.cost||a.name.localeCompare(b.name));
+  const d = curDeck();
+  const rows = Object.keys(d).map(id=>byId[id]).filter(Boolean).sort((a,b)=>a.cost-b.cost||a.name.localeCompare(b.name));
   if(!rows.length){ alert('Your deck is empty.'); return; }
   const name = document.getElementById('deck-name').value || 'My Deck';
-  const txt = `${name} — ${deckCount()}/${META.deckSize}\n` + rows.map(c=>`${deck[c.id]}x ${c.name}`).join('\n') + `\n\nBuilt at builderdogs.com/legends.html`;
+  const txt = `${name} — ${deckCount()}/${META.deckSize}\n` + rows.map(c=>`${d[c.id]}x ${c.name}`).join('\n') + `\n\nBuilt at builderdogs.com/legends.html`;
   navigator.clipboard.writeText(txt).then(()=>toast('Deck list copied!')).catch(()=>alert(txt));
 }
 
 /* ── Deck share via URL (no backend) ── */
 function encodeDeck(){
-  // compact: name|id:qty,id:qty
+  const d = curDeck();
   const name = document.getElementById('deck-name').value||'My Deck';
-  const body = Object.entries(deck).map(([id,q])=>`${id}:${q}`).join(',');
+  const body = Object.entries(d).map(([id,q])=>`${id}:${q}`).join(',');
   return btoa(unescape(encodeURIComponent(name+'|'+body)));
 }
 function decodeDeck(code){
   try{
     const raw = decodeURIComponent(escape(atob(code)));
     const [name, body] = raw.split('|');
-    const d={};
+    const cards={};
     (body||'').split(',').filter(Boolean).forEach(pair=>{
-      const [id,q]=pair.split(':'); if(byId[id]) d[id]=+q||1;
+      const [id,q]=pair.split(':'); if(byId[id]) cards[id]=Math.min(+q||1, MAX_COPIES);
     });
-    return {name, deck:d};
+    return {name, cards};
   }catch(e){ return null; }
 }
 function shareDeck(){
@@ -639,7 +803,7 @@ function switchTab(t){
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
   document.getElementById('panel-'+t).classList.add('active');
   if(t==='collection') renderCollection();
-  if(t==='deck') { renderDeckBrowser(); renderDeck(); }
+  if(t==='deck') { refreshDeckPicker(); renderDeckBrowser(); renderDeck(); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -658,18 +822,40 @@ function toast(msg){
 /* ══════════════ PERSISTENCE ══════════════ */
 function loadOwned(){ try{ return new Set(JSON.parse(localStorage.getItem('ddl-owned')||'[]')); }catch(e){ return new Set(); } }
 function saveOwned(){ try{ localStorage.setItem('ddl-owned', JSON.stringify([...owned])); }catch(e){} }
-function saveDeck(){ try{ localStorage.setItem('ddl-deck', JSON.stringify({name:document.getElementById('deck-name').value, deck})); }catch(e){} }
-function loadDeck(){
-  // URL-shared deck wins
+function loadDecks(){
+  try{ const d = JSON.parse(localStorage.getItem('ddl-decks')||'null'); if(d && typeof d==='object') return d; }catch(e){}
+  // migrate old single-deck if present
+  try{
+    const old = JSON.parse(localStorage.getItem('ddl-deck')||'null');
+    if(old && old.deck){ return { 'd0': { name: old.name||'My Deck', cards: old.deck } }; }
+  }catch(e){}
+  return {};
+}
+function saveDecks(){ try{ localStorage.setItem('ddl-decks', JSON.stringify(decks)); saveActive(); }catch(e){} }
+function saveActive(){ try{ localStorage.setItem('ddl-active-deck', currentDeckId||''); }catch(e){} }
+function loadActive(){ try{ return localStorage.getItem('ddl-active-deck')||null; }catch(e){ return null; } }
+
+function initDecks(){
+  // A shared deck in the URL creates a new deck
   const params = new URLSearchParams(location.search);
   if(params.get('deck')){
     const d = decodeDeck(params.get('deck'));
-    if(d){ deck=d.deck; document.getElementById('deck-name').value=d.name; switchTab('deck'); toast('Loaded shared deck!'); return; }
+    if(d){
+      const id='d'+Date.now().toString(36);
+      decks[id] = { name: (d.name||'Shared Deck'), cards: d.cards };
+      currentDeckId = id; saveDecks();
+      document.getElementById('deck-name').value = decks[id].name;
+      switchTab('deck'); toast('Loaded shared deck!');
+      return;
+    }
   }
-  try{
-    const saved = JSON.parse(localStorage.getItem('ddl-deck')||'null');
-    if(saved){ deck=saved.deck||{}; if(saved.name) document.getElementById('deck-name').value=saved.name; }
-  }catch(e){}
+  // otherwise restore the last active deck, or make a first one
+  const ids = Object.keys(decks);
+  if(!ids.length){ newDeck(true); }
+  else {
+    currentDeckId = (loadActive() && decks[loadActive()]) ? loadActive() : ids[0];
+    document.getElementById('deck-name').value = decks[currentDeckId].name || '';
+  }
 }
 
 /* ══════════════ BOOT ══════════════ */
@@ -679,7 +865,8 @@ populateSelects();
   document.getElementById('reveal-counter').innerHTML = `<strong>${rev}</strong> of ${META.totalCards} cards revealed · the rest drop as the set unseals`;
 })();
 renderGallery();
-loadDeck();
+initDecks();
+refreshDeckPicker();
 renderProgress();
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal({target:{id:'modal-bg'}}); });
 </script>
