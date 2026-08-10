@@ -28,7 +28,7 @@
     --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#666; --muted2:#888;
     --green:#22c55e; --purple:#a855f7; --blue:#38bdf8;
     /* class colors */
-    --c-guardian:#5b9bd5; --c-hunter:#22c55e; --c-mystic:#a855f7; --c-trickster:#f5c842; --c-warlord:#ef4444;
+    --c-bow:#22c55e; --c-crown:#f5c842; --c-pirate:#ef4444; --c-wizard:#a855f7; --c-zombie:#5b9bd5; --c-neutral:#9a9aa2;
     /* rarity colors */
     --r-common:#9a9aa2; --r-uncommon:#5b9bd5; --r-rare:#a855f7; --r-epic:#f97316; --r-legendary:#f5c842;
   }
@@ -68,10 +68,8 @@
   .hero h1 { font-family:'Black Ops One',sans-serif; font-size:clamp(30px,6vw,52px); line-height:1; margin-bottom:14px; }
   .hero h1 span { color:var(--orange); }
   .hero p { color:var(--muted2); max-width:560px; margin:0 auto; font-size:16px; }
-  .hero .unofficial {
-    display:inline-block; margin-top:16px; font-size:11px; letter-spacing:1px;
-    color:var(--muted); border:1px solid var(--border2); border-radius:20px; padding:5px 14px;
-  }
+  .reveal-counter { margin-top:18px; font-size:13px; letter-spacing:1px; color:var(--gold); }
+  .reveal-counter strong { font-family:'Oswald',sans-serif; font-size:16px; }
 
   /* ── TABS ── */
   .tabs {
@@ -147,6 +145,12 @@
   .card-stat { font-family:'Oswald',sans-serif; font-weight:600; color:var(--white); }
   /* class strip */
   .card-strip { height:3px; }
+
+  /* sealed / revealing-soon */
+  .card.sealed { cursor:default; opacity:0.55; }
+  .card.sealed:hover { transform:none; border-color:var(--border); }
+  .card.sealed .card-art { background:repeating-linear-gradient(45deg,#111 0 10px,#141414 10px 20px); }
+  .sealed-mark { font-family:'Black Ops One',sans-serif; font-size:40px; color:var(--border2); }
 
   /* owned state (collection) */
   .card.trackable .card-art { transition:opacity 0.2s; }
@@ -270,7 +274,7 @@
   <p class="hero-eyebrow">▸ Community Companion</p>
   <h1>LEGENDS <span>COMPANION</span></h1>
   <p>Browse every card, track your collection, and build decks for Doginal Dogs Legends — Rise of the Pack.</p>
-  <span class="unofficial">🐾 Unofficial fan tool · made by a holder</span>
+  <div class="reveal-counter" id="reveal-counter"></div>
 </header>
 
 <div class="tabs">
@@ -372,7 +376,7 @@ const CARDS = (window.DDL_CARDS || []).slice();
 const META = window.DDL_META || { CLASSES:[], RARITIES:[], KEYWORDS:{}, totalCards:CARDS.length, deckSize:40 };
 const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
 
-const classColor = c => ({Guardian:'var(--c-guardian)',Hunter:'var(--c-hunter)',Mystic:'var(--c-mystic)',Trickster:'var(--c-trickster)',Warlord:'var(--c-warlord)'})[c] || 'var(--muted)';
+const classColor = c => ({Bow:'var(--c-bow)',Crown:'var(--c-crown)',Pirate:'var(--c-pirate)',Wizard:'var(--c-wizard)',Zombie:'var(--c-zombie)',Neutral:'var(--c-neutral)'})[c] || 'var(--muted)';
 const rarityColor = r => ({Common:'var(--r-common)',Uncommon:'var(--r-uncommon)',Rare:'var(--r-rare)',Epic:'var(--r-epic)',Legendary:'var(--r-legendary)'})[r] || 'var(--muted)';
 
 let owned = loadOwned();
@@ -396,8 +400,22 @@ function populateSelects() {
 
 /* ══════════════ CARD TILE ══════════════ */
 function cardTile(c, opts={}) {
+  // Sealed / not-yet-revealed cards render as a mystery tile
+  if (c.sealed) {
+    return `
+      <div class="card sealed" data-id="${c.id}">
+        <div class="card-art">
+          <div class="sealed-mark">?</div>
+        </div>
+        <div class="card-strip" style="background:var(--border2)"></div>
+        <div class="card-body">
+          <div class="card-name" style="color:var(--muted)">Revealing Soon</div>
+          <div class="card-meta"><span>${esc(c.id)}</span><span>🔒</span></div>
+        </div>
+      </div>`;
+  }
   const art = c.image
-    ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
+    ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
     : `<span class="placeholder">${esc(c.name[0])}</span>`;
   const stat = c.type === 'Creature' ? `<span class="card-stat">${c.atk}/${c.hp}</span>` : `<span>${esc(c.type)}</span>`;
   const ownClass = opts.trackable ? ` trackable${owned.has(c.id)?' owned':''}` : '';
@@ -425,11 +443,13 @@ function renderGallery() {
   const ty = document.getElementById('gallery-type').value;
   const ra = document.getElementById('gallery-rarity').value;
   const co = document.getElementById('gallery-cost').value;
-  const out = CARDS.filter(c =>
-    (!q || c.name.toLowerCase().includes(q)) &&
-    (!cl || c.class===cl) && (!ty || c.type===ty) && (!ra || c.rarity===ra) &&
-    (co==='' || (co==='6' ? c.cost>=6 : c.cost===+co))
-  );
+  const anyFilter = q||cl||ty||ra||co!=='';
+  const out = CARDS.filter(c => {
+    if (c.sealed) return !anyFilter;   // mystery tiles only show when browsing unfiltered
+    return (!q || c.name.toLowerCase().includes(q)) &&
+      (!cl || c.class===cl) && (!ty || c.type===ty) && (!ra || c.rarity===ra) &&
+      (co==='' || (co==='6' ? c.cost>=6 : c.cost===+co));
+  });
   const grid = document.getElementById('gallery-grid');
   grid.innerHTML = out.length ? out.map(c => cardTile(c)).join('')
     : `<div class="empty-state" style="grid-column:1/-1">No cards match those filters.</div>`;
@@ -445,6 +465,7 @@ function renderCollection() {
   const q = document.getElementById('coll-search').value.toLowerCase();
   const cl = document.getElementById('coll-class').value;
   const out = CARDS.filter(c =>
+    !c.sealed &&
     (!q || c.name.toLowerCase().includes(q)) && (!cl || c.class===cl) &&
     (collFilter==='all' || (collFilter==='owned'?owned.has(c.id):!owned.has(c.id)))
   );
@@ -466,8 +487,9 @@ function toggleOwned(id, e){
 function renderProgress(){
   document.getElementById('coll-total').innerHTML = `${owned.size}<small>/${META.totalCards}</small>`;
   const bars = META.CLASSES.map(cl=>{
-    const total = CARDS.filter(c=>c.class===cl).length;
+    const total = CARDS.filter(c=>c.class===cl && !c.sealed).length;
     const have = CARDS.filter(c=>c.class===cl && owned.has(c.id)).length;
+    if(total===0) return '';
     const pct = total? Math.round(have/total*100):0;
     return `<div class="class-bar">
       <div class="class-bar-top"><span style="color:${classColor(cl)}">${esc(cl)}</span><span>${have}/${total}</span></div>
@@ -488,6 +510,7 @@ function renderDeckBrowser(){
   const cl = document.getElementById('deck-class').value;
   const ty = document.getElementById('deck-type').value;
   const out = CARDS.filter(c =>
+    !c.sealed &&
     (!q||c.name.toLowerCase().includes(q)) && (!cl||c.class===cl) && (!ty||c.type===ty)
   );
   const grid = document.getElementById('deck-browser');
@@ -577,28 +600,32 @@ function shareDeck(){
 
 /* ══════════════ CARD MODAL ══════════════ */
 function openCard(id){
-  const c = byId[id]; if(!c) return;
+  const c = byId[id]; if(!c || c.sealed) return;
   const art = c.image
     ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
     : `<span class="placeholder">${esc(c.name[0])}</span>`;
-  document.getElementById('modal-art').innerHTML = `<span class="modal-close" onclick="closeModal()">×</span><div class="card-cost">${c.cost}</div>${art}`;
-  const kwList = (c.keywords||[]).filter(k=>META.KEYWORDS[k]).map(k=>`<div class="modal-kw-item"><strong>${esc(k)}</strong> — ${esc(META.KEYWORDS[k])}</div>`).join('');
+  document.getElementById('modal-art').innerHTML = `<span class="modal-close" onclick="closeModal()">×</span>${art}`;
+  const kw = c.keyword && META.KEYWORDS[c.keyword]
+    ? `<div class="modal-kw"><div class="modal-kw-item"><strong>${esc(c.keyword)}</strong> — ${esc(META.KEYWORDS[c.keyword])}</div></div>` : '';
   const stats = c.type==='Creature'
     ? `<div class="modal-stats">
          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--orange)">${c.atk}</div><div class="modal-stat-lbl">Attack</div></div>
          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--green)">${c.hp}</div><div class="modal-stat-lbl">Health</div></div>
          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--blue)">${c.cost}</div><div class="modal-stat-lbl">Cost</div></div>
        </div>` : '';
+  const tierTag = c.tier ? `<span class="tag" style="color:var(--gold);border-color:rgba(245,200,66,0.4)">${esc(c.tier)}</span>` : '';
   document.getElementById('modal-body').innerHTML = `
-    <div class="modal-name">${esc(c.name)}</div>
+    <div class="modal-name">${esc(c.name)} <span style="font-size:13px;color:var(--muted);font-family:'Oswald',sans-serif">${esc(c.id)}</span></div>
     <div class="modal-tags">
       <span class="tag" style="color:${classColor(c.class)};border-color:${classColor(c.class)}">${esc(c.class)}</span>
       <span class="tag">${esc(c.type)}</span>
+      ${c.keyword?`<span class="tag">${esc(c.keyword)}</span>`:''}
       <span class="tag" style="color:${rarityColor(c.rarity)};border-color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span>
+      ${tierTag}
     </div>
     ${stats}
     <div class="modal-text">${esc(c.text)}</div>
-    ${kwList?`<div class="modal-kw">${kwList}</div>`:''}`;
+    ${kw}`;
   document.getElementById('modal-bg').classList.add('show');
 }
 function closeModal(e){
@@ -647,6 +674,10 @@ function loadDeck(){
 
 /* ══════════════ BOOT ══════════════ */
 populateSelects();
+(function(){
+  const rev = CARDS.filter(c=>!c.sealed).length;
+  document.getElementById('reveal-counter').innerHTML = `<strong>${rev}</strong> of ${META.totalCards} cards revealed · the rest drop as the set unseals`;
+})();
 renderGallery();
 loadDeck();
 renderProgress();
