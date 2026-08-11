@@ -2,10 +2,8 @@
    Doginal Dogs Legends — Rise of the Pack · Card Data
    ──────────────────────────────────────────────────────────────
    Pulled from the official gallery data at ddltcg.com.
-   111 cards total. As of now, 12 are revealed and 99 show as
-   "Revealing Soon" (sealed) — those fill in automatically as the
-   official set reveals more. To refresh: re-pull their gallery
-   data and regenerate this file.
+   111 cards total. 13 revealed, 98 still "Revealing Soon" (sealed).
+   To refresh when more reveal: re-pull the gallery data and regenerate.
 
    Card art & renders are hot-linked from ddltcg.com (their server).
    All card names, art, and game content © Doginal Dogs Legends.
@@ -16,11 +14,8 @@ window.DDL_META = {
   setName: "Rise of the Pack",
   totalCards: 111,
   deckSize: 40,
-  // Real classes from the official data:
   CLASSES: ["Bow", "Crown", "Pirate", "Wizard", "Zombie", "Neutral"],
-  // Rarity tiers, rarest last:
   RARITIES: ["Common", "Uncommon", "Rare", "Epic"],
-  // "Pill" on each card = its keyword ability:
   KEYWORDS: {
     "Play":    "Effect triggers when you play the card from hand.",
     "Haunt":   "Ongoing graveyard-style effect — read the card text.",
@@ -82,7 +77,7 @@ window.DDL_CARDS = [
   { id:"V051", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V052", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V053", name:"Seeker", class:"Crown", type:"Creature", cost:4, atk:4, hp:2, rarity:"Uncommon", tier:"Common/Rare", keyword:"Play", text:"Add a Creature from your deck to your hand.", image:"https://ddltcg.com/card_renders/V053.png", sealed:false },
-  { id:"V054", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
+  { id:"V054", name:"Shiboshi", class:"Pirate", type:"Creature", cost:4, atk:4, hp:2, rarity:"Rare", tier:"Ultra Rare", keyword:"Haunt", text:"Destroy all Creatures that destroyed this Creature in combat.", image:"https://ddltcg.com/card_renders/V054.png", sealed:false },
   { id:"V055", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V056", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V057", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
