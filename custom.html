@@ -727,6 +727,7 @@ async function submitRequest() {
     // Send notification email
     btn.textContent = 'Sending notification...';
     try {
+      const imageLine = ref_image_url ? `Reference image: ${ref_image_url}` : 'No reference image uploaded';
       await fetch('https://builderdogs-email.asreptilesllc1.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -735,7 +736,7 @@ async function submitRequest() {
           email: val('email'),
           trade: `Product: ${val('product_type')} — Qty: ${val('quantity')} — Budget: ${selectedBudget}`,
           location: `Colors: ${selectedColors.join(', ')}`,
-          wallet: val('design_desc'),
+          wallet: `${val('design_desc')}\n\n${imageLine}\n\nReview & manage this request: https://builderdogs.com/custom-admin.html`,
           profileId: 'custom-request'
         })
       });
