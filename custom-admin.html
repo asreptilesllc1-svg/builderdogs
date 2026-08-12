@@ -266,8 +266,17 @@ function renderDashboard() {
 
 // ── LOAD DATA ──
 async function loadRequests() {
-  const { data } = await db.from('custom_requests').select('*').order('created_at', { ascending: false });
-  requests = data || [];
+  const { data, error } = await db.from('custom_requests').select('*').order('created_at', { ascending: false });
+  if (error) {
+    const tc = document.getElementById('table-container');
+    if (tc) tc.innerHTML = `<div style="padding:24px;color:#f87171;font-size:14px;">
+      ⚠ Could not load requests: ${escapeHtml(error.message || 'unknown error')}<br>
+      <span style="color:var(--muted);font-size:12px;">This usually means the database read permission (RLS) needs to allow reading custom_requests.</span></div>`;
+    console.error('loadRequests error:', error);
+    requests = [];
+  } else {
+    requests = data || [];
+  }
   
   const pending = requests.filter(r => r.status === 'pending').length;
   const completed = requests.filter(r => r.status === 'completed').length;
