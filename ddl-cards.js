@@ -92,7 +92,7 @@ window.DDL_CARDS = [
   { id:"V066", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V067", name:"Wiggles", class:"Wizard", type:"Creature", cost:7, atk:5, hp:5, rarity:"Epic", tier:"Ultra Rare", keyword:"Passive", text:"At the end of your turn, deal 5 damage to the enemy Hero.", image:"https://ddltcg.com/card_renders/V067.png", sealed:false },
   { id:"V068", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V069", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
+  { id:"V069", name:"Bark", class:"Neutral", type:"Creature", cost:6, atk:4, hp:4, rarity:"Epic", tier:"Ultra Rare", keyword:"Play", text:"Target a card and shuffle it into its owner's deck.", image:"https://ddltcg.com/card_renders/V069.png", sealed:false },
   { id:"V070", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V071", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V072", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
