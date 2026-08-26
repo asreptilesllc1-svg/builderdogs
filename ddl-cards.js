@@ -2,8 +2,8 @@
    Doginal Dogs Legends — Rise of the Pack · Card Data
    ──────────────────────────────────────────────────────────────
    Pulled from the official gallery data at ddltcg.com.
-   111 cards total. 19 revealed, 92 still "Revealing Soon".
-   To refresh when more reveal: re-pull the gallery data and regenerate.
+   111 cards total. 25 revealed, 86 still "Revealing Soon".
+   Refresh by re-pulling the gallery data and regenerating this file.
 
    Card art & renders are hot-linked from ddltcg.com (their server).
    All card names, art, and game content © Doginal Dogs Legends.
@@ -19,7 +19,8 @@ window.DDL_META = {
   KEYWORDS: {
     "Play":    "Effect triggers when you play the card from hand.",
     "Haunt":   "Ongoing graveyard-style effect — read the card text.",
-    "Passive": "Always on while this creature is in play."
+    "Passive": "Always on while this creature is in play.",
+    "Trap":    "Set face-down; triggers when its condition is met."
   }
 };
 
@@ -30,9 +31,9 @@ window.DDL_CARDS = [
   { id:"V004", name:"Gary", class:"Neutral", type:"Creature", cost:1, atk:1, hp:1, rarity:"Uncommon", tier:"Common/Rare", keyword:"Play", text:"Draw a card.", image:"https://ddltcg.com/card_renders/V004.png", sealed:false },
   { id:"V005", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V006", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V007", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
+  { id:"V007", name:"Jones", class:"Neutral", type:"Creature", cost:1, atk:1, hp:2, rarity:"Epic", tier:"Common/Rare", keyword:"Play", text:"Shuffle your hand into your deck and draw that many cards.", image:"https://ddltcg.com/card_renders/V007.png", sealed:false },
   { id:"V008", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V009", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
+  { id:"V009", name:"Poke", class:"Wizard", type:"Creature", cost:1, atk:1, hp:1, rarity:"Common", tier:"Common/Rare", keyword:"Passive", text:"At the end of your turn, deal 1 damage to the enemy Hero.", image:"https://ddltcg.com/card_renders/V009.png", sealed:false },
   { id:"V010", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V011", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V012", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
@@ -71,7 +72,7 @@ window.DDL_CARDS = [
   { id:"V045", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V046", name:"Cherry", class:"Bow", type:"Creature", cost:4, atk:3, hp:3, rarity:"Rare", tier:"Common/Rare", keyword:"Play", text:"Summon a Creature that costs 2 or less from your deck.", image:"https://ddltcg.com/card_renders/V046.png", sealed:false },
   { id:"V047", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V048", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
+  { id:"V048", name:"Mama Light", class:"Bow", type:"Creature", cost:4, atk:4, hp:4, rarity:"Legendary", tier:"Common/Rare", keyword:"Play", text:"Draw a card. If you control another Creature, draw 2 instead.", image:"https://ddltcg.com/card_renders/V048.png", sealed:false },
   { id:"V049", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V050", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V051", name:"Reaper", class:"Zombie", type:"Creature", cost:4, atk:3, hp:5, rarity:"Common", tier:"Common/Rare", keyword:"Passive", text:"At the end of your turn, trigger the Haunt effects of the adjacent Creatures.", image:"https://ddltcg.com/card_renders/V051.png", sealed:false },
@@ -89,10 +90,10 @@ window.DDL_CARDS = [
   { id:"V063", name:"Penny", class:"Pirate", type:"Creature", cost:6, atk:6, hp:2, rarity:"Epic", tier:"Ultra Rare", keyword:"Play", text:"Summon a Creature that costs 4 or less from your graveyard.", image:"https://ddltcg.com/card_renders/V063.png", sealed:false },
   { id:"V064", name:"Aria", class:"Bow", type:"Creature", cost:7, atk:7, hp:4, rarity:"Epic", tier:"Ultra Rare", keyword:"Play", text:"Deal 7 damage to a target.", image:"https://ddltcg.com/card_renders/V064.png", sealed:false },
   { id:"V065", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V066", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
+  { id:"V066", name:"Manic", class:"Neutral", type:"Creature", cost:7, atk:5, hp:4, rarity:"Epic", tier:"Common/Rare", keyword:"Play", text:"Destroy an enemy Creature.", image:"https://ddltcg.com/card_renders/V066.png", sealed:false },
   { id:"V067", name:"Wiggles", class:"Wizard", type:"Creature", cost:7, atk:5, hp:5, rarity:"Epic", tier:"Ultra Rare", keyword:"Passive", text:"At the end of your turn, deal 5 damage to the enemy Hero.", image:"https://ddltcg.com/card_renders/V067.png", sealed:false },
   { id:"V068", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V069", name:"Bark", class:"Neutral", type:"Creature", cost:6, atk:4, hp:4, rarity:"Epic", tier:"Ultra Rare", keyword:"Play", text:"Target a card and shuffle it into its owner's deck.", image:"https://ddltcg.com/card_renders/V069.png", sealed:false },
+  { id:"V069", name:"Bark", class:"Neutral", type:"Creature", cost:6, atk:4, hp:4, rarity:"Uncommon", tier:"Giga Rare", keyword:"Play", text:"Target a card and shuffle it into its owner's deck.", image:"https://ddltcg.com/card_renders/V069.png", sealed:false },
   { id:"V070", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V071", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V072", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
@@ -134,5 +135,5 @@ window.DDL_CARDS = [
   { id:"V108", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V109", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
   { id:"V110", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true },
-  { id:"V111", name:"Revealing Soon", class:null, type:null, cost:null, atk:null, hp:null, rarity:null, tier:null, keyword:"", text:"", image:"", sealed:true }
+  { id:"V111", name:"Tidal Wave", class:"Neutral", type:"Trap", cost:2, atk:null, hp:null, rarity:"Epic", tier:"Common/Rare", keyword:"Trap", text:"After an enemy Creature attacks your Hero, destroy all Creatures.", image:"https://ddltcg.com/card_renders/V111.png", sealed:false }
 ];
