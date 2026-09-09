@@ -30,7 +30,7 @@
     --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#666; --muted2:#888;
     --green:#22c55e; --purple:#a855f7; --blue:#38bdf8;
     /* class colors */
-    --c-bow:#22c55e; --c-crown:#f5c842; --c-pirate:#ef4444; --c-wizard:#a855f7; --c-zombie:#5b9bd5; --c-neutral:#9a9aa2;
+    --c-bow:#22c55e; --c-crown:#f5c842; --c-pirate:#ef4444; --c-wizard:#a855f7; --c-zombie:#5b9bd5; --c-neutral:#9a9aa2; --c-all:#e8b34a;
     /* rarity colors */
     --r-common:#9a9aa2; --r-uncommon:#5b9bd5; --r-rare:#a855f7; --r-epic:#f97316; --r-legendary:#f5c842;
   }
@@ -428,7 +428,7 @@ const CARDS = (window.DDL_CARDS || []).slice();
 const META = window.DDL_META || { CLASSES:[], RARITIES:[], KEYWORDS:{}, totalCards:CARDS.length, deckSize:40 };
 const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
 
-const classColor = c => ({Bow:'var(--c-bow)',Crown:'var(--c-crown)',Pirate:'var(--c-pirate)',Wizard:'var(--c-wizard)',Zombie:'var(--c-zombie)',Neutral:'var(--c-neutral)'})[c] || 'var(--muted)';
+const classColor = c => ({Bow:'var(--c-bow)',Crown:'var(--c-crown)',Pirate:'var(--c-pirate)',Wizard:'var(--c-wizard)',Zombie:'var(--c-zombie)',Neutral:'var(--c-neutral)',All:'var(--c-all)'})[c] || 'var(--muted)';
 const rarityColor = r => ({Common:'var(--r-common)',Uncommon:'var(--r-uncommon)',Rare:'var(--r-rare)',Epic:'var(--r-epic)',Legendary:'var(--r-legendary)'})[r] || 'var(--muted)';
 
 let owned = loadOwned();
@@ -864,7 +864,12 @@ function initDecks(){
 populateSelects();
 (function(){
   const rev = CARDS.filter(c=>!c.sealed).length;
-  document.getElementById('reveal-counter').innerHTML = `<strong>${rev}</strong> of ${META.totalCards} cards revealed · the rest drop as the set unseals`;
+  const el = document.getElementById('reveal-counter');
+  if (rev >= META.totalCards) {
+    el.innerHTML = `<strong>All ${META.totalCards}</strong> cards · the complete set`;
+  } else {
+    el.innerHTML = `<strong>${rev}</strong> of ${META.totalCards} cards revealed · the rest drop as the set unseals`;
+  }
 })();
 renderGallery();
 initDecks();
