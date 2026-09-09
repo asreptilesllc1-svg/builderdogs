@@ -148,6 +148,28 @@
   /* class strip */
   .card-strip { height:3px; }
 
+  /* collection quantity steppers */
+  .stepper-row { display:flex; gap:5px; margin-top:8px; }
+  .stepper {
+    flex:1; display:flex; align-items:center; gap:2px;
+    background:var(--surface2); border:1px solid var(--border2); border-radius:5px;
+    padding:2px; overflow:hidden;
+  }
+  .stepper.has { border-color:var(--green); }
+  .stepper.stp-holo.has { border-color:#a855f7; }
+  .stp-lbl { font-size:9px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted2); padding:0 3px; flex:1; white-space:nowrap; }
+  .stepper.has .stp-lbl { color:var(--white); }
+  .stepper.stp-holo.has .stp-lbl { background:linear-gradient(135deg,#38bdf8,#a855f7,#f5c842); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .stp-btn {
+    width:18px; height:18px; flex-shrink:0; border:none; border-radius:3px; cursor:pointer;
+    background:var(--border2); color:var(--white); font-size:14px; line-height:1; font-weight:700;
+    display:flex; align-items:center; justify-content:center; transition:background 0.12s;
+  }
+  .stp-btn:hover { background:var(--orange); color:#0a0a0a; }
+  .stp-count { min-width:16px; text-align:center; font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; color:var(--white); }
+  .coll-card:not(.owned) .card-art { opacity:0.4; filter:grayscale(0.6); }
+  .coll-card .card-art { cursor:pointer; transition:opacity 0.2s; }
+
   /* sealed / revealing-soon */
   .card.sealed { cursor:default; opacity:0.55; }
   .card.sealed:hover { transform:none; border-color:var(--border); }
@@ -335,7 +357,11 @@
     <div class="progress-head">
       <div class="progress-ring">
         <div><div class="progress-num" id="coll-total">0<small>/111</small></div>
-        <div class="progress-label">Cards Collected</div></div>
+        <div class="progress-label">Unique Cards</div></div>
+      </div>
+      <div class="progress-ring">
+        <div><div class="progress-num" id="coll-versions" style="color:var(--blue)">0<small>/203</small></div>
+        <div class="progress-label">All Versions</div></div>
       </div>
       <div class="class-bars" id="coll-class-bars"></div>
       <button class="reset-link" onclick="resetCollection()">Reset</button>
@@ -431,7 +457,8 @@ const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
 const classColor = c => ({Bow:'var(--c-bow)',Crown:'var(--c-crown)',Pirate:'var(--c-pirate)',Wizard:'var(--c-wizard)',Zombie:'var(--c-zombie)',Neutral:'var(--c-neutral)',All:'var(--c-all)'})[c] || 'var(--muted)';
 const rarityColor = r => ({Common:'var(--r-common)',Uncommon:'var(--r-uncommon)',Rare:'var(--r-rare)',Epic:'var(--r-epic)',Legendary:'var(--r-legendary)'})[r] || 'var(--muted)';
 
-let owned = loadOwned();
+let qty = loadQty();       // { id: countNormal }
+let qtyHolo = loadQtyHolo(); // { id: countHolo }
 let decks = loadDecks();          // { deckId: {name, cards:{cardId:qty}} }
 let currentDeckId = null;         // active deck id
 let collFilter = 'all';
@@ -518,34 +545,101 @@ function setCollFilter(f){
   ['all','owned','missing'].forEach(x=>document.getElementById('coll-show-'+x).classList.toggle('on', x===f));
   renderCollection();
 }
+// TOTAL_VERSIONS: regular cards = 2 (normal+holo), full-art = 1 (holo only)
+const TOTAL_VERSIONS = CARDS.filter(c=>!c.sealed).reduce((n,c)=>n+(c.fullArt?1:2),0);
+
+const nQ = (m,id)=> m[id]||0;                       // quantity of a version
+function hasAny(c){ return c.fullArt ? nQ(qtyHolo,c.id)>0 : (nQ(qty,c.id)>0 || nQ(qtyHolo,c.id)>0); }
+
+function stepper(id, variant){
+  const m = variant==='holo' ? qtyHolo : qty;
+  const count = nQ(m,id);
+  const label = variant==='holo' ? '✦ Holo' : 'Normal';
+  const cls = variant==='holo' ? 'stp-holo' : '';
+  return `<div class="stepper ${cls}${count>0?' has':''}">
+    <span class="stp-lbl">${label}</span>
+    <button class="stp-btn" onclick="stepVar('${id}','${variant}',-1,event)">−</button>
+    <span class="stp-count">${count}</span>
+    <button class="stp-btn" onclick="stepVar('${id}','${variant}',1,event)">+</button>
+  </div>`;
+}
+
+function collectorTile(c){
+  const art = c.image
+    ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
+    : `<span class="placeholder">${esc(c.name[0])}</span>`;
+  const stat = c.type === 'Creature' ? `<span class="card-stat">${c.atk}/${c.hp}</span>` : `<span>${esc(c.type)}</span>`;
+  const collected = hasAny(c);
+  const steppers = c.fullArt
+    ? stepper(c.id,'holo')
+    : stepper(c.id,'normal') + stepper(c.id,'holo');
+  return `
+    <div class="card coll-card${collected?' owned':''}" data-id="${c.id}">
+      <div class="card-art" onclick="openCard('${c.id}')">
+        <div class="card-cost">${c.cost}</div>
+        <div class="card-rarity-dot" style="color:${rarityColor(c.rarity)};background:${rarityColor(c.rarity)}"></div>
+        ${art}
+      </div>
+      <div class="card-strip" style="background:${classColor(c.class)}"></div>
+      <div class="card-body">
+        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-meta"><span>${esc(c.class)}</span>${stat}</div>
+        <div class="stepper-row">${steppers}</div>
+      </div>
+    </div>`;
+}
+
 function renderCollection() {
   const q = document.getElementById('coll-search').value.toLowerCase();
   const cl = document.getElementById('coll-class').value;
   const out = CARDS.filter(c =>
     !c.sealed &&
     (!q || c.name.toLowerCase().includes(q)) && (!cl || c.class===cl) &&
-    (collFilter==='all' || (collFilter==='owned'?owned.has(c.id):!owned.has(c.id)))
+    (collFilter==='all' || (collFilter==='owned'?hasAny(c):!hasAny(c)))
   );
   const grid = document.getElementById('coll-grid');
-  grid.innerHTML = out.length ? out.map(c => cardTile(c,{trackable:true,onclick:`toggleOwned('${c.id}',event)`})).join('')
+  grid.innerHTML = out.length ? out.map(c => collectorTile(c)).join('')
     : `<div class="empty-state" style="grid-column:1/-1">No cards here yet.</div>`;
   renderProgress();
 }
-function toggleOwned(id, e){
+
+function stepVar(id, variant, delta, e){
   if(e) e.stopPropagation();
-  if(owned.has(id)) owned.delete(id); else owned.add(id);
-  saveOwned();
-  // update just this tile + progress
+  const m = variant==='holo' ? qtyHolo : qty;
+  const next = Math.max(0, nQ(m,id) + delta);
+  if(next===0) delete m[id]; else m[id]=next;
+  if(variant==='holo') saveQtyHolo(); else saveQty();
+  const c = byId[id];
+  // update just this tile
   const tile = document.querySelector(`#coll-grid .card[data-id="${id}"]`);
-  if(tile) tile.classList.toggle('owned', owned.has(id));
+  if(tile){
+    tile.classList.toggle('owned', hasAny(c));
+    const stp = tile.querySelector(variant==='holo' ? '.stepper.stp-holo' : '.stepper:not(.stp-holo)');
+    if(stp){
+      stp.querySelector('.stp-count').textContent = next;
+      stp.classList.toggle('has', next>0);
+    }
+  }
   renderProgress();
   if(collFilter!=='all') renderCollection();
 }
+
 function renderProgress(){
-  document.getElementById('coll-total').innerHTML = `${owned.size}<small>/${META.totalCards}</small>`;
+  const cardsCollected = CARDS.filter(c=>!c.sealed && hasAny(c)).length;
+  // unique versions owned (not counting duplicates): each normal owned + each holo owned
+  let versionsOwned = 0;
+  CARDS.forEach(c=>{
+    if(c.sealed) return;
+    if(!c.fullArt && nQ(qty,c.id)>0) versionsOwned++;
+    if(nQ(qtyHolo,c.id)>0) versionsOwned++;
+  });
+  document.getElementById('coll-total').innerHTML = `${cardsCollected}<small>/${META.totalCards}</small>`;
+  const vEl = document.getElementById('coll-versions');
+  if(vEl) vEl.innerHTML = `${versionsOwned}<small>/${TOTAL_VERSIONS}</small>`;
+
   const bars = META.CLASSES.map(cl=>{
     const total = CARDS.filter(c=>c.class===cl && !c.sealed).length;
-    const have = CARDS.filter(c=>c.class===cl && owned.has(c.id)).length;
+    const have = CARDS.filter(c=>c.class===cl && hasAny(c)).length;
     if(total===0) return '';
     const pct = total? Math.round(have/total*100):0;
     return `<div class="class-bar">
@@ -557,7 +651,7 @@ function renderProgress(){
 }
 function resetCollection(){
   if(confirm('Clear your whole collection? This cannot be undone.')){
-    owned = new Set(); saveOwned(); renderCollection();
+    qty = {}; qtyHolo = {}; saveQty(); saveQtyHolo(); renderCollection();
   }
 }
 
@@ -822,8 +916,17 @@ function toast(msg){
 }
 
 /* ══════════════ PERSISTENCE ══════════════ */
-function loadOwned(){ try{ return new Set(JSON.parse(localStorage.getItem('ddl-owned')||'[]')); }catch(e){ return new Set(); } }
-function saveOwned(){ try{ localStorage.setItem('ddl-owned', JSON.stringify([...owned])); }catch(e){} }
+function loadQty(){
+  try{ const q = JSON.parse(localStorage.getItem('ddl-qty')||'null'); if(q && typeof q==='object') return q; }catch(e){}
+  // migrate old owned-Set → qty 1 each
+  try{ const old = JSON.parse(localStorage.getItem('ddl-owned')||'[]'); const m={}; old.forEach(id=>m[id]=1); return m; }catch(e){ return {}; }
+}
+function saveQty(){ try{ localStorage.setItem('ddl-qty', JSON.stringify(qty)); }catch(e){} }
+function loadQtyHolo(){
+  try{ const q = JSON.parse(localStorage.getItem('ddl-qty-holo')||'null'); if(q && typeof q==='object') return q; }catch(e){}
+  try{ const old = JSON.parse(localStorage.getItem('ddl-owned-holo')||'[]'); const m={}; old.forEach(id=>m[id]=1); return m; }catch(e){ return {}; }
+}
+function saveQtyHolo(){ try{ localStorage.setItem('ddl-qty-holo', JSON.stringify(qtyHolo)); }catch(e){} }
 function loadDecks(){
   try{ const d = JSON.parse(localStorage.getItem('ddl-decks')||'null'); if(d && typeof d==='object') return d; }catch(e){}
   // migrate old single-deck if present
