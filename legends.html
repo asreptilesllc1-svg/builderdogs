@@ -505,7 +505,7 @@ function cardTile(c, opts={}) {
     ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
     : `<span class="placeholder">${esc(c.name[0])}</span>`;
   const stat = c.type === 'Creature' ? `<span class="card-stat">${c.atk}/${c.hp}</span>` : `<span>${esc(c.type)}</span>`;
-  const ownClass = opts.trackable ? ` trackable${owned.has(c.id)?' owned':''}` : '';
+  const ownClass = opts.trackable ? ` trackable${hasAny(c)?' owned':''}` : '';
   const ownBadge = opts.trackable ? `<div class="own-badge">✓</div>` : '';
   return `
     <div class="card${ownClass}" data-id="${c.id}" onclick="${opts.onclick||`openCard('${c.id}')`}">
@@ -667,7 +667,7 @@ function renderDeckBrowser(){
   const out = CARDS.filter(c =>
     !c.sealed &&
     (!q||c.name.toLowerCase().includes(q)) && (!cl||c.class===cl) && (!ty||c.type===ty) &&
-    (!ownOnly || owned.has(c.id))
+    (!ownOnly || hasAny(c))
   );
   const grid = document.getElementById('deck-browser');
   grid.innerHTML = out.length ? out.map(c => cardTile(c,{onclick:`addToDeck('${c.id}',event)`})).join('')
@@ -718,7 +718,7 @@ function renderDeck(){
     .sort((a,b)=> a.cost-b.cost || a.name.localeCompare(b.name));
   const list = document.getElementById('deck-list');
   list.innerHTML = rows.length ? rows.map(c=>{
-    const notOwned = !owned.has(c.id);
+    const notOwned = !hasAny(c);
     return `<div class="deck-row">
       <div class="deck-row-cost">${c.cost}</div>
       <div class="deck-row-name" style="color:${classColor(c.class)}">${esc(c.name)}${notOwned?' <span style="color:var(--muted);font-size:11px">(need)</span>':''}</div>
@@ -737,7 +737,7 @@ function renderDeckStats(d, n){
     const c = byId[id]; if(!c) return; const q=d[id];
     if(c.type==='Creature') creatures+=q; else if(c.type==='Spell') spells+=q; else if(c.type==='Trap') traps+=q;
     totalCost += c.cost*q;
-    if(owned.has(id)) ownedCount+=q; else missing+=q;
+    if(hasAny(c)) ownedCount+=q; else missing+=q;
     byClass[c.class] = (byClass[c.class]||0)+q;
   });
   const avg = n? (totalCost/n).toFixed(1) : '0.0';
