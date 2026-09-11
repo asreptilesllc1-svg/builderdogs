@@ -143,6 +143,7 @@
   }
   .card-body { padding:9px 10px 11px; }
   .card-name { font-weight:600; font-size:14px; line-height:1.2; margin-bottom:3px; }
+  .card-id { font-family:'Oswald',sans-serif; font-weight:400; font-size:11px; color:var(--muted); letter-spacing:0.5px; }
   .card-meta { font-size:11px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted2); display:flex; justify-content:space-between; }
   .card-stat { font-family:'Oswald',sans-serif; font-weight:600; color:var(--white); }
   /* class strip */
@@ -289,6 +290,7 @@
   .modal-stat-val { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; }
   .modal-stat-lbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
   .modal-text { font-size:15px; color:var(--white); line-height:1.6; border-top:1px solid var(--border); padding-top:14px; }
+  .modal-cardnum { text-align:center; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:2px; color:var(--muted); margin-top:16px; padding-top:12px; border-top:1px solid var(--border); }
   .modal-kw { margin-top:12px; }
   .modal-kw-item { font-size:13px; color:var(--muted2); margin-bottom:5px; }
   .modal-kw-item strong { color:var(--gold); }
@@ -316,6 +318,7 @@
   <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
   <div class="nav-spacer"></div>
   <a class="nav-a hide-mobile" href="garage.html">🔧 Garage</a>
+  <a class="nav-a" href="market.html">🃏 Market</a>
   <a class="nav-a" href="https://ddltcg.com" target="_blank" rel="noopener">Official DDL ↗</a>
 </nav>
 
@@ -514,7 +517,7 @@ function cardTile(c, opts={}) {
       </div>
       <div class="card-strip" style="background:${classColor(c.class)}"></div>
       <div class="card-body">
-        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-name">${esc(c.name)} <span class="card-id">${esc(c.id)}</span></div>
         <div class="card-meta"><span>${esc(c.class)}</span>${stat}</div>
       </div>
     </div>`;
@@ -582,7 +585,7 @@ function collectorTile(c){
       </div>
       <div class="card-strip" style="background:${classColor(c.class)}"></div>
       <div class="card-body">
-        <div class="card-name">${esc(c.name)}</div>
+        <div class="card-name">${esc(c.name)} <span class="card-id">${esc(c.id)}</span></div>
         <div class="card-meta"><span>${esc(c.class)}</span>${stat}</div>
         <div class="stepper-row">${steppers}</div>
       </div>
@@ -885,7 +888,8 @@ function openCard(id){
     </div>
     ${stats}
     <div class="modal-text">${esc(c.text)}</div>
-    ${kw}`;
+    ${kw}
+    <div class="modal-cardnum">${esc(c.id)}</div>`;
   document.getElementById('modal-bg').classList.add('show');
 }
 function closeModal(e){
