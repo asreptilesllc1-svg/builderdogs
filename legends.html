@@ -286,6 +286,12 @@
   .modal-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
   .tag { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:3px 9px; border-radius:20px; border:1px solid var(--border2); color:var(--muted2); }
   .modal-stats { display:flex; gap:16px; margin-bottom:14px; }
+  .scarcity { margin-bottom:16px; }
+  .scarcity-top { display:flex; justify-content:space-between; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); margin-bottom:5px; }
+  .scarcity-pct { font-family:'Oswald',sans-serif; font-weight:600; color:var(--white); letter-spacing:0; text-transform:none; font-size:13px; }
+  .scarcity-track { height:5px; background:var(--surface2); border-radius:3px; overflow:hidden; }
+  .scarcity-fill { height:100%; border-radius:3px; transition:width 0.3s; }
+  .scarcity-note { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4; }
   .modal-stat { text-align:center; }
   .modal-stat-val { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; }
   .modal-stat-lbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
@@ -877,6 +883,12 @@ function openCard(id){
          <div class="modal-stat"><div class="modal-stat-val" style="color:var(--blue)">${c.cost}</div><div class="modal-stat-lbl">Cost</div></div>
        </div>` : '';
   const tierTag = c.tier ? `<span class="tag" style="color:var(--gold);border-color:rgba(245,200,66,0.4)">${esc(c.tier)}</span>` : '';
+  const scarcity = (c.rarityPct != null) ? `
+    <div class="scarcity">
+      <div class="scarcity-top"><span>Pull Rate</span><span class="scarcity-pct">${c.rarityPct}%</span></div>
+      <div class="scarcity-track"><div class="scarcity-fill" style="width:${Math.max(2,c.rarityPct)}%;background:${rarityColor(c.rarity)}"></div></div>
+      <div class="scarcity-note">of ${esc(c.tier||'this tier')} pulls are this card — the lower the %, the scarcer it is.</div>
+    </div>` : '';
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-name">${esc(c.name)} <span style="font-size:13px;color:var(--muted);font-family:'Oswald',sans-serif">${esc(c.id)}</span></div>
     <div class="modal-tags">
@@ -886,6 +898,7 @@ function openCard(id){
       <span class="tag" style="color:${rarityColor(c.rarity)};border-color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span>
       ${tierTag}
     </div>
+    ${scarcity}
     ${stats}
     <div class="modal-text">${esc(c.text)}</div>
     ${kw}
