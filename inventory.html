@@ -466,7 +466,7 @@ async function submitAdd(){
     btn.textContent = 'Added ✓';
     setTimeout(()=>{ closeAdd(); btn.disabled=false; btn.textContent='Add to Inventory'; document.getElementById('add-msg').className='form-msg'; }, 1600);
   } catch(e){
-    showMsg('Something went wrong. Please try again.', false);
+    showMsg('⚠ ' + (e.message || 'Something went wrong. Please try again.'), false);
     console.error(e);
     btn.disabled = false; btn.textContent = 'Add to Inventory';
   }
