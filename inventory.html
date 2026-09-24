@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Inventory — Builder Dogs</title>
+<meta name="description" content="Browse and manage community DDL Legends card inventories. Add your own collection, mark base, holo, and full art, and see what other holders have.">
+<link rel="canonical" href="https://builderdogs.com/inventory.html">
+<meta property="og:title" content="Card Inventory — Builder Dogs">
+<meta property="og:description" content="Community DDL Legends card inventories — browse holders' collections and add your own.">
+<meta property="og:url" content="https://builderdogs.com/inventory.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Builder Dogs">
+<meta property="og:image" content="https://builderdogs.com/legends-share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BooMetaX">
+<meta name="twitter:image" content="https://builderdogs.com/legends-share.png">
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="ddl-cards.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1a1a1a; --border:#262626; --border2:#333;
+    --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#666; --muted2:#888;
+    --green:#22c55e; --blue:#38bdf8; --purple:#a855f7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration:none; }
+  ::selection { background:var(--orange); color:#0a0a0a; }
+
+  .nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px; padding:12px 20px; background:rgba(10,10,10,0.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+  .nav-logo { font-family:'Black Ops One',sans-serif; font-size:16px; letter-spacing:0.5px; }
+  .nav-logo span { color:var(--orange); }
+  .nav-spacer { flex:1; }
+  .nav-a { font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); padding:6px 10px; transition:color 0.15s; }
+  .nav-a:hover { color:var(--white); }
+
+  .hero { text-align:center; padding:44px 20px 24px; border-bottom:1px solid var(--border); background:radial-gradient(120% 100% at 50% 0%, #16110b 0%, #0d0d0d 55%, #0a0a0a 100%); }
+  .hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:var(--orange); margin-bottom:12px; }
+  .hero h1 { font-family:'Black Ops One',sans-serif; font-size:clamp(28px,5.5vw,46px); line-height:1; margin-bottom:12px; }
+  .hero h1 span { color:var(--orange); }
+  .hero p { color:var(--muted2); max-width:600px; margin:0 auto; font-size:15px; }
+
+  .wrap { max-width:1150px; margin:0 auto; padding:24px 20px 80px; }
+
+  .note { background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.25); border-radius:10px; padding:13px 18px; margin-bottom:22px; font-size:13.5px; color:var(--muted2); line-height:1.6; }
+  .note strong { color:var(--blue); }
+
+  /* Type tabs */
+  .type-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .type-tab { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); padding:10px 18px; cursor:pointer; transition:all 0.15s; }
+  .type-tab:hover { color:var(--white); }
+  .type-tab.on { background:var(--surface2); border-color:var(--orange); color:var(--orange); }
+  .type-tab .n { color:var(--muted); margin-left:4px; }
+
+  .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+  .search { flex:1; min-width:160px; background:var(--surface); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:15px; padding:9px 14px; }
+  .search::placeholder { color:var(--muted); }
+  .search:focus { outline:none; border-color:var(--orange); }
+  .sel { background:var(--surface); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:14px; padding:9px 12px; cursor:pointer; }
+  .sel:focus { outline:none; border-color:var(--orange); }
+  .chip { font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:20px; color:var(--muted2); padding:7px 14px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .chip:hover { color:var(--white); }
+  .chip.on { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .btn { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:10px 20px; border-radius:6px; cursor:pointer; border:1px solid var(--border2); background:var(--surface2); color:var(--white); transition:all 0.15s; white-space:nowrap; }
+  .btn:hover { border-color:var(--orange); }
+  .btn-primary { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .btn-primary:hover { background:#e0630a; }
+
+  /* Table */
+  .table-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); }
+  .inv-row { display:grid; grid-template-columns:52px 2fr 1fr 1fr 90px 70px 1fr 90px; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:14px; }
+  .inv-row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 14px; }
+  .inv-row:last-child { border-bottom:none; }
+  .inv-row:not(.head):hover { background:rgba(255,255,255,0.02); }
+  .inv-thumb { width:40px; height:40px; border-radius:6px; object-fit:cover; background:var(--surface2); }
+  .inv-name { font-weight:600; }
+  .inv-id { color:var(--muted); font-size:11px; font-family:'Oswald',sans-serif; margin-left:4px; }
+  .variant-tag { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:20px; display:inline-block; }
+  .v-base { background:rgba(160,160,170,0.12); color:#a0a0aa; border:1px solid rgba(160,160,170,0.3); }
+  .v-holo { background:linear-gradient(135deg,rgba(56,189,248,0.15),rgba(168,85,247,0.15),rgba(245,200,66,0.15)); color:#c8a8f5; border:1px solid rgba(168,85,247,0.4); }
+  .v-fullart { background:rgba(249,115,22,0.12); color:var(--orange); border:1px solid rgba(249,115,22,0.35); }
+  .inv-qty { display:flex; align-items:center; gap:6px; }
+  .qty-btn { width:20px; height:20px; border:none; border-radius:4px; background:var(--border2); color:var(--white); cursor:pointer; font-size:13px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; }
+  .qty-btn:hover { background:var(--orange); color:#0a0a0a; }
+  .inv-holder { color:var(--muted2); font-size:13px; }
+  .inv-del { color:var(--muted); cursor:pointer; font-size:13px; }
+  .inv-del:hover { color:#f87171; }
+  .empty-row { text-align:center; color:var(--muted); padding:50px 20px; }
+
+  @media (max-width:900px) {
+    .inv-row { grid-template-columns:44px 1.5fr 80px 70px 1fr; font-size:13px; }
+    .inv-row .col-class, .inv-row .col-rarity { display:none; }
+  }
+
+  /* Add modal */
+  .modal-bg { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); display:none; align-items:flex-start; justify-content:center; padding:30px 20px; overflow-y:auto; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border2); border-radius:14px; max-width:480px; width:100%; padding:26px; }
+  .modal h2 { font-family:'Black Ops One',sans-serif; font-size:22px; margin-bottom:4px; }
+  .modal .sub { color:var(--muted2); font-size:14px; margin-bottom:18px; }
+  .field { margin-bottom:15px; position:relative; }
+  .field label { display:block; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); margin-bottom:6px; }
+  .field input { width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:15px; padding:10px 12px; }
+  .field input:focus { outline:none; border-color:var(--orange); }
+  .card-picked { display:none; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:10px 12px; margin-top:8px; }
+  .card-picked.show { display:flex; }
+  .card-picked img { width:36px; height:36px; border-radius:5px; object-fit:cover; }
+  .card-picked .info { flex:1; font-size:13px; }
+  .card-picked .clear { color:var(--muted); cursor:pointer; font-size:18px; }
+  .suggest-list { position:absolute; top:100%; left:0; right:0; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; margin-top:4px; max-height:220px; overflow-y:auto; z-index:5; display:none; }
+  .suggest-list.show { display:block; }
+  .suggest-item { display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:14px; }
+  .suggest-item:hover { background:var(--surface); }
+  .suggest-item .sid { color:var(--muted); font-size:11px; margin-left:auto; }
+  .variant-qtys { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .vq { text-align:center; }
+  .vq label { font-size:11px; margin-bottom:5px; }
+  .vq input { text-align:center; padding:8px; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .modal-close { float:right; font-size:26px; color:var(--muted2); cursor:pointer; line-height:1; margin-top:-4px; }
+  .modal-close:hover { color:var(--white); }
+  .form-msg { font-size:14px; padding:10px; border-radius:6px; margin-top:12px; display:none; }
+  .form-msg.ok { display:block; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:var(--green); }
+  .form-msg.err { display:block; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#f87171; }
+
+  .foot { text-align:center; padding:30px 20px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; line-height:1.8; }
+  .foot a { color:var(--muted2); text-decoration:underline; }
+  .foot .disclaimer { max-width:600px; margin:8px auto 0; font-size:11px; }
+
+  @media (max-width:600px){ .nav-a.hide-mobile { display:none; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <div class="nav-spacer"></div>
+  <a class="nav-a hide-mobile" href="legends.html">🎴 Legends</a>
+  <a class="nav-a hide-mobile" href="market.html">🃏 Market</a>
+  <a class="nav-a" href="https://x.com/BooMetaX" target="_blank" rel="noopener">Follow ↗</a>
+</nav>
+
+<header class="hero">
+  <p class="hero-eyebrow">▸ Community Inventory</p>
+  <h1>CARD <span>INVENTORY</span></h1>
+  <p>Track your DDL Legends collection — base, holo, and full art — and see what other holders have. Built to grow alongside the Card Market.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="note">
+    <strong>ℹ How this works.</strong> Inventories are self-reported and public. You can only edit or delete entries you added from this device/browser — there's no account login yet, so switching devices means you can't manage older entries from here. Everything here is for reference; head to the <a href="market.html" style="color:var(--blue);text-decoration:underline;">Card Market</a> to actually buy, sell, or trade.
+  </div>
+
+  <div class="type-tabs" id="type-tabs"></div>
+
+  <div class="bar">
+    <input class="search" id="inv-search" placeholder="Search cards or holders…" oninput="renderTable()">
+    <select class="sel" id="inv-class" onchange="renderTable()"><option value="">All Classes</option></select>
+    <select class="sel" id="inv-variant" onchange="renderTable()">
+      <option value="">All Variants</option>
+      <option value="base">Base</option>
+      <option value="holo">Holo</option>
+      <option value="fullart">Full Art</option>
+    </select>
+    <button class="chip" id="mine-toggle" onclick="toggleMine()">👤 Only Mine</button>
+    <button class="btn btn-primary" onclick="openAdd()" style="margin-left:auto;">+ Add Cards</button>
+  </div>
+
+  <div class="table-wrap" id="table-wrap">
+    <div class="empty-row">Loading inventory…</div>
+  </div>
+
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="add-bg" onclick="closeAdd(event)">
+  <div class="modal">
+    <span class="modal-close" onclick="closeAdd()">×</span>
+    <h2>Add to Inventory</h2>
+    <div class="sub">Pick a card, set how many of each you own.</div>
+
+    <div class="field">
+      <label>Card</label>
+      <input id="card-search" placeholder="Search by card name…" autocomplete="off" oninput="searchCards()" onfocus="searchCards()">
+      <div class="suggest-list" id="suggest-list"></div>
+      <div class="card-picked" id="card-picked">
+        <img id="picked-img" src="" alt="">
+        <div class="info"><strong id="picked-name"></strong><br><span id="picked-meta" style="color:var(--muted2);font-size:12px;"></span></div>
+        <span class="clear" onclick="clearPick()">×</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Quantities</label>
+      <div class="variant-qtys">
+        <div class="vq"><label>Base</label><input type="number" id="q-base" min="0" value="0"></div>
+        <div class="vq"><label>Holo</label><input type="number" id="q-holo" min="0" value="0"></div>
+        <div class="vq"><label>Full Art</label><input type="number" id="q-fullart" min="0" value="0"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Your X Handle</label>
+      <input id="inv-handle" maxlength="30" placeholder="@yourhandle">
+    </div>
+
+    <div class="form-msg" id="add-msg"></div>
+
+    <div class="modal-actions">
+      <button class="btn" style="flex:1" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" id="add-btn" onclick="submitAdd()">Add to Inventory</button>
+    </div>
+  </div>
+</div>
+
+<footer class="foot">
+  <div>Built by <a href="https://x.com/BooMetaX" target="_blank" rel="noopener">@BooMetaX</a> · Builder Dogs · for the Doginal Dogs community</div>
+  <div class="disclaimer">Card Inventory is a free, self-reported community tool. Builder Dogs does not verify quantities, ownership, or identities. Card names, art, and game content are property of their respective owners.</div>
+</footer>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+const CARDS = (window.DDL_CARDS || []).filter(c => !c.sealed);
+const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const CLASSES = [...new Set(CARDS.map(c => c.class))].sort();
+
+let rows = [];
+let typeFilter = 'all';
+let mineOnly = false;
+let pickedCard = null;
+let deviceToken = getDeviceToken();
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function cleanHandle(h){ return (h||'').trim().replace(/^@+/,'').replace(/[^A-Za-z0-9_]/g,''); }
+
+function getDeviceToken(){
+  try {
+    let t = localStorage.getItem('ddl-inv-token');
+    if(!t){ t = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('ddl-inv-token', t); }
+    return t;
+  } catch(e){ return 'dev_temp'; }
+}
+
+/* ── Type tabs ── */
+function buildTypeTabs(){
+  const counts = { all: rows.length, Creature:0, Spell:0, Trap:0 };
+  rows.forEach(r => { const c = byId[r.card_id]; if(c) counts[c.type] = (counts[c.type]||0)+1; });
+  const tabs = [['all','Everything'],['Creature','🐾 Creatures'],['Spell','✨ Spells'],['Trap','🪤 Traps']];
+  document.getElementById('type-tabs').innerHTML = tabs.map(([k,label])=>{
+    const n = k==='all' ? counts.all : (counts[k]||0);
+    return `<button class="type-tab${typeFilter===k?' on':''}" onclick="setType('${k}')">${label}<span class="n">${n}</span></button>`;
+  }).join('');
+}
+function setType(t){ typeFilter=t; buildTypeTabs(); renderTable(); }
+function toggleMine(){ mineOnly=!mineOnly; document.getElementById('mine-toggle').classList.toggle('on', mineOnly); renderTable(); }
+
+function populateClassFilter(){
+  const sel = document.getElementById('inv-class');
+  sel.insertAdjacentHTML('beforeend', CLASSES.map(c=>`<option>${esc(c)}</option>`).join(''));
+}
+
+/* ── Load ── */
+async function loadInventory(){
+  try {
+    const { data, error } = await db.from('card_inventory').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    rows = data || [];
+    buildTypeTabs();
+    renderTable();
+  } catch(e){
+    document.getElementById('table-wrap').innerHTML = `<div class="empty-row" style="color:#f87171">⚠ Could not load inventory: ${esc(e.message||'error')}</div>`;
+    console.error(e);
+  }
+}
+
+/* ── Table ── */
+function renderTable(){
+  const q = document.getElementById('inv-search').value.toLowerCase();
+  const clFilter = document.getElementById('inv-class').value;
+  const vFilter = document.getElementById('inv-variant').value;
+
+  const out = rows.filter(r=>{
+    const c = byId[r.card_id];
+    if(!c) return false;
+    if(typeFilter!=='all' && c.type!==typeFilter) return false;
+    if(clFilter && c.class!==clFilter) return false;
+    if(vFilter && r.variant!==vFilter) return false;
+    if(mineOnly && r.owner_token!==deviceToken) return false;
+    if(q && !(c.name.toLowerCase().includes(q) || r.holder_handle.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  const head = `<div class="inv-row head">
+    <span></span><span>Card</span><span class="col-class">Class</span><span class="col-rarity">Rarity</span><span>Variant</span><span>Qty</span><span>Holder</span><span></span>
+  </div>`;
+
+  if(!out.length){
+    document.getElementById('table-wrap').innerHTML = head + `<div class="empty-row">No inventory entries match. <a href="#" onclick="openAdd();return false;" style="color:var(--orange);text-decoration:underline;">Add some?</a></div>`;
+    return;
+  }
+
+  const variantLabel = { base:'Base', holo:'✦ Holo', fullart:'★ Full Art' };
+  const variantCls = { base:'v-base', holo:'v-holo', fullart:'v-fullart' };
+
+  const body = out.map(r=>{
+    const c = byId[r.card_id];
+    const mine = r.owner_token === deviceToken;
+    const img = c.image ? `<img class="inv-thumb" src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div class="inv-thumb"></div>`;
+    const qtyCell = mine
+      ? `<div class="inv-qty">
+           <button class="qty-btn" onclick="stepQty('${r.id}',-1)">−</button>
+           <span>${r.qty}</span>
+           <button class="qty-btn" onclick="stepQty('${r.id}',1)">+</button>
+         </div>`
+      : `<span>${r.qty}</span>`;
+    return `<div class="inv-row">
+      ${img}
+      <div><span class="inv-name">${esc(c.name)}</span><span class="inv-id">${esc(c.id)}</span></div>
+      <span class="col-class" style="color:${classColor(c.class)}">${esc(c.class)}</span>
+      <span class="col-rarity" style="color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span>
+      <span class="variant-tag ${variantCls[r.variant]}">${variantLabel[r.variant]||r.variant}</span>
+      ${qtyCell}
+      <span class="inv-holder">@${esc(r.holder_handle)}</span>
+      ${mine ? `<span class="inv-del" onclick="delRow('${r.id}')">Delete</span>` : '<span></span>'}
+    </div>`;
+  }).join('');
+
+  document.getElementById('table-wrap').innerHTML = head + body;
+}
+
+function classColor(c){
+  return {Bow:'#22c55e',Crown:'#f5c842',Pirate:'#ef4444',Wizard:'#a855f7',Zombie:'#5b9bd5',Neutral:'#9a9aa2',All:'#e8b34a'}[c] || 'var(--muted)';
+}
+function rarityColor(r){
+  return {Common:'#9a9aa2',Uncommon:'#5b9bd5',Rare:'#a855f7',Epic:'#f97316',Legendary:'#f5c842'}[r] || 'var(--muted)';
+}
+
+/* ── Qty stepper (own rows only; UI-gated, see honesty note) ── */
+async function stepQty(id, delta){
+  const row = rows.find(r=>r.id===id);
+  if(!row || row.owner_token!==deviceToken) return;
+  const next = row.qty + delta;
+  if(next <= 0){ return delRow(id); }
+  try {
+    const { error } = await db.from('card_inventory').update({ qty: next }).eq('id', id);
+    if(error) throw error;
+    row.qty = next;
+    renderTable();
+  } catch(e){ console.error(e); }
+}
+
+async function delRow(id){
+  const row = rows.find(r=>r.id===id);
+  if(!row || row.owner_token!==deviceToken) return;
+  if(!confirm('Remove this entry from your inventory?')) return;
+  try {
+    const { error } = await db.from('card_inventory').delete().eq('id', id);
+    if(error) throw error;
+    rows = rows.filter(r=>r.id!==id);
+    buildTypeTabs(); renderTable();
+  } catch(e){ console.error(e); alert('Could not delete. Try again.'); }
+}
+
+/* ── Add modal ── */
+function openAdd(){ document.getElementById('add-bg').classList.add('show'); }
+function closeAdd(e){
+  if(e && e.target.id!=='add-bg' && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('add-bg').classList.remove('show');
+}
+
+function searchCards(){
+  const q = document.getElementById('card-search').value.trim().toLowerCase();
+  const list = document.getElementById('suggest-list');
+  if(!q){ list.classList.remove('show'); return; }
+  const matches = CARDS.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){ list.classList.remove('show'); return; }
+  list.innerHTML = matches.map(c=>`
+    <div class="suggest-item" onclick="pickCard('${c.id}')">
+      <span>${esc(c.name)}</span><span style="color:var(--muted2);font-size:11px;">${esc(c.class)}</span><span class="sid">${esc(c.id)}</span>
+    </div>`).join('');
+  list.classList.add('show');
+}
+function pickCard(id){
+  pickedCard = byId[id];
+  document.getElementById('card-search').value = '';
+  document.getElementById('suggest-list').classList.remove('show');
+  const pk = document.getElementById('card-picked');
+  pk.classList.add('show');
+  document.getElementById('picked-img').src = pickedCard.image || '';
+  document.getElementById('picked-name').textContent = pickedCard.name + ' (' + pickedCard.id + ')';
+  document.getElementById('picked-meta').textContent = `${pickedCard.class} · ${pickedCard.type} · ${pickedCard.rarity}`;
+}
+function clearPick(){
+  pickedCard = null;
+  document.getElementById('card-picked').classList.remove('show');
+}
+
+function showMsg(text, ok){
+  const m = document.getElementById('add-msg');
+  m.textContent = text; m.className = 'form-msg ' + (ok?'ok':'err');
+}
+
+async function submitAdd(){
+  const handle = cleanHandle(document.getElementById('inv-handle').value);
+  const qBase = parseInt(document.getElementById('q-base').value)||0;
+  const qHolo = parseInt(document.getElementById('q-holo').value)||0;
+  const qFull = parseInt(document.getElementById('q-fullart').value)||0;
+  const btn = document.getElementById('add-btn');
+
+  if(!pickedCard){ showMsg('Please pick a card first.', false); return; }
+  if(!handle){ showMsg('Please add your X handle.', false); return; }
+  if(qBase<=0 && qHolo<=0 && qFull<=0){ showMsg('Enter a quantity for at least one variant.', false); return; }
+
+  const inserts = [];
+  if(qBase>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'base', qty:qBase, owner_token:deviceToken });
+  if(qHolo>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'holo', qty:qHolo, owner_token:deviceToken });
+  if(qFull>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'fullart', qty:qFull, owner_token:deviceToken });
+
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try {
+    const { data, error } = await db.from('card_inventory').insert(inserts).select();
+    if(error) throw error;
+    rows = [...(data||[]), ...rows];
+    buildTypeTabs(); renderTable();
+    showMsg('✓ Added to inventory!', true);
+    clearPick();
+    document.getElementById('q-base').value = 0;
+    document.getElementById('q-holo').value = 0;
+    document.getElementById('q-fullart').value = 0;
+    btn.textContent = 'Added ✓';
+    setTimeout(()=>{ closeAdd(); btn.disabled=false; btn.textContent='Add to Inventory'; document.getElementById('add-msg').className='form-msg'; }, 1600);
+  } catch(e){
+    showMsg('Something went wrong. Please try again.', false);
+    console.error(e);
+    btn.disabled = false; btn.textContent = 'Add to Inventory';
+  }
+}
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#card-search') && !e.target.closest('#suggest-list')) document.getElementById('suggest-list').classList.remove('show');
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAdd({target:{id:'add-bg'}}); });
+
+populateClassFilter();
+loadInventory();
+</script>
+</body>
+</html>

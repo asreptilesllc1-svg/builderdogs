@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community Market — Builder Dogs</title>
+<meta name="description" content="A community market for Doginal Dogs cards and NFT merch. Buy, sell, and trade with other holders. Deals are member-to-member.">
+<link rel="canonical" href="https://builderdogs.com/market.html">
+<meta property="og:title" content="Card Market — Builder Dogs">
+<meta property="og:description" content="Buy, sell, and trade Doginal Dogs Legends cards with the community.">
+<meta property="og:url" content="https://builderdogs.com/market.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Builder Dogs">
+<meta property="og:image" content="https://builderdogs.com/legends-share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BooMetaX">
+<meta name="twitter:image" content="https://builderdogs.com/legends-share.png">
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1a1a1a; --border:#262626; --border2:#333;
+    --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#666; --muted2:#888;
+    --green:#22c55e; --blue:#38bdf8; --purple:#a855f7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration:none; }
+  ::selection { background:var(--orange); color:#0a0a0a; }
+
+  .nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px; padding:12px 20px; background:rgba(10,10,10,0.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+  .nav-logo { font-family:'Black Ops One',sans-serif; font-size:16px; letter-spacing:0.5px; }
+  .nav-logo span { color:var(--orange); }
+  .nav-spacer { flex:1; }
+  .nav-a { font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); padding:6px 10px; transition:color 0.15s; }
+  .nav-a:hover { color:var(--white); }
+
+  .hero { text-align:center; padding:48px 20px 26px; border-bottom:1px solid var(--border); background:radial-gradient(120% 100% at 50% 0%, #16110b 0%, #0d0d0d 55%, #0a0a0a 100%); }
+  .hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:var(--orange); margin-bottom:12px; }
+  .hero h1 { font-family:'Black Ops One',sans-serif; font-size:clamp(28px,5.5vw,48px); line-height:1; margin-bottom:14px; }
+  .hero h1 span { color:var(--orange); }
+  .hero p { color:var(--muted2); max-width:560px; margin:0 auto; font-size:15px; }
+
+  .wrap { max-width:1000px; margin:0 auto; padding:28px 20px 80px; }
+
+  /* Safety banner */
+  .safety { background:rgba(245,200,66,0.06); border:1px solid rgba(245,200,66,0.25); border-radius:10px; padding:14px 18px; margin-bottom:26px; font-size:13.5px; color:var(--muted2); line-height:1.6; }
+  .safety strong { color:var(--gold); }
+
+  /* Category bar */
+  .cat-bar { display:flex; gap:8px; margin-bottom:16px; }
+  .cat { flex:1; max-width:180px; font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); padding:11px; cursor:pointer; transition:all 0.15s; }
+  .cat:hover { color:var(--white); }
+  .cat.on { background:var(--surface2); border-color:var(--orange); color:var(--orange); }
+
+  /* Listing image (merch) */
+  .listing-img { width:calc(100% + 36px); margin:-18px -18px 14px; height:200px; object-fit:cover; display:block; border-bottom:1px solid var(--border); cursor:pointer; }
+
+  /* Tabs / actions */
+  .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:20px; }
+  .filters { display:flex; gap:6px; }
+  .chip { font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:20px; color:var(--muted2); padding:6px 14px; cursor:pointer; transition:all 0.15s; }
+  .chip:hover { color:var(--white); }
+  .chip.on { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .bar-spacer { flex:1; }
+  .btn { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:10px 20px; border-radius:6px; cursor:pointer; border:1px solid var(--border2); background:var(--surface2); color:var(--white); transition:all 0.15s; }
+  .btn:hover { border-color:var(--orange); }
+  .btn-primary { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .btn-primary:hover { background:#e0630a; }
+
+  /* Listings grid */
+  .listings { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .listing { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; display:flex; flex-direction:column; }
+  .listing-top { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .type-pill { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
+  .type-sell { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.35); }
+  .type-trade { background:rgba(56,189,248,0.15); color:var(--blue); border:1px solid rgba(56,189,248,0.35); }
+  .type-looking { background:rgba(168,85,247,0.15); color:var(--purple); border:1px solid rgba(168,85,247,0.35); }
+  .listing-date { font-size:11px; color:var(--muted); margin-left:auto; }
+  .listing-title { font-family:'Black Ops One',sans-serif; font-size:17px; margin-bottom:10px; line-height:1.2; }
+  .listing-row { font-size:14px; margin-bottom:6px; }
+  .listing-row .lbl { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); display:block; }
+  .listing-row .val { color:var(--white); }
+  .listing-price { font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; color:var(--gold); }
+  .listing-details { font-size:14px; color:var(--muted2); line-height:1.5; margin:8px 0; border-top:1px solid var(--border); padding-top:10px; }
+  .listing-contact { margin-top:auto; padding-top:12px; }
+  .contact-btn { display:inline-flex; align-items:center; gap:6px; background:#000; border:1px solid var(--border2); border-radius:6px; padding:9px 16px; font-weight:600; font-size:14px; color:var(--white); transition:all 0.15s; }
+  .contact-btn:hover { border-color:var(--white); }
+
+  .empty { text-align:center; color:var(--muted); padding:60px 20px; font-size:15px; grid-column:1/-1; }
+  .loading { text-align:center; color:var(--muted); padding:60px; }
+
+  /* Submit modal */
+  .modal-bg { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); display:none; align-items:flex-start; justify-content:center; padding:30px 20px; overflow-y:auto; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border2); border-radius:14px; max-width:520px; width:100%; padding:26px; }
+  .modal h2 { font-family:'Black Ops One',sans-serif; font-size:22px; margin-bottom:4px; }
+  .modal .sub { color:var(--muted2); font-size:14px; margin-bottom:20px; }
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); margin-bottom:6px; }
+  .field label .opt { color:var(--muted); text-transform:none; letter-spacing:0; font-size:12px; }
+  .field input, .field textarea, .field select { width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:15px; padding:10px 12px; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline:none; border-color:var(--orange); }
+  .field textarea { resize:vertical; min-height:70px; }
+  .type-picker { display:flex; gap:8px; }
+  .type-opt { flex:1; text-align:center; padding:10px; border:1px solid var(--border2); border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); transition:all 0.15s; }
+  .type-opt.on { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .modal-close { float:right; font-size:26px; color:var(--muted2); cursor:pointer; line-height:1; margin-top:-4px; }
+  .modal-close:hover { color:var(--white); }
+  .form-msg { font-size:14px; padding:10px; border-radius:6px; margin-top:12px; display:none; }
+  .form-msg.ok { display:block; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:var(--green); }
+  .form-msg.err { display:block; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#f87171; }
+
+  .foot { text-align:center; padding:30px 20px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; line-height:1.8; }
+  .foot a { color:var(--muted2); text-decoration:underline; }
+  .foot .disclaimer { max-width:600px; margin:8px auto 0; font-size:11px; }
+
+  @media (max-width:600px){ .nav-a.hide-mobile { display:none; } .listings { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <div class="nav-spacer"></div>
+  <a class="nav-a hide-mobile" href="legends.html">🎴 Legends</a>
+  <a class="nav-a hide-mobile" href="inventory.html">📋 Inventory</a>
+  <a class="nav-a hide-mobile" href="garage.html">🔧 Garage</a>
+  <a class="nav-a" href="https://x.com/BooMetaX" target="_blank" rel="noopener">Follow ↗</a>
+</nav>
+
+<header class="hero">
+  <p class="hero-eyebrow">▸ Community Market</p>
+  <h1>THE <span>MARKET</span></h1>
+  <p>Buy, sell, and trade Doginal Dogs cards and NFT merch with the community. Deals are member-to-member.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="safety">
+    <strong>⚠ Trade safely.</strong> Builder Dogs only hosts these listings — every deal is directly between members. We don't handle payments, hold items, or verify anyone. Do your own due diligence, use trusted payment methods, and never send first without trust. Report bad actors on X.
+  </div>
+
+  <div class="cat-bar">
+    <button class="cat on" onclick="setCat('all')" id="c-all">Everything</button>
+    <button class="cat" onclick="setCat('card')" id="c-card">🎴 Cards</button>
+    <button class="cat" onclick="setCat('merch')" id="c-merch">👕 Merch</button>
+  </div>
+  <div class="bar">
+    <div class="filters">
+      <button class="chip on" onclick="setFilter('all')" id="f-all">All</button>
+      <button class="chip" onclick="setFilter('sell')" id="f-sell">For Sale</button>
+      <button class="chip" onclick="setFilter('trade')" id="f-trade">Trade</button>
+      <button class="chip" onclick="setFilter('looking')" id="f-looking">Looking For</button>
+    </div>
+    <div class="bar-spacer"></div>
+    <button class="btn btn-primary" onclick="openSubmit()">+ Post a Listing</button>
+  </div>
+
+  <div class="listings" id="listings">
+    <div class="loading">Loading listings…</div>
+  </div>
+
+</div>
+
+<!-- SUBMIT MODAL -->
+<div class="modal-bg" id="submit-bg" onclick="closeSubmit(event)">
+  <div class="modal">
+    <span class="modal-close" onclick="closeSubmit()">×</span>
+    <h2>Post a Listing</h2>
+    <div class="sub">Listings are reviewed before they appear. Keep it about DDL Legends cards.</div>
+
+    <div class="field">
+      <label>Category</label>
+      <div class="type-picker">
+        <div class="type-opt on" data-cat="card" onclick="pickCat('card')">🎴 Card</div>
+        <div class="type-opt" data-cat="merch" onclick="pickCat('merch')">👕 Merch</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Listing Type</label>
+      <div class="type-picker">
+        <div class="type-opt on" data-type="sell" onclick="pickType('sell')">For Sale</div>
+        <div class="type-opt" data-type="trade" onclick="pickType('trade')">Trade</div>
+        <div class="type-opt" data-type="looking" onclick="pickType('looking')">Looking For</div>
+      </div>
+    </div>
+
+    <div class="field" id="field-photo" style="display:none;">
+      <label>Photo <span class="opt">— merch really needs one</span></label>
+      <input type="file" id="m-photo" accept="image/png,image/jpeg,image/webp,image/gif" onchange="handlePhoto()">
+      <div id="photo-status" style="font-size:13px;color:var(--muted2);margin-top:6px;"></div>
+    </div>
+
+    <div class="field">
+      <label>Title</label>
+      <input id="m-title" maxlength="80" placeholder="e.g. Selling my duplicate Legendaries">
+    </div>
+
+    <div class="field">
+      <label id="cards-label">Cards <span class="opt">— which cards this is about</span></label>
+      <textarea id="m-cards" maxlength="300" placeholder="e.g. Spark (V040) holo, 2x Gary (V004), Mama Light..."></textarea>
+    </div>
+
+    <div class="field" id="field-price">
+      <label>Price <span class="opt">— or "open to offers"</span></label>
+      <input id="m-price" maxlength="60" placeholder="e.g. $25, or open to offers">
+    </div>
+
+    <div class="field" id="field-wants" style="display:none;">
+      <label id="wants-label">Looking For <span class="opt">— what you want in return</span></label>
+      <input id="m-wants" maxlength="120" placeholder="e.g. any holo Wizard cards, or Aria V064">
+    </div>
+
+    <div class="field">
+      <label>Details <span class="opt">— optional</span></label>
+      <textarea id="m-details" maxlength="400" placeholder="Condition, shipping, anything else buyers should know."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Your X Handle <span class="opt">— how buyers reach you</span></label>
+      <input id="m-handle" maxlength="30" placeholder="@yourhandle">
+    </div>
+
+    <div class="form-msg" id="form-msg"></div>
+
+    <div class="modal-actions">
+      <button class="btn" style="flex:1" onclick="closeSubmit()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" id="submit-btn" onclick="submitListing()">Submit for Review</button>
+    </div>
+  </div>
+</div>
+
+<footer class="foot">
+  <div>Built by <a href="https://x.com/BooMetaX" target="_blank" rel="noopener">@BooMetaX</a> · Builder Dogs · for the Doginal Dogs community</div>
+  <div class="disclaimer">The Market is a free community board. Builder Dogs is not a party to any transaction, does not verify listings, members, items, or merch, and is not responsible for deals, shipping, item condition, or delivery. Trade at your own risk. Card names, art, and NFT project names are property of their respective owners.</div>
+</footer>
+
+<script>
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://hhscynnazxzwdicobpkl.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
+);
+
+let listings = [];
+let filter = 'all';
+let catFilter = 'all';
+let submitType = 'sell';
+let submitCat = 'card';
+let uploadedImageUrl = null;
+const UPLOAD_ENDPOINT = 'https://builderdogs-admin.asreptilesllc1.workers.dev/upload';
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function cleanHandle(h){ return (h||'').trim().replace(/^@+/,'').replace(/[^A-Za-z0-9_]/g,''); }
+
+async function loadListings(){
+  const el = document.getElementById('listings');
+  try {
+    const { data, error } = await db.from('market_listings')
+      .select('*').eq('status','approved').order('created_at',{ascending:false});
+    if (error) throw error;
+    listings = data || [];
+    renderListings();
+  } catch(e){
+    el.innerHTML = `<div class="empty">Couldn't load listings right now. Please try again later.</div>`;
+    console.error('load error:', e);
+  }
+}
+
+function setFilter(f){
+  filter = f;
+  ['all','sell','trade','looking'].forEach(x=>document.getElementById('f-'+x).classList.toggle('on', x===f));
+  renderListings();
+}
+function setCat(c){
+  catFilter = c;
+  ['all','card','merch'].forEach(x=>document.getElementById('c-'+x).classList.toggle('on', x===c));
+  renderListings();
+}
+
+function timeAgo(ts){
+  const d = (Date.now() - new Date(ts).getTime())/1000;
+  if (d < 3600) return Math.max(1,Math.floor(d/60))+'m ago';
+  if (d < 86400) return Math.floor(d/3600)+'h ago';
+  return Math.floor(d/86400)+'d ago';
+}
+
+function renderListings(){
+  const el = document.getElementById('listings');
+  const out = listings.filter(l => (filter==='all' || l.listing_type===filter) && (catFilter==='all' || (l.category||'card')===catFilter));
+  if (!out.length){
+    el.innerHTML = `<div class="empty">No listings here yet. Be the first to <a href="#" onclick="openSubmit();return false;" style="color:var(--orange);text-decoration:underline;">post one</a>.</div>`;
+    return;
+  }
+  el.innerHTML = out.map(l => {
+    const handle = cleanHandle(l.x_handle);
+    const typeLabel = {sell:'For Sale',trade:'Trade',looking:'Looking For'}[l.listing_type] || l.listing_type;
+    const priceRow = l.listing_type==='sell' && l.price
+      ? `<div class="listing-row"><span class="lbl">Price</span><span class="listing-price">${esc(l.price)}</span></div>` : '';
+    const wantsRow = (l.listing_type==='trade' || l.listing_type==='looking') && l.wants
+      ? `<div class="listing-row"><span class="lbl">${l.listing_type==='looking'?'Wants':'Looking for'}</span><span class="val">${esc(l.wants)}</span></div>` : '';
+    const itemLbl = l.category==='merch' ? 'Item' : 'Cards';
+    const cardsRow = l.cards
+      ? `<div class="listing-row"><span class="lbl">${itemLbl}</span><span class="val">${esc(l.cards)}</span></div>` : '';
+    const details = l.details ? `<div class="listing-details">${esc(l.details)}</div>` : '';
+    const imgHtml = (l.category==='merch' && l.image_url)
+      ? `<img class="listing-img" src="${esc(l.image_url)}" alt="${esc(l.title)}" loading="lazy" onclick="window.open('${esc(l.image_url)}','_blank')">` : '';
+    const catTag = l.category==='merch' ? '<span class="type-pill" style="background:rgba(249,115,22,0.15);color:var(--orange);border:1px solid rgba(249,115,22,0.35)">Merch</span>' : '';
+    return `
+      <div class="listing">
+        ${imgHtml}
+        <div class="listing-top">
+          ${catTag}
+          <span class="type-pill type-${l.listing_type}">${typeLabel}</span>
+          <span class="listing-date">${timeAgo(l.created_at)}</span>
+        </div>
+        <div class="listing-title">${esc(l.title)}</div>
+        ${cardsRow}
+        ${priceRow}
+        ${wantsRow}
+        ${details}
+        <div class="listing-contact">
+          <a class="contact-btn" href="https://x.com/${handle}" target="_blank" rel="noopener">𝕏 Contact @${esc(handle)}</a>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── Submit ── */
+function openSubmit(){ document.getElementById('submit-bg').classList.add('show'); }
+function closeSubmit(e){
+  if(e && e.target.id!=='submit-bg' && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('submit-bg').classList.remove('show');
+}
+function pickType(t){
+  submitType = t;
+  document.querySelectorAll('.type-opt[data-type]').forEach(o=>o.classList.toggle('on', o.dataset.type===t));
+  document.getElementById('field-price').style.display = t==='sell' ? 'block' : 'none';
+  document.getElementById('field-wants').style.display = (t==='trade'||t==='looking') ? 'block' : 'none';
+  document.getElementById('wants-label').innerHTML = t==='looking'
+    ? 'Looking For <span class="opt">— what you want</span>'
+    : 'In Return <span class="opt">— what you want for it</span>';
+}
+
+function pickCat(c){
+  submitCat = c;
+  document.querySelectorAll('.type-opt[data-cat]').forEach(o=>o.classList.toggle('on', o.dataset.cat===c));
+  document.getElementById('field-photo').style.display = c==='merch' ? 'block' : 'none';
+  // relabel the item field
+  document.getElementById('cards-label').innerHTML = c==='merch'
+    ? 'Item <span class="opt">— what merch is this</span>'
+    : 'Cards <span class="opt">— which cards this is about</span>';
+  document.getElementById('m-cards').placeholder = c==='merch'
+    ? 'e.g. Doginal Dogs hoodie, size L, black'
+    : 'e.g. Spark (V040) holo, 2x Gary (V004)...';
+}
+
+// Photo upload — validates + sends through the SAME secure Worker as custom orders
+async function handlePhoto(){
+  uploadedImageUrl = null;
+  const input = document.getElementById('m-photo');
+  const status = document.getElementById('photo-status');
+  const file = input.files[0];
+  if(!file){ status.textContent=''; return; }
+  if(file.size > 10*1024*1024){ input.value=''; status.style.color='#f87171'; status.textContent='⚠ Image over 10MB. Use a smaller one.'; return; }
+  status.style.color='var(--muted2)'; status.textContent='Uploading…';
+  try {
+    const fd = new FormData(); fd.append('file', file);
+    const resp = await fetch(UPLOAD_ENDPOINT, { method:'POST', body:fd });
+    const result = await resp.json();
+    if(resp.ok && result.url){
+      uploadedImageUrl = result.url;
+      status.style.color='var(--green)'; status.textContent='✓ Photo added';
+    } else {
+      input.value=''; status.style.color='#f87171'; status.textContent='⚠ '+(result.error||'Upload rejected. Try another image.');
+    }
+  } catch(e){
+    input.value=''; status.style.color='#f87171'; status.textContent='⚠ Upload failed. Try again.';
+    console.error('photo upload error:', e);
+  }
+}
+
+function showMsg(text, ok){
+  const m = document.getElementById('form-msg');
+  m.textContent = text;
+  m.className = 'form-msg ' + (ok?'ok':'err');
+}
+
+async function submitListing(){
+  const title = document.getElementById('m-title').value.trim();
+  const cards = document.getElementById('m-cards').value.trim();
+  const price = document.getElementById('m-price').value.trim();
+  const wants = document.getElementById('m-wants').value.trim();
+  const details = document.getElementById('m-details').value.trim();
+  const handle = cleanHandle(document.getElementById('m-handle').value);
+  const btn = document.getElementById('submit-btn');
+
+  if (!title){ showMsg('Please add a title.', false); return; }
+  if (!handle){ showMsg('Please add your X handle so buyers can reach you.', false); return; }
+  if (submitType==='sell' && !cards){ showMsg(submitCat==='merch'?'Please describe the item you are selling.':'Please list which cards you are selling.', false); return; }
+
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const { error } = await db.from('market_listings').insert({
+      category: submitCat,
+      listing_type: submitType,
+      title, cards,
+      price: submitType==='sell' ? price : null,
+      wants: (submitType==='trade'||submitType==='looking') ? wants : null,
+      details,
+      image_url: submitCat==='merch' ? uploadedImageUrl : null,
+      x_handle: handle,
+      status: 'pending'
+    });
+    if (error) throw error;
+    showMsg('✓ Submitted! Your listing will appear once it is reviewed. Thanks!', true);
+    // clear
+    ['m-title','m-cards','m-price','m-wants','m-details','m-handle'].forEach(id=>document.getElementById(id).value='');
+    const ph=document.getElementById('m-photo'); if(ph)ph.value=''; uploadedImageUrl=null; document.getElementById('photo-status').textContent='';
+    btn.textContent = 'Submitted ✓';
+    setTimeout(()=>{ closeSubmit(); btn.disabled=false; btn.textContent='Submit for Review'; document.getElementById('form-msg').className='form-msg'; }, 2500);
+  } catch(e){
+    showMsg('Something went wrong. Please try again.', false);
+    console.error('submit error:', e);
+    btn.disabled = false; btn.textContent = 'Submit for Review';
+  }
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSubmit({target:{id:'submit-bg'}}); });
+pickCat('card');
+pickType('sell');
+loadListings();
+</script>
+</body>
+</html>
