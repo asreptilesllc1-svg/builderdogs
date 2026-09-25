@@ -88,29 +88,29 @@
 
   /* Table */
   .table-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); }
-  .inv-row { display:grid; grid-template-columns:52px 2fr 1fr 1fr 90px 70px 1fr 90px; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:14px; }
+  .inv-row { display:grid; grid-template-columns:52px 2fr 1fr 1fr 2.2fr 1fr; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:14px; }
   .inv-row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 14px; }
   .inv-row:last-child { border-bottom:none; }
   .inv-row:not(.head):hover { background:rgba(255,255,255,0.02); }
   .inv-thumb { width:40px; height:40px; border-radius:6px; object-fit:cover; background:var(--surface2); }
   .inv-name { font-weight:600; }
   .inv-id { color:var(--muted); font-size:11px; font-family:'Oswald',sans-serif; margin-left:4px; }
-  .variant-tag { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:20px; display:inline-block; }
+  .variant-pills { display:flex; flex-wrap:wrap; gap:6px; }
+  .variant-tag { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:20px; display:inline-flex; align-items:center; gap:5px; }
+  .variant-tag.has-qty { padding:3px 4px 3px 10px; }
   .v-base { background:rgba(160,160,170,0.12); color:#a0a0aa; border:1px solid rgba(160,160,170,0.3); }
   .v-holo { background:linear-gradient(135deg,rgba(56,189,248,0.15),rgba(168,85,247,0.15),rgba(245,200,66,0.15)); color:#c8a8f5; border:1px solid rgba(168,85,247,0.4); }
   .v-fullart { background:rgba(249,115,22,0.12); color:var(--orange); border:1px solid rgba(249,115,22,0.35); }
-  .inv-qty { display:flex; align-items:center; gap:6px; }
-  .qty-btn { width:20px; height:20px; border:none; border-radius:4px; background:var(--border2); color:var(--white); cursor:pointer; font-size:13px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; }
+  .pill-qty { font-family:'Oswald',sans-serif; font-weight:600; font-size:11px; min-width:14px; text-align:center; }
+  .pill-btn { width:16px; height:16px; border:none; border-radius:50%; background:rgba(255,255,255,0.15); color:inherit; cursor:pointer; font-size:11px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; padding:0; }
+  .pill-btn:hover { background:rgba(255,255,255,0.3); }
   .qty-btn:hover { background:var(--orange); color:#0a0a0a; }
   .inv-holder { color:var(--muted2); font-size:13px; }
-  .inv-del { color:var(--muted); cursor:pointer; font-size:13px; }
-  .inv-del:hover { color:#f87171; }
-  .empty-row { text-align:center; color:var(--muted); padding:50px 20px; }
-
   @media (max-width:900px) {
-    .inv-row { grid-template-columns:44px 1.5fr 80px 70px 1fr; font-size:13px; }
+    .inv-row { grid-template-columns:44px 1.5fr 1fr; font-size:13px; }
     .inv-row .col-class, .inv-row .col-rarity { display:none; }
   }
+  .empty-row { text-align:center; color:var(--muted); padding:50px 20px; }
 
   /* Add modal */
   .modal-bg { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); display:none; align-items:flex-start; justify-content:center; padding:30px 20px; overflow-y:auto; }
@@ -316,6 +316,20 @@ async function loadInventory(){
 }
 
 /* ── Table ── */
+function groupForDisplay(filteredRows){
+  const map = new Map();
+  filteredRows.forEach(r=>{
+    const key = r.card_id + '||' + r.holder_handle;
+    if(!map.has(key)) map.set(key, { card_id:r.card_id, holder_handle:r.holder_handle, variants:{} });
+    const g = map.get(key);
+    if(!g.variants[r.variant]) g.variants[r.variant] = { qty:0, allMine:true };
+    const v = g.variants[r.variant];
+    v.qty += r.qty;
+    if(r.owner_token !== deviceToken) v.allMine = false;
+  });
+  return [...map.values()];
+}
+
 function renderTable(){
   const q = document.getElementById('inv-search').value.toLowerCase();
   const clFilter = document.getElementById('inv-class').value;
@@ -333,37 +347,42 @@ function renderTable(){
   });
 
   const head = `<div class="inv-row head">
-    <span></span><span>Card</span><span class="col-class">Class</span><span class="col-rarity">Rarity</span><span>Variant</span><span>Qty</span><span>Holder</span><span></span>
+    <span></span><span>Card</span><span class="col-class">Class</span><span class="col-rarity">Rarity</span><span>Variants &amp; Qty</span><span>Holder</span>
   </div>`;
 
-  if(!out.length){
+  const groups = groupForDisplay(out);
+
+  if(!groups.length){
     document.getElementById('table-wrap').innerHTML = head + `<div class="empty-row">No inventory entries match. <a href="#" onclick="openAdd();return false;" style="color:var(--orange);text-decoration:underline;">Add some?</a></div>`;
     return;
   }
 
   const variantLabel = { base:'Base', holo:'✦ Holo', fullart:'★ Full Art' };
   const variantCls = { base:'v-base', holo:'v-holo', fullart:'v-fullart' };
+  const variantOrder = ['base','holo','fullart'];
 
-  const body = out.map(r=>{
-    const c = byId[r.card_id];
-    const mine = r.owner_token === deviceToken;
+  const body = groups.map(g=>{
+    const c = byId[g.card_id];
+    if(!c) return '';
     const img = c.image ? `<img class="inv-thumb" src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div class="inv-thumb"></div>`;
-    const qtyCell = mine
-      ? `<div class="inv-qty">
-           <button class="qty-btn" onclick="stepQty('${r.id}',-1)">−</button>
-           <span>${r.qty}</span>
-           <button class="qty-btn" onclick="stepQty('${r.id}',1)">+</button>
-         </div>`
-      : `<span>${r.qty}</span>`;
+    const pills = variantOrder.filter(v=>g.variants[v]).map(v=>{
+      const info = g.variants[v];
+      const cardIdJs = g.card_id.replace(/'/g,"\\'");
+      const holderJs = g.holder_handle.replace(/'/g,"\\'");
+      const stepper = info.allMine
+        ? `<button class="pill-btn" onclick="stepVariant('${cardIdJs}','${holderJs}','${v}',-1)">−</button>
+           <span class="pill-qty">${info.qty}</span>
+           <button class="pill-btn" onclick="stepVariant('${cardIdJs}','${holderJs}','${v}',1)">+</button>`
+        : `<span class="pill-qty">${info.qty}</span>`;
+      return `<span class="variant-tag ${variantCls[v]} has-qty">${variantLabel[v]}${stepper}</span>`;
+    }).join('');
     return `<div class="inv-row">
       ${img}
       <div><span class="inv-name">${esc(c.name)}</span><span class="inv-id">${esc(c.id)}</span></div>
       <span class="col-class" style="color:${classColor(c.class)}">${esc(c.class)}</span>
       <span class="col-rarity" style="color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span>
-      <span class="variant-tag ${variantCls[r.variant]}">${variantLabel[r.variant]||r.variant}</span>
-      ${qtyCell}
-      <span class="inv-holder">@${esc(r.holder_handle)}</span>
-      ${mine ? `<span class="inv-del" onclick="delRow('${r.id}')">Delete</span>` : '<span></span>'}
+      <div class="variant-pills">${pills}</div>
+      <span class="inv-holder">@${esc(g.holder_handle)}</span>
     </div>`;
   }).join('');
 
@@ -467,29 +486,24 @@ function exportCSV(){
 }
 
 
-async function stepQty(id, delta){
-  const row = rows.find(r=>r.id===id);
-  if(!row || row.owner_token!==deviceToken) return;
-  const next = row.qty + delta;
-  if(next <= 0){ return delRow(id); }
+async function stepVariant(cardId, holder, variant, delta){
+  const matching = rows.filter(r=>r.card_id===cardId && r.holder_handle===holder && r.variant===variant);
+  if(!matching.length || matching.some(r=>r.owner_token!==deviceToken)) return;
+  matching.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+  const target = matching[0];
+  const next = target.qty + delta;
   try {
-    const { error } = await db.from('card_inventory').update({ qty: next }).eq('id', id);
-    if(error) throw error;
-    row.qty = next;
-    renderTable();
-  } catch(e){ console.error(e); }
-}
-
-async function delRow(id){
-  const row = rows.find(r=>r.id===id);
-  if(!row || row.owner_token!==deviceToken) return;
-  if(!confirm('Remove this entry from your inventory?')) return;
-  try {
-    const { error } = await db.from('card_inventory').delete().eq('id', id);
-    if(error) throw error;
-    rows = rows.filter(r=>r.id!==id);
+    if(next <= 0){
+      const { error } = await db.from('card_inventory').delete().eq('id', target.id);
+      if(error) throw error;
+      rows = rows.filter(r=>r.id!==target.id);
+    } else {
+      const { error } = await db.from('card_inventory').update({ qty: next }).eq('id', target.id);
+      if(error) throw error;
+      target.qty = next;
+    }
     buildTypeTabs(); renderTable();
-  } catch(e){ console.error(e); alert('Could not delete. Try again.'); }
+  } catch(e){ console.error(e); }
 }
 
 /* ── Add modal ── */
