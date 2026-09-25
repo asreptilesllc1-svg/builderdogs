@@ -338,7 +338,6 @@
 
 <div class="tabs">
   <button class="tab active" data-tab="gallery" onclick="switchTab('gallery')">Gallery</button>
-  <button class="tab" data-tab="collection" onclick="switchTab('collection')">My Collection</button>
   <button class="tab" data-tab="deck" onclick="switchTab('deck')">Deck Builder</button>
 </div>
 
@@ -360,32 +359,6 @@
       </select>
     </div>
     <div class="grid" id="gallery-grid"></div>
-  </section>
-
-  <!-- ── COLLECTION ── -->
-  <section class="panel" id="panel-collection">
-    <div class="progress-head">
-      <div class="progress-ring">
-        <div><div class="progress-num" id="coll-total">0<small>/111</small></div>
-        <div class="progress-label">Unique Cards</div></div>
-      </div>
-      <div class="progress-ring">
-        <div><div class="progress-num" id="coll-versions" style="color:var(--blue)">0<small>/203</small></div>
-        <div class="progress-label">All Versions</div></div>
-      </div>
-      <div class="class-bars" id="coll-class-bars"></div>
-      <button class="reset-link" onclick="resetCollection()">Reset</button>
-    </div>
-    <div class="filters">
-      <input class="search" id="coll-search" placeholder="Search cards…" oninput="renderCollection()">
-      <select class="sel" id="coll-class" onchange="renderCollection()"><option value="">All Classes</option></select>
-      <div class="chip-row">
-        <button class="chip on" id="coll-show-all" onclick="setCollFilter('all')">All</button>
-        <button class="chip" id="coll-show-owned" onclick="setCollFilter('owned')">Owned</button>
-        <button class="chip" id="coll-show-missing" onclick="setCollFilter('missing')">Missing</button>
-      </div>
-    </div>
-    <div class="grid" id="coll-grid"></div>
   </section>
 
   <!-- ── DECK BUILDER ── -->
@@ -423,7 +396,6 @@
           <button class="btn" onclick="copyDeckText()">📋 Copy List</button>
           <button class="btn" onclick="clearDeck()">Clear Deck</button>
         </div>
-        <label class="own-toggle"><input type="checkbox" id="deck-own-only" onchange="renderDeckBrowser()"> Only show cards I own</label>
         <div class="deck-add-hint">Tap a card on the left to add it.</div>
       </aside>
     </div>
@@ -467,11 +439,8 @@ const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
 const classColor = c => ({Bow:'var(--c-bow)',Crown:'var(--c-crown)',Pirate:'var(--c-pirate)',Wizard:'var(--c-wizard)',Zombie:'var(--c-zombie)',Neutral:'var(--c-neutral)',All:'var(--c-all)'})[c] || 'var(--muted)';
 const rarityColor = r => ({Common:'var(--r-common)',Uncommon:'var(--r-uncommon)',Rare:'var(--r-rare)',Epic:'var(--r-epic)',Legendary:'var(--r-legendary)'})[r] || 'var(--muted)';
 
-let qty = loadQty();       // { id: countNormal }
-let qtyHolo = loadQtyHolo(); // { id: countHolo }
 let decks = loadDecks();          // { deckId: {name, cards:{cardId:qty}} }
 let currentDeckId = null;         // active deck id
-let collFilter = 'all';
 const MAX_COPIES = 3;             // max copies of one card (adjust when rules confirmed)
 
 // Convenience accessor for the active deck's cards
@@ -482,14 +451,12 @@ function esc(s){ const d=document.createElement('div'); d.textContent=s==null?''
 
 function populateSelects() {
   const classOpts = META.CLASSES.map(c => `<option>${esc(c)}</option>`).join('');
-  ['gallery-class','coll-class','deck-class'].forEach(id => {
+  ['gallery-class','deck-class'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.insertAdjacentHTML('beforeend', classOpts);
   });
   const rarSel = document.getElementById('gallery-rarity');
   if (rarSel) rarSel.insertAdjacentHTML('beforeend', META.RARITIES.map(r => `<option>${esc(r)}</option>`).join(''));
-  // fix the /total label
-  document.getElementById('coll-total').innerHTML = `0<small>/${META.totalCards}</small>`;
 }
 
 /* ══════════════ CARD TILE ══════════════ */
@@ -512,8 +479,8 @@ function cardTile(c, opts={}) {
     ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
     : `<span class="placeholder">${esc(c.name[0])}</span>`;
   const stat = c.type === 'Creature' ? `<span class="card-stat">${c.atk}/${c.hp}</span>` : `<span>${esc(c.type)}</span>`;
-  const ownClass = opts.trackable ? ` trackable${hasAny(c)?' owned':''}` : '';
-  const ownBadge = opts.trackable ? `<div class="own-badge">✓</div>` : '';
+  const ownClass = '';
+  const ownBadge = '';
   return `
     <div class="card${ownClass}" data-id="${c.id}" onclick="${opts.onclick||`openCard('${c.id}')`}">
       <div class="card-art">
@@ -549,136 +516,18 @@ function renderGallery() {
     : `<div class="empty-state" style="grid-column:1/-1">No cards match those filters.</div>`;
 }
 
-/* ══════════════ COLLECTION ══════════════ */
-function setCollFilter(f){
-  collFilter=f;
-  ['all','owned','missing'].forEach(x=>document.getElementById('coll-show-'+x).classList.toggle('on', x===f));
-  renderCollection();
-}
-// TOTAL_VERSIONS: regular cards = 2 (normal+holo), full-art = 1 (holo only)
-const TOTAL_VERSIONS = CARDS.filter(c=>!c.sealed).reduce((n,c)=>n+(c.fullArt?1:2),0);
-
-const nQ = (m,id)=> m[id]||0;                       // quantity of a version
-function hasAny(c){ return c.fullArt ? nQ(qtyHolo,c.id)>0 : (nQ(qty,c.id)>0 || nQ(qtyHolo,c.id)>0); }
-
-function stepper(id, variant){
-  const m = variant==='holo' ? qtyHolo : qty;
-  const count = nQ(m,id);
-  const label = variant==='holo' ? '✦ Holo' : 'Normal';
-  const cls = variant==='holo' ? 'stp-holo' : '';
-  return `<div class="stepper ${cls}${count>0?' has':''}">
-    <span class="stp-lbl">${label}</span>
-    <button class="stp-btn" onclick="stepVar('${id}','${variant}',-1,event)">−</button>
-    <span class="stp-count">${count}</span>
-    <button class="stp-btn" onclick="stepVar('${id}','${variant}',1,event)">+</button>
-  </div>`;
-}
-
-function collectorTile(c){
-  const art = c.image
-    ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
-    : `<span class="placeholder">${esc(c.name[0])}</span>`;
-  const stat = c.type === 'Creature' ? `<span class="card-stat">${c.atk}/${c.hp}</span>` : `<span>${esc(c.type)}</span>`;
-  const collected = hasAny(c);
-  const steppers = c.fullArt
-    ? stepper(c.id,'holo')
-    : stepper(c.id,'normal') + stepper(c.id,'holo');
-  return `
-    <div class="card coll-card${collected?' owned':''}" data-id="${c.id}">
-      <div class="card-art" onclick="openCard('${c.id}')">
-        <div class="card-cost">${c.cost}</div>
-        <div class="card-rarity-dot" style="color:${rarityColor(c.rarity)};background:${rarityColor(c.rarity)}"></div>
-        ${art}
-      </div>
-      <div class="card-strip" style="background:${classColor(c.class)}"></div>
-      <div class="card-body">
-        <div class="card-name">${esc(c.name)} <span class="card-id">${esc(c.id)}</span></div>
-        <div class="card-meta"><span>${esc(c.class)}</span>${stat}</div>
-        <div class="stepper-row">${steppers}</div>
-      </div>
-    </div>`;
-}
-
-function renderCollection() {
-  const q = document.getElementById('coll-search').value.toLowerCase();
-  const cl = document.getElementById('coll-class').value;
-  const out = CARDS.filter(c =>
-    !c.sealed &&
-    (!q || c.name.toLowerCase().includes(q)) && (!cl || c.class===cl) &&
-    (collFilter==='all' || (collFilter==='owned'?hasAny(c):!hasAny(c)))
-  );
-  const grid = document.getElementById('coll-grid');
-  grid.innerHTML = out.length ? out.map(c => collectorTile(c)).join('')
-    : `<div class="empty-state" style="grid-column:1/-1">No cards here yet.</div>`;
-  renderProgress();
-}
-
-function stepVar(id, variant, delta, e){
-  if(e) e.stopPropagation();
-  const m = variant==='holo' ? qtyHolo : qty;
-  const next = Math.max(0, nQ(m,id) + delta);
-  if(next===0) delete m[id]; else m[id]=next;
-  if(variant==='holo') saveQtyHolo(); else saveQty();
-  const c = byId[id];
-  // update just this tile
-  const tile = document.querySelector(`#coll-grid .card[data-id="${id}"]`);
-  if(tile){
-    tile.classList.toggle('owned', hasAny(c));
-    const stp = tile.querySelector(variant==='holo' ? '.stepper.stp-holo' : '.stepper:not(.stp-holo)');
-    if(stp){
-      stp.querySelector('.stp-count').textContent = next;
-      stp.classList.toggle('has', next>0);
-    }
-  }
-  renderProgress();
-  if(collFilter!=='all') renderCollection();
-}
-
-function renderProgress(){
-  const cardsCollected = CARDS.filter(c=>!c.sealed && hasAny(c)).length;
-  // unique versions owned (not counting duplicates): each normal owned + each holo owned
-  let versionsOwned = 0;
-  CARDS.forEach(c=>{
-    if(c.sealed) return;
-    if(!c.fullArt && nQ(qty,c.id)>0) versionsOwned++;
-    if(nQ(qtyHolo,c.id)>0) versionsOwned++;
-  });
-  document.getElementById('coll-total').innerHTML = `${cardsCollected}<small>/${META.totalCards}</small>`;
-  const vEl = document.getElementById('coll-versions');
-  if(vEl) vEl.innerHTML = `${versionsOwned}<small>/${TOTAL_VERSIONS}</small>`;
-
-  const bars = META.CLASSES.map(cl=>{
-    const total = CARDS.filter(c=>c.class===cl && !c.sealed).length;
-    const have = CARDS.filter(c=>c.class===cl && hasAny(c)).length;
-    if(total===0) return '';
-    const pct = total? Math.round(have/total*100):0;
-    return `<div class="class-bar">
-      <div class="class-bar-top"><span style="color:${classColor(cl)}">${esc(cl)}</span><span>${have}/${total}</span></div>
-      <div class="class-bar-track"><div class="class-bar-fill" style="width:${pct}%;background:${classColor(cl)}"></div></div>
-    </div>`;
-  }).join('');
-  document.getElementById('coll-class-bars').innerHTML = bars;
-}
-function resetCollection(){
-  if(confirm('Clear your whole collection? This cannot be undone.')){
-    qty = {}; qtyHolo = {}; saveQty(); saveQtyHolo(); renderCollection();
-  }
-}
-
 /* ══════════════ DECK BUILDER ══════════════ */
 function renderDeckBrowser(){
   const q = document.getElementById('deck-search').value.toLowerCase();
   const cl = document.getElementById('deck-class').value;
   const ty = document.getElementById('deck-type').value;
-  const ownOnly = document.getElementById('deck-own-only').checked;
   const out = CARDS.filter(c =>
     !c.sealed &&
-    (!q||c.name.toLowerCase().includes(q)) && (!cl||c.class===cl) && (!ty||c.type===ty) &&
-    (!ownOnly || hasAny(c))
+    (!q||c.name.toLowerCase().includes(q)) && (!cl||c.class===cl) && (!ty||c.type===ty)
   );
   const grid = document.getElementById('deck-browser');
   grid.innerHTML = out.length ? out.map(c => cardTile(c,{onclick:`addToDeck('${c.id}',event)`})).join('')
-    : `<div class="empty-state" style="grid-column:1/-1">${ownOnly?'No owned cards match — uncheck "Only cards I own" to see all.':'No cards match.'}</div>`;
+    : `<div class="empty-state" style="grid-column:1/-1">No cards match.</div>`;
 }
 
 function deckCount(){ return Object.values(curDeck()).reduce((a,b)=>a+b,0); }
@@ -725,10 +574,9 @@ function renderDeck(){
     .sort((a,b)=> a.cost-b.cost || a.name.localeCompare(b.name));
   const list = document.getElementById('deck-list');
   list.innerHTML = rows.length ? rows.map(c=>{
-    const notOwned = !hasAny(c);
     return `<div class="deck-row">
       <div class="deck-row-cost">${c.cost}</div>
-      <div class="deck-row-name" style="color:${classColor(c.class)}">${esc(c.name)}${notOwned?' <span style="color:var(--muted);font-size:11px">(need)</span>':''}</div>
+      <div class="deck-row-name" style="color:${classColor(c.class)}">${esc(c.name)}</div>
       <div class="deck-row-qty">×${d[c.id]}</div>
       <div class="deck-row-x" onclick="removeFromDeck('${c.id}')">−</div>
     </div>`;
@@ -738,13 +586,12 @@ function renderDeck(){
 
 function renderDeckStats(d, n){
   const ids = Object.keys(d);
-  let creatures=0, spells=0, traps=0, totalCost=0, ownedCount=0, missing=0;
+  let creatures=0, spells=0, traps=0, totalCost=0;
   const byClass = {};
   ids.forEach(id=>{
     const c = byId[id]; if(!c) return; const q=d[id];
     if(c.type==='Creature') creatures+=q; else if(c.type==='Spell') spells+=q; else if(c.type==='Trap') traps+=q;
     totalCost += c.cost*q;
-    if(hasAny(c)) ownedCount+=q; else missing+=q;
     byClass[c.class] = (byClass[c.class]||0)+q;
   });
   const avg = n? (totalCost/n).toFixed(1) : '0.0';
@@ -758,9 +605,9 @@ function renderDeckStats(d, n){
 
   document.getElementById('deck-stats').innerHTML = `
     <div class="deck-stat-box"><div class="k">Avg Cost</div><div class="v">${avg}</div></div>
-    <div class="deck-stat-box"><div class="k">You Own</div><div class="v">${ownedCount}<small>/${n||0}</small></div></div>
     <div class="deck-stat-box"><div class="k">Creatures</div><div class="v">${creatures}</div></div>
-    <div class="deck-stat-box"><div class="k">Spells / Traps</div><div class="v">${spells} <small>/</small> ${traps}</div></div>
+    <div class="deck-stat-box"><div class="k">Spells</div><div class="v">${spells}</div></div>
+    <div class="deck-stat-box"><div class="k">Traps</div><div class="v">${traps}</div></div>
   ` + (mix ? `<div style="grid-column:1/-1">${mix}</div>` : '');
 }
 
@@ -916,7 +763,6 @@ function switchTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active', el.dataset.tab===t));
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
   document.getElementById('panel-'+t).classList.add('active');
-  if(t==='collection') renderCollection();
   if(t==='deck') { refreshDeckPicker(); renderDeckBrowser(); renderDeck(); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -934,17 +780,6 @@ function toast(msg){
 }
 
 /* ══════════════ PERSISTENCE ══════════════ */
-function loadQty(){
-  try{ const q = JSON.parse(localStorage.getItem('ddl-qty')||'null'); if(q && typeof q==='object') return q; }catch(e){}
-  // migrate old owned-Set → qty 1 each
-  try{ const old = JSON.parse(localStorage.getItem('ddl-owned')||'[]'); const m={}; old.forEach(id=>m[id]=1); return m; }catch(e){ return {}; }
-}
-function saveQty(){ try{ localStorage.setItem('ddl-qty', JSON.stringify(qty)); }catch(e){} }
-function loadQtyHolo(){
-  try{ const q = JSON.parse(localStorage.getItem('ddl-qty-holo')||'null'); if(q && typeof q==='object') return q; }catch(e){}
-  try{ const old = JSON.parse(localStorage.getItem('ddl-owned-holo')||'[]'); const m={}; old.forEach(id=>m[id]=1); return m; }catch(e){ return {}; }
-}
-function saveQtyHolo(){ try{ localStorage.setItem('ddl-qty-holo', JSON.stringify(qtyHolo)); }catch(e){} }
 function loadDecks(){
   try{ const d = JSON.parse(localStorage.getItem('ddl-decks')||'null'); if(d && typeof d==='object') return d; }catch(e){}
   // migrate old single-deck if present
@@ -995,7 +830,6 @@ populateSelects();
 renderGallery();
 initDecks();
 refreshDeckPicker();
-renderProgress();
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal({target:{id:'modal-bg'}}); });
 </script>
 </body>
