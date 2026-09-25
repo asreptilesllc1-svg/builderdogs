@@ -67,6 +67,15 @@
   .stat-bar-track { height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; }
   .stat-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--orange),var(--gold)); }
   .stat-qty { font-family:'Oswald',sans-serif; font-weight:600; text-align:right; }
+  .master-header { display:flex; gap:26px; padding:18px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; background:var(--surface); border-radius:12px 12px 0 0; border:1px solid var(--border); border-bottom:none; }
+  .master-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; background:var(--surface); border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; padding:16px; }
+  .master-card { background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:10px; display:flex; gap:10px; }
+  .master-card.complete { border-color:rgba(34,197,94,0.4); }
+  .master-thumb { width:44px; height:44px; border-radius:6px; object-fit:cover; background:var(--surface); flex-shrink:0; }
+  .master-info { flex:1; min-width:0; }
+  .master-versions { display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .mv { font-size:10px; font-weight:700; letter-spacing:0.5px; padding:2px 7px; border-radius:20px; border:1px solid var(--border2); color:var(--muted); }
+  .mv.got { background:rgba(34,197,94,0.15); color:var(--green); border-color:rgba(34,197,94,0.4); }
   .type-tab { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); padding:10px 18px; cursor:pointer; transition:all 0.15s; }
   .type-tab:hover { color:var(--white); }
   .type-tab.on { background:var(--surface2); border-color:var(--orange); color:var(--orange); }
@@ -175,6 +184,7 @@
   <div class="view-tabs" id="view-tabs">
     <button class="view-tab on" onclick="setView('list')" id="view-list">📋 Inventory List</button>
     <button class="view-tab" onclick="setView('stats')" id="view-stats">📊 Acquisition Stats</button>
+    <button class="view-tab" onclick="setView('master')" id="view-master">🏆 Master Set (203)</button>
     <button class="btn" onclick="exportCSV()" style="margin-left:auto;">⬇ Export CSV</button>
   </div>
 
@@ -198,11 +208,19 @@
     <button class="chip" id="stat-scope-all" onclick="setStatScope('all')">🌐 Everyone</button>
   </div>
 
+  <div class="bar" id="master-bar" style="display:none;">
+    <input class="search" id="master-search" placeholder="Search cards…" oninput="renderMaster()">
+    <button class="chip on" id="master-show-all" onclick="setMasterFilter('all')">All 203</button>
+    <button class="chip" id="master-show-owned" onclick="setMasterFilter('owned')">Owned</button>
+    <button class="chip" id="master-show-missing" onclick="setMasterFilter('missing')">Missing</button>
+  </div>
+
   <div class="table-wrap" id="table-wrap">
     <div class="empty-row">Loading inventory…</div>
   </div>
 
   <div class="table-wrap" id="stats-wrap" style="display:none;"></div>
+  <div id="master-wrap" style="display:none;"></div>
 
 </div>
 
@@ -396,18 +414,77 @@ function rarityColor(r){
   return {Common:'#9a9aa2',Uncommon:'#5b9bd5',Rare:'#a855f7',Epic:'#f97316',Legendary:'#f5c842'}[r] || 'var(--muted)';
 }
 
-/* ── View mode: Inventory List vs Acquisition Stats ── */
+/* ── View mode: Inventory List vs Acquisition Stats vs Master Set ── */
 function setView(v){
   viewMode = v;
   document.getElementById('view-list').classList.toggle('on', v==='list');
   document.getElementById('view-stats').classList.toggle('on', v==='stats');
+  document.getElementById('view-master').classList.toggle('on', v==='master');
   document.getElementById('type-tabs').style.display = v==='list' ? 'flex' : 'none';
   document.getElementById('list-bar').style.display = v==='list' ? 'flex' : 'none';
   document.getElementById('stats-bar').style.display = v==='stats' ? 'flex' : 'none';
+  document.getElementById('master-bar').style.display = v==='master' ? 'flex' : 'none';
   document.getElementById('table-wrap').style.display = v==='list' ? 'block' : 'none';
   document.getElementById('stats-wrap').style.display = v==='stats' ? 'block' : 'none';
+  document.getElementById('master-wrap').style.display = v==='master' ? 'block' : 'none';
   if(v==='stats') renderStats();
+  if(v==='master') renderMaster();
 }
+let masterFilter = 'all';
+function setMasterFilter(f){
+  masterFilter = f;
+  ['all','owned','missing'].forEach(x=>document.getElementById('master-show-'+x).classList.toggle('on', x===f));
+  renderMaster();
+}
+
+/* Master Set = all 203 possible versions: 92 cards × (base+holo) + 19 full-art × (fullart only).
+   Ownership here is scoped to THIS device (owner_token), same as "Only Mine" elsewhere,
+   since a master-set checklist is inherently a personal collecting goal. */
+function renderMaster(){
+  const q = document.getElementById('master-search').value.toLowerCase();
+  const mine = rows.filter(r=>r.owner_token===deviceToken);
+  const have = new Set(); // "cardId|variant" strings the device owns at least 1 of
+  mine.forEach(r=>{ if(r.qty>0) have.add(r.card_id+'|'+r.variant); });
+
+  let totalOwned = 0, baseOwned=0, holoOwned=0, fullOwned=0;
+  const cardsInfo = CARDS.map(c=>{
+    const versions = c.fullArt ? ['fullart'] : ['base','holo'];
+    const got = versions.filter(v=>have.has(c.id+'|'+v));
+    totalOwned += got.length;
+    got.forEach(v=>{ if(v==='base')baseOwned++; if(v==='holo')holoOwned++; if(v==='fullart')fullOwned++; });
+    return { card:c, versions, got, complete: got.length===versions.length };
+  }).filter(info => !q || info.card.name.toLowerCase().includes(q))
+    .filter(info => masterFilter==='all' || (masterFilter==='owned' ? info.got.length>0 : !info.complete));
+
+  const header = `<div class="master-header">
+    <div class="stat-box"><div class="num">${totalOwned}<span style="font-size:14px;color:var(--muted2)">/203</span></div><div class="lbl">Master Set Progress</div></div>
+    <div class="stat-box"><div class="num" style="color:#a0a0aa">${baseOwned}<span style="font-size:14px;color:var(--muted2)">/92</span></div><div class="lbl">Base</div></div>
+    <div class="stat-box"><div class="num" style="color:#c8a8f5">${holoOwned}<span style="font-size:14px;color:var(--muted2)">/92</span></div><div class="lbl">Holo</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--orange)">${fullOwned}<span style="font-size:14px;color:var(--muted2)">/19</span></div><div class="lbl">Full Art</div></div>
+  </div>`;
+
+  const variantLabel = { base:'Base', holo:'✦ Holo', fullart:'★ Full Art' };
+
+  const grid = cardsInfo.length ? cardsInfo.map(info=>{
+    const c = info.card;
+    const img = c.image ? `<img class="master-thumb" src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div class="master-thumb"></div>`;
+    const pills = info.versions.map(v=>{
+      const got = info.got.includes(v);
+      return `<span class="mv${got?' got':''}">${got?'✓ ':''}${variantLabel[v]}</span>`;
+    }).join('');
+    return `<div class="master-card${info.complete?' complete':''}">
+      ${img}
+      <div class="master-info">
+        <div class="inv-name" style="display:block">${esc(c.name)}<span class="inv-id">${esc(c.id)}</span></div>
+        <div style="font-size:11px;color:${classColor(c.class)}">${esc(c.class)}</div>
+        <div class="master-versions">${pills}</div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="empty-row" style="grid-column:1/-1">No cards match.</div>`;
+
+  document.getElementById('master-wrap').innerHTML = header + `<div class="master-grid">${grid}</div>`;
+}
+
 function setStatScope(s){
   statScope = s;
   document.getElementById('stat-scope-mine').classList.toggle('on', s==='mine');
@@ -591,13 +668,14 @@ async function submitAdd(){
     if(error) throw error;
     rows = [...(data||[]), ...rows];
     buildTypeTabs(); renderTable();
-    showMsg('✓ Added to inventory!', true);
+    showMsg('✓ Added! Search for another card to keep going.', true);
     clearPick();
     document.getElementById('q-base').value = 0;
     document.getElementById('q-holo').value = 0;
     document.getElementById('q-fullart').value = 0;
-    btn.textContent = 'Added ✓';
-    setTimeout(()=>{ closeAdd(); btn.disabled=false; btn.textContent='Add to Inventory'; document.getElementById('add-msg').className='form-msg'; }, 1600);
+    btn.disabled = false; btn.textContent = 'Add to Inventory';
+    document.getElementById('card-search').focus();
+    setTimeout(()=>{ const m=document.getElementById('add-msg'); if(m.classList.contains('ok')) m.className='form-msg'; }, 2200);
   } catch(e){
     showMsg('⚠ ' + (e.message || 'Something went wrong. Please try again.'), false);
     console.error(e);
