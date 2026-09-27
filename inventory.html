@@ -125,9 +125,15 @@
   .v-base { background:rgba(160,160,170,0.12); color:#a0a0aa; border:1px solid rgba(160,160,170,0.3); }
   .v-holo { background:linear-gradient(135deg,rgba(56,189,248,0.15),rgba(168,85,247,0.15),rgba(245,200,66,0.15)); color:#c8a8f5; border:1px solid rgba(168,85,247,0.4); }
   .v-fullart { background:rgba(249,115,22,0.12); color:var(--orange); border:1px solid rgba(249,115,22,0.35); }
-  .pill-qty { font-family:'Oswald',sans-serif; font-weight:600; font-size:11px; min-width:14px; text-align:center; }
-  .pill-btn { width:16px; height:16px; border:none; border-radius:50%; background:rgba(255,255,255,0.15); color:inherit; cursor:pointer; font-size:11px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; padding:0; }
-  .pill-btn:hover { background:rgba(255,255,255,0.3); }
+  .pill-qty { font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; min-width:18px; text-align:center; }
+  .pill-btn { width:24px; height:24px; border:none; border-radius:6px; background:rgba(255,255,255,0.18); color:var(--white); cursor:pointer; font-size:15px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; padding:0; }
+  .pill-btn:hover { background:var(--orange); color:#0a0a0a; }
+  .row-del { background:transparent; border:1px solid rgba(239,68,68,0.35); color:#f87171; border-radius:6px; padding:5px 10px; font-family:inherit; font-size:12px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; cursor:pointer; white-space:nowrap; }
+  .row-del:hover { background:rgba(239,68,68,0.15); }
+  .holder-cell { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border2); color:var(--white); padding:12px 20px; border-radius:8px; font-size:14px; z-index:300; opacity:0; transition:opacity 0.2s; pointer-events:none; }
+  #toast.show { opacity:1; }
+  #toast.err { border-color:rgba(239,68,68,0.5); color:#f87171; }
   .qty-btn:hover { background:var(--orange); color:#0a0a0a; }
   .inv-holder { color:var(--muted2); font-size:13px; }
   @media (max-width:900px) {
@@ -544,7 +550,10 @@ function renderTable(){
       <span class="col-class" style="color:${classColor(c.class)}">${esc(c.class)}</span>
       <span class="col-rarity" style="color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span>
       <div class="variant-pills">${pills}</div>
-      <span class="inv-holder">@${esc(g.holder_handle)}</span>
+      <div class="holder-cell">
+        <span class="inv-holder">@${esc(g.holder_handle)}</span>
+        ${isMyGroup(g) ? `<button class="row-del" onclick="deleteCard('${g.card_id.replace(/'/g,"\\'")}','${g.holder_handle.replace(/'/g,"\\'")}')">🗑 Delete</button>` : ''}
+      </div>
     </div>`;
   }).join('');
 
@@ -725,7 +734,37 @@ async function stepVariant(cardId, holder, variant, delta){
       target.qty = next;
     }
     buildTypeTabs(); renderTable();
-  } catch(e){ console.error(e); }
+  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not update quantity.'), true); }
+}
+
+function isMyGroup(g){
+  return !!session && Object.values(g.variants).every(v=>v.allMine);
+}
+
+async function deleteCard(cardId, holder){
+  if(!session) return;
+  const mine = rows.filter(r=>r.card_id===cardId && r.holder_handle===holder && r.user_id===session.user.id);
+  if(!mine.length) return;
+  const c = byId[cardId];
+  if(!confirm(`Remove ${c ? c.name : cardId} (all variants) from your inventory?`)) return;
+  try {
+    const ids = mine.map(r=>r.id);
+    const { error } = await db.from('card_inventory').delete().in('id', ids);
+    if(error) throw error;
+    rows = rows.filter(r=>!ids.includes(r.id));
+    buildTypeTabs(); renderTable();
+    toast('Removed from your inventory.');
+  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not delete.'), true); }
+}
+
+let toastTimer = null;
+function toast(msg, isErr){
+  let el = document.getElementById('toast');
+  if(!el){ el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = msg;
+  el.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.className = ''; }, 2600);
 }
 
 /* ── Add modal ── */
