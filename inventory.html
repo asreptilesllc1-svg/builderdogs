@@ -363,7 +363,6 @@ function renderAcctBar(){
     el.innerHTML = `<div class="acct-signedin">
       Signed in as <span class="acct-handle">@${esc(myHandle)}</span>
       <button class="btn" onclick="doSignOut()">Sign Out</button>
-      <button class="btn" onclick="doClaimLegacy()" title="Attach any entries you added before you had an account">Claim My Previous Entries</button>
     </div>`;
   } else if(session && !myHandle){
     el.innerHTML = `<div class="acct-claim-box">
@@ -435,20 +434,6 @@ async function doClaimHandle(){
     renderAcctBar();
     toast('Handle claimed! You can add cards now.');
   } catch(e){ msgEl.textContent = e.message||'Could not claim handle.'; msgEl.className='acct-msg err'; }
-}
-
-async function doClaimLegacy(){
-  try {
-    const { data, error } = await db.from('card_inventory')
-      .update({ user_id: session.user.id })
-      .is('user_id', null)
-      .eq('holder_handle', myHandle)
-      .select();
-    if(error) throw error;
-    const n = data ? data.length : 0;
-    if(n > 0){ toast(`Claimed ${n} previous entr${n===1?'y':'ies'}!`); await loadInventory(); }
-    else toast('No previous entries found under @' + myHandle + '.');
-  } catch(e){ console.error(e); alert('Could not claim entries right now.'); }
 }
 
 /* ── Type tabs ── */
