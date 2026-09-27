@@ -224,6 +224,12 @@
       <option value="holo">Holo</option>
       <option value="fullart">Full Art</option>
     </select>
+    <select class="sel" id="inv-sort" onchange="setSortMode(this.value)">
+      <option value="name">Sort: Name (A–Z)</option>
+      <option value="number">Sort: Card #</option>
+      <option value="class">Sort: Class</option>
+      <option value="rarity">Sort: Rarity</option>
+    </select>
     <button class="chip" id="mine-toggle" onclick="toggleMine()">👤 Only Mine</button>
     <button class="btn btn-primary" onclick="openAdd()" style="margin-left:auto;">+ Add Cards</button>
   </div>
@@ -483,6 +489,23 @@ function groupForDisplay(filteredRows){
   return [...map.values()];
 }
 
+let sortMode = 'name';
+function setSortMode(m){ sortMode = m; renderTable(); }
+function sortGroups(groups){
+  const withCards = groups.filter(g=>byId[g.card_id]);
+  withCards.sort((a,b)=>{
+    const ca = byId[a.card_id], cb = byId[b.card_id];
+    if(sortMode==='number') return a.card_id.localeCompare(b.card_id);
+    if(sortMode==='class') return ca.class.localeCompare(cb.class) || ca.name.localeCompare(cb.name);
+    if(sortMode==='rarity'){
+      const order = {Legendary:0,Epic:1,Rare:2,Uncommon:3,Common:4};
+      return (order[ca.rarity]??9) - (order[cb.rarity]??9) || ca.name.localeCompare(cb.name);
+    }
+    return ca.name.localeCompare(cb.name); // 'name' default
+  });
+  return withCards;
+}
+
 function renderTable(){
   const q = document.getElementById('inv-search').value.toLowerCase();
   const clFilter = document.getElementById('inv-class').value;
@@ -503,7 +526,8 @@ function renderTable(){
     <span></span><span>Card</span><span class="col-class">Class</span><span class="col-rarity">Rarity</span><span>Variants &amp; Qty</span><span>Holder</span>
   </div>`;
 
-  const groups = groupForDisplay(out);
+  let groups = groupForDisplay(out);
+  groups = sortGroups(groups);
 
   if(!groups.length){
     document.getElementById('table-wrap').innerHTML = head + `<div class="empty-row">No inventory entries match. <a href="#" onclick="openAdd();return false;" style="color:var(--orange);text-decoration:underline;">Add some?</a></div>`;
