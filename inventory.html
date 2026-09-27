@@ -45,6 +45,21 @@
   .hero h1 span { color:var(--orange); }
   .hero p { color:var(--muted2); max-width:600px; margin:0 auto; font-size:15px; }
 
+  /* Account / auth bar */
+  .acct-bar { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 20px; }
+  .acct-inner { max-width:1150px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .acct-signedin { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .acct-handle { font-family:'Oswald',sans-serif; font-weight:600; color:var(--gold); }
+  .acct-form { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .acct-form input { background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:14px; padding:8px 12px; width:180px; }
+  .acct-form input:focus { outline:none; border-color:var(--orange); }
+  .acct-toggle { font-size:12px; color:var(--muted2); cursor:pointer; text-decoration:underline; }
+  .acct-toggle:hover { color:var(--white); }
+  .acct-msg { font-size:13px; padding:0 4px; }
+  .acct-msg.err { color:#f87171; }
+  .acct-msg.ok { color:var(--green); }
+  .acct-claim-box { background:rgba(245,200,66,0.06); border:1px solid rgba(245,200,66,0.3); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; }
+
   .wrap { max-width:1150px; margin:0 auto; padding:24px 20px 80px; }
 
   .note { background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.25); border-radius:10px; padding:13px 18px; margin-bottom:22px; font-size:13.5px; color:var(--muted2); line-height:1.6; }
@@ -175,10 +190,14 @@
   <p>Track your DDL Legends collection — base, holo, and full art — and see what other holders have. Built to grow alongside the Card Market.</p>
 </header>
 
+<div class="acct-bar" id="acct-bar">
+  <div class="acct-inner" id="acct-inner">Loading account…</div>
+</div>
+
 <div class="wrap">
 
   <div class="note">
-    <strong>ℹ How this works.</strong> Inventories are self-reported and public. You can only edit or delete entries you added from this device/browser — there's no account login yet, so switching devices means you can't manage older entries from here. Everything here is for reference; head to the <a href="market.html" style="color:var(--blue);text-decoration:underline;">Card Market</a> to actually buy, sell, or trade.
+    <strong>ℹ How this works.</strong> Inventories are self-reported and public to browse. Adding, editing, or deleting cards requires a free account — this makes sure only you can add to your own inventory, and nobody can add cards under your name. Everything here is for reference; head to the <a href="market.html" style="color:var(--blue);text-decoration:underline;">Card Market</a> to actually buy, sell, or trade.
   </div>
 
   <div class="view-tabs" id="view-tabs">
@@ -253,8 +272,8 @@
     </div>
 
     <div class="field">
-      <label>Your X Handle</label>
-      <input id="inv-handle" maxlength="30" placeholder="@yourhandle">
+      <label>Adding As</label>
+      <div id="add-as-handle" style="padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;"></div>
     </div>
 
     <div class="form-msg" id="add-msg"></div>
@@ -287,6 +306,9 @@ let typeFilter = 'all';
 let mineOnly = false;
 let pickedCard = null;
 let deviceToken = getDeviceToken();
+let session = null;
+let myHandle = null;
+let authView = 'signin'; // 'signin' | 'signup'
 let viewMode = 'list';
 let statScope = 'mine';
 
@@ -299,6 +321,128 @@ function getDeviceToken(){
     if(!t){ t = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('ddl-inv-token', t); }
     return t;
   } catch(e){ return 'dev_temp'; }
+}
+
+/* ══════════════ AUTH ══════════════ */
+async function initAuth(){
+  const { data } = await db.auth.getSession();
+  session = data.session;
+  if(session) await loadMyHandle();
+  renderAcctBar();
+  db.auth.onAuthStateChange(async (event, newSession)=>{
+    session = newSession;
+    if(session){ await loadMyHandle(); } else { myHandle = null; }
+    renderAcctBar();
+    renderTable(); // refresh edit controls now that login state changed
+  });
+}
+
+async function loadMyHandle(){
+  if(!session) { myHandle = null; return; }
+  try {
+    const { data, error } = await db.from('handle_claims').select('handle').eq('user_id', session.user.id).maybeSingle();
+    if(error) throw error;
+    myHandle = data ? data.handle : null;
+  } catch(e){ console.error(e); myHandle = null; }
+}
+
+function toggleAuthView(){
+  authView = authView==='signin' ? 'signup' : 'signin';
+  renderAcctBar();
+}
+
+function renderAcctBar(){
+  const el = document.getElementById('acct-inner');
+  if(session && myHandle){
+    el.innerHTML = `<div class="acct-signedin">
+      Signed in as <span class="acct-handle">@${esc(myHandle)}</span>
+      <button class="btn" onclick="doSignOut()">Sign Out</button>
+      <button class="btn" onclick="doClaimLegacy()" title="Attach any entries you added before you had an account">Claim My Previous Entries</button>
+    </div>`;
+  } else if(session && !myHandle){
+    el.innerHTML = `<div class="acct-claim-box">
+      <strong style="color:var(--gold)">One more step —</strong> claim your X handle so people know these are your cards. This is permanent and can't be taken by anyone else.
+      <input id="claim-handle" placeholder="@yourhandle" style="width:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--white);font-family:inherit;font-size:14px;padding:8px 12px;">
+      <button class="btn btn-primary" onclick="doClaimHandle()">Claim Handle</button>
+      <span class="acct-msg" id="claim-msg"></span>
+      <button class="btn" onclick="doSignOut()" style="margin-left:auto;">Sign Out</button>
+    </div>`;
+  } else {
+    const isSignup = authView==='signup';
+    el.innerHTML = `<div class="acct-form">
+      <strong style="color:var(--muted2);font-size:13px;">${isSignup?'Create an account to add cards':'Sign in to add cards'}</strong>
+      <input type="email" id="auth-email" placeholder="email">
+      <input type="password" id="auth-password" placeholder="password">
+      <button class="btn btn-primary" onclick="${isSignup?'doSignUp()':'doSignIn()'}">${isSignup?'Sign Up':'Sign In'}</button>
+      <span class="acct-toggle" onclick="toggleAuthView()">${isSignup?'Already have an account? Sign in':"New here? Create an account"}</span>
+      <span class="acct-msg" id="auth-msg"></span>
+    </div>`;
+  }
+}
+
+function authMsg(text, ok){
+  const m = document.getElementById('auth-msg');
+  if(m){ m.textContent = text; m.className = 'acct-msg ' + (ok?'ok':'err'); }
+}
+
+async function doSignUp(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if(!email || !password){ authMsg('Enter an email and password.', false); return; }
+  if(password.length < 6){ authMsg('Password must be at least 6 characters.', false); return; }
+  try {
+    const { error } = await db.auth.signUp({ email, password });
+    if(error) throw error;
+    authMsg('✓ Check your email to confirm your account, then sign in.', true);
+  } catch(e){ authMsg(e.message || 'Could not sign up.', false); }
+}
+
+async function doSignIn(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if(!email || !password){ authMsg('Enter your email and password.', false); return; }
+  try {
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    // onAuthStateChange handles the rest
+  } catch(e){ authMsg(e.message || 'Could not sign in. Check your email is confirmed.', false); }
+}
+
+async function doSignOut(){
+  await db.auth.signOut();
+}
+
+async function doClaimHandle(){
+  const raw = document.getElementById('claim-handle').value;
+  const handle = cleanHandle(raw);
+  const msgEl = document.getElementById('claim-msg');
+  if(!handle){ msgEl.textContent='Enter a handle.'; msgEl.className='acct-msg err'; return; }
+  try {
+    const { error } = await db.from('handle_claims').insert({ user_id: session.user.id, handle });
+    if(error){
+      if(String(error.message||'').toLowerCase().includes('duplicate') || error.code==='23505'){
+        msgEl.textContent = 'That handle is already claimed by someone else.'; msgEl.className='acct-msg err';
+      } else throw error;
+      return;
+    }
+    myHandle = handle;
+    renderAcctBar();
+    toast('Handle claimed! You can add cards now.');
+  } catch(e){ msgEl.textContent = e.message||'Could not claim handle.'; msgEl.className='acct-msg err'; }
+}
+
+async function doClaimLegacy(){
+  try {
+    const { data, error } = await db.from('card_inventory')
+      .update({ user_id: session.user.id })
+      .is('user_id', null)
+      .eq('holder_handle', myHandle)
+      .select();
+    if(error) throw error;
+    const n = data ? data.length : 0;
+    if(n > 0){ toast(`Claimed ${n} previous entr${n===1?'y':'ies'}!`); await loadInventory(); }
+    else toast('No previous entries found under @' + myHandle + '.');
+  } catch(e){ console.error(e); alert('Could not claim entries right now.'); }
 }
 
 /* ── Type tabs ── */
@@ -343,7 +487,7 @@ function groupForDisplay(filteredRows){
     if(!g.variants[r.variant]) g.variants[r.variant] = { qty:0, allMine:true };
     const v = g.variants[r.variant];
     v.qty += r.qty;
-    if(r.owner_token !== deviceToken) v.allMine = false;
+    if(!session || r.user_id !== session.user.id) v.allMine = false;
   });
   return [...map.values()];
 }
@@ -359,7 +503,7 @@ function renderTable(){
     if(typeFilter!=='all' && c.type!==typeFilter) return false;
     if(clFilter && c.class!==clFilter) return false;
     if(vFilter && r.variant!==vFilter) return false;
-    if(mineOnly && r.owner_token!==deviceToken) return false;
+    if(mineOnly && (!session || r.user_id!==session.user.id)) return false;
     if(q && !(c.name.toLowerCase().includes(q) || r.holder_handle.toLowerCase().includes(q))) return false;
     return true;
   });
@@ -442,7 +586,7 @@ function setMasterFilter(f){
    since a master-set checklist is inherently a personal collecting goal. */
 function renderMaster(){
   const q = document.getElementById('master-search').value.toLowerCase();
-  const mine = rows.filter(r=>r.owner_token===deviceToken);
+  const mine = session ? rows.filter(r=>r.user_id===session.user.id) : [];
   const have = new Set(); // "cardId|variant" strings the device owns at least 1 of
   mine.forEach(r=>{ if(r.qty>0) have.add(r.card_id+'|'+r.variant); });
 
@@ -493,7 +637,7 @@ function setStatScope(s){
 }
 
 function renderStats(){
-  const scoped = statScope==='mine' ? rows.filter(r=>r.owner_token===deviceToken) : rows;
+  const scoped = statScope==='mine' ? (session ? rows.filter(r=>r.user_id===session.user.id) : []) : rows;
   const el = document.getElementById('stats-wrap');
 
   if(!scoped.length){
@@ -565,7 +709,8 @@ function exportCSV(){
 
 async function stepVariant(cardId, holder, variant, delta){
   const matching = rows.filter(r=>r.card_id===cardId && r.holder_handle===holder && r.variant===variant);
-  if(!matching.length || matching.some(r=>r.owner_token!==deviceToken)) return;
+  if(!session) return;
+  if(!matching.length || matching.some(r=>r.user_id!==session.user.id)) return;
   matching.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
   const target = matching[0];
   const next = target.qty + delta;
@@ -584,7 +729,12 @@ async function stepVariant(cardId, holder, variant, delta){
 }
 
 /* ── Add modal ── */
-function openAdd(){ document.getElementById('add-bg').classList.add('show'); }
+function openAdd(){
+  if(!session){ toast('Sign in to add cards to your inventory.'); return; }
+  if(!myHandle){ toast('Claim your X handle first (see the bar above).'); return; }
+  document.getElementById('add-as-handle').textContent = '@' + myHandle;
+  document.getElementById('add-bg').classList.add('show');
+}
 function closeAdd(e){
   if(e && e.target.id!=='add-bg' && !e.target.classList.contains('modal-close')) return;
   document.getElementById('add-bg').classList.remove('show');
@@ -647,20 +797,20 @@ function showMsg(text, ok){
 }
 
 async function submitAdd(){
-  const handle = cleanHandle(document.getElementById('inv-handle').value);
+  if(!session || !myHandle){ showMsg('Please sign in and claim your handle first.', false); return; }
+  const handle = myHandle;
   const qBase = parseInt(document.getElementById('q-base').value)||0;
   const qHolo = parseInt(document.getElementById('q-holo').value)||0;
   const qFull = parseInt(document.getElementById('q-fullart').value)||0;
   const btn = document.getElementById('add-btn');
 
   if(!pickedCard){ showMsg('Please pick a card first.', false); return; }
-  if(!handle){ showMsg('Please add your X handle.', false); return; }
   if(qBase<=0 && qHolo<=0 && qFull<=0){ showMsg('Enter a quantity for at least one variant.', false); return; }
 
   const inserts = [];
-  if(qBase>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'base', qty:qBase, owner_token:deviceToken });
-  if(qHolo>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'holo', qty:qHolo, owner_token:deviceToken });
-  if(qFull>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'fullart', qty:qFull, owner_token:deviceToken });
+  if(qBase>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'base', qty:qBase, owner_token:deviceToken, user_id:session.user.id });
+  if(qHolo>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'holo', qty:qHolo, owner_token:deviceToken, user_id:session.user.id });
+  if(qFull>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'fullart', qty:qFull, owner_token:deviceToken, user_id:session.user.id });
 
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
@@ -689,6 +839,7 @@ document.addEventListener('click', e=>{
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAdd({target:{id:'add-bg'}}); });
 
 populateClassFilter();
+initAuth();
 loadInventory();
 </script>
 </body>
