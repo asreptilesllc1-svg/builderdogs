@@ -20,6 +20,7 @@
 <link rel="icon" href="favicon.png" type="image/png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="ddl-cards.js"></script>
+<script src="ddl-sales.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -112,7 +113,41 @@
 
   /* Table */
   .table-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); }
-  .inv-row { display:grid; grid-template-columns:52px 2fr 1fr 1fr 2.2fr 1fr; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:14px; }
+  .inv-row { display:grid; grid-template-columns:52px 1.8fr 0.8fr 0.9fr 2.1fr 0.9fr 1.3fr; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:14px; }
+  /* ── Market value (eBay sold data) ── */
+  .px-box { margin-bottom:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface2); overflow:hidden; }
+  .px-title { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); border-bottom:1px solid var(--border); }
+  .px-title a { color:var(--muted); text-transform:none; letter-spacing:0; }
+  .px-row, .px-details summary { display:flex; align-items:center; gap:10px; padding:10px 12px; font-size:14px; }
+  .px-details { border-bottom:1px solid var(--border); }
+  .px-details:last-child, .px-row:last-child { border-bottom:none; }
+  .px-row { border-bottom:1px solid var(--border); }
+  .px-details summary { cursor:pointer; list-style:none; }
+  .px-details summary::-webkit-details-marker { display:none; }
+  .px-details summary:hover { background:rgba(255,255,255,0.03); }
+  .px-label { font-weight:600; min-width:64px; }
+  .px-val { font-family:'Oswald',sans-serif; font-weight:600; font-size:17px; color:var(--gold); }
+  .px-ask { font-family:'Oswald',sans-serif; font-size:15px; color:var(--muted2); }
+  .px-meta { font-size:12px; color:var(--muted); margin-left:auto; }
+  .px-none { font-size:13px; color:var(--muted); margin-left:auto; }
+  .px-caret { color:var(--muted); font-size:12px; transition:transform 0.15s; }
+  .px-details[open] .px-caret { transform:rotate(180deg); }
+  .px-list { list-style:none; margin:0; padding:0 12px 8px; }
+  .px-list li { display:grid; grid-template-columns:70px 1fr auto; gap:8px; padding:6px 0; border-top:1px dashed var(--border); font-size:13px; }
+  .px-list li strong { font-family:'Oswald',sans-serif; font-weight:600; }
+  .px-kind { color:var(--muted2); font-size:12px; }
+  .px-askrow { opacity:0.55; }
+  .px-note { font-size:11px; color:var(--muted); padding:0 12px 10px; line-height:1.45; }
+
+  .inv-val { font-family:'Oswald',sans-serif; font-weight:600; color:var(--gold); background:none; border:1px solid var(--border2); border-radius:6px; padding:5px 9px; cursor:pointer; font-size:14px; white-space:nowrap; }
+  .inv-val:hover { border-color:var(--orange); }
+  .inv-val.none { color:var(--muted); font-family:inherit; font-size:12px; font-weight:500; }
+  .inv-expand { padding:4px 14px 14px 76px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.015); }
+  .inv-expand .px-box { margin:0; max-width:560px; }
+  .value-strip { display:flex; gap:26px; flex-wrap:wrap; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
+  .value-strip .num { font-family:'Oswald',sans-serif; font-size:24px; font-weight:600; color:var(--gold); }
+  .value-strip .lbl { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); }
+  .value-strip .note { font-size:12px; color:var(--muted); margin-left:auto; max-width:360px; line-height:1.45; }
   .inv-row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 14px; }
   .inv-row:last-child { border-bottom:none; }
   .inv-row:not(.head):hover { background:rgba(255,255,255,0.02); }
@@ -137,7 +172,8 @@
   .qty-btn:hover { background:var(--orange); color:#0a0a0a; }
   .inv-holder { color:var(--muted2); font-size:13px; }
   @media (max-width:900px) {
-    .inv-row { grid-template-columns:44px 1.5fr 1fr; font-size:13px; }
+    .inv-row { grid-template-columns:44px 1.2fr 1fr; font-size:13px; }
+    .inv-expand { padding-left:14px; }
     .inv-row .col-class, .inv-row .col-rarity { display:none; }
   }
   .empty-row { text-align:center; color:var(--muted); padding:50px 20px; }
@@ -245,6 +281,8 @@
     <button class="chip" id="master-show-owned" onclick="setMasterFilter('owned')">Owned</button>
     <button class="chip" id="master-show-missing" onclick="setMasterFilter('missing')">Missing</button>
   </div>
+
+  <div class="value-strip" id="value-strip" style="display:none;"></div>
 
   <div class="table-wrap" id="table-wrap">
     <div class="empty-row">Loading inventory…</div>
@@ -523,7 +561,7 @@ function renderTable(){
   });
 
   const head = `<div class="inv-row head">
-    <span></span><span>Card</span><span class="col-class">Class</span><span class="col-rarity">Rarity</span><span>Variants &amp; Qty</span><span>Holder</span>
+    <span></span><span>Card</span><span class="col-class">Class</span><span class="col-rarity">Rarity</span><span>Variants &amp; Qty</span><span>Value</span><span>Holder</span>
   </div>`;
 
   let groups = groupForDisplay(out);
@@ -559,14 +597,64 @@ function renderTable(){
       <span class="col-class" style="color:${classColor(c.class)}">${esc(c.class)}</span>
       <span class="col-rarity" style="color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span>
       <div class="variant-pills">${pills}</div>
+      ${valueCell(g)}
       <div class="holder-cell">
         <span class="inv-holder">@${esc(g.holder_handle)}</span>
         ${isMyGroup(g) ? `<button class="row-del" onclick="deleteCard('${g.card_id.replace(/'/g,"\\'")}','${g.holder_handle.replace(/'/g,"\\'")}')">🗑 Delete</button>` : ''}
       </div>
-    </div>`;
+    </div>${expanded.has(groupKey(g)) ? `<div class="inv-expand">${marketBox(c)}</div>` : ''}`;
   }).join('');
 
   document.getElementById('table-wrap').innerHTML = head + body;
+  renderValueStrip();
+}
+
+/* ── Market value (eBay sold data via ddl-sales.js) ── */
+const expanded = new Set();
+function groupKey(g){ return g.card_id + '||' + g.holder_handle; }
+function toggleExpand(key){ expanded.has(key) ? expanded.delete(key) : expanded.add(key); renderTable(); }
+function groupValue(g){
+  let total = 0, priced = 0, unpriced = 0;
+  if(!window.DDL_PRICE) return { total, priced, unpriced };
+  Object.entries(g.variants).forEach(([v,info])=>{
+    const r = DDL_PRICE.get(g.card_id, v);
+    if(r.value != null){ total += r.value * info.qty; priced += info.qty; }
+    else unpriced += info.qty;
+  });
+  return { total, priced, unpriced };
+}
+function valueCell(g){
+  const gv = groupValue(g);
+  const key = groupKey(g).replace(/'/g,"\\'");
+  const hasAsking = Object.keys(g.variants).some(v=>DDL_PRICE.get(g.card_id, v).asking!=null);
+  const label = gv.priced ? DDL_PRICE.money(gv.total) + (gv.unpriced ? '+' : '') : (hasAsking ? 'Asking only' : 'No sales');
+  return `<div><button class="inv-val${gv.priced?'':' none'}" onclick="toggleExpand('${key}')" title="Show eBay sales">${label} ▾</button></div>`;
+}
+function marketBox(c){
+  const versions = c.fullArt ? [['fullart','Full Art']] : [['base','Base'],['holo','Holo']];
+  return `<div class="px-box">
+    <div class="px-title"><span>Market Value · eBay sold</span><span>updated ${DDL_PRICE.fmtDate(DDL_PRICE.meta.updated)}</span></div>
+    ${versions.map(([v,l])=>DDL_PRICE.detailsHtml(c.id, v, l)).join('')}
+  </div>`;
+}
+function renderValueStrip(){
+  const el = document.getElementById('value-strip');
+  if(!el) return;
+  if(!session || !window.DDL_PRICE || viewMode!=='list'){ el.style.display='none'; return; }
+  const mine = rows.filter(r=>r.user_id===session.user.id);
+  if(!mine.length){ el.style.display='none'; return; }
+  let total=0, pricedCopies=0, unpricedCopies=0, copies=0;
+  mine.forEach(r=>{
+    const v = DDL_PRICE.get(r.card_id, r.variant).value;
+    copies += r.qty;
+    if(v!=null){ total += v*r.qty; pricedCopies += r.qty; } else unpricedCopies += r.qty;
+  });
+  el.style.display='flex';
+  el.innerHTML = `
+    <div><div class="num">${DDL_PRICE.money(total)}</div><div class="lbl">Your Collection Value</div></div>
+    <div><div class="num" style="color:var(--white)">${copies}</div><div class="lbl">Cards Owned</div></div>
+    <div><div class="num" style="color:var(--muted2)">${unpricedCopies}</div><div class="lbl">Without Sale Data</div></div>
+    <div class="note">Based on the median of confirmed eBay sales for each card version. Cards with no confirmed sale yet aren't counted. Data through ${DDL_PRICE.fmtDate(DDL_PRICE.meta.updated)}.</div>`;
 }
 
 function classColor(c){
@@ -587,6 +675,7 @@ function setView(v){
   document.getElementById('stats-bar').style.display = v==='stats' ? 'flex' : 'none';
   document.getElementById('master-bar').style.display = v==='master' ? 'flex' : 'none';
   document.getElementById('table-wrap').style.display = v==='list' ? 'block' : 'none';
+  renderValueStrip();
   document.getElementById('stats-wrap').style.display = v==='stats' ? 'block' : 'none';
   document.getElementById('master-wrap').style.display = v==='master' ? 'block' : 'none';
   if(v==='stats') renderStats();

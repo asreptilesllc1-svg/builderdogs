@@ -292,6 +292,31 @@
   .scarcity-track { height:5px; background:var(--surface2); border-radius:3px; overflow:hidden; }
   .scarcity-fill { height:100%; border-radius:3px; transition:width 0.3s; }
   .scarcity-note { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4; }
+  /* ── Market value (eBay sold data) ── */
+  .px-box { margin-bottom:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface2); overflow:hidden; }
+  .px-title { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); border-bottom:1px solid var(--border); }
+  .px-title a { color:var(--muted); text-transform:none; letter-spacing:0; }
+  .px-row, .px-details summary { display:flex; align-items:center; gap:10px; padding:10px 12px; font-size:14px; }
+  .px-details { border-bottom:1px solid var(--border); }
+  .px-details:last-child, .px-row:last-child { border-bottom:none; }
+  .px-row { border-bottom:1px solid var(--border); }
+  .px-details summary { cursor:pointer; list-style:none; }
+  .px-details summary::-webkit-details-marker { display:none; }
+  .px-details summary:hover { background:rgba(255,255,255,0.03); }
+  .px-label { font-weight:600; min-width:64px; }
+  .px-val { font-family:'Oswald',sans-serif; font-weight:600; font-size:17px; color:var(--gold); }
+  .px-ask { font-family:'Oswald',sans-serif; font-size:15px; color:var(--muted2); }
+  .px-meta { font-size:12px; color:var(--muted); margin-left:auto; }
+  .px-none { font-size:13px; color:var(--muted); margin-left:auto; }
+  .px-caret { color:var(--muted); font-size:12px; transition:transform 0.15s; }
+  .px-details[open] .px-caret { transform:rotate(180deg); }
+  .px-list { list-style:none; margin:0; padding:0 12px 8px; }
+  .px-list li { display:grid; grid-template-columns:70px 1fr auto; gap:8px; padding:6px 0; border-top:1px dashed var(--border); font-size:13px; }
+  .px-list li strong { font-family:'Oswald',sans-serif; font-weight:600; }
+  .px-kind { color:var(--muted2); font-size:12px; }
+  .px-askrow { opacity:0.55; }
+  .px-note { font-size:11px; color:var(--muted); padding:0 12px 10px; line-height:1.45; }
+
   .modal-stat { text-align:center; }
   .modal-stat-val { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; }
   .modal-stat-lbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
@@ -430,6 +455,7 @@
 </div>
 
 <script src="ddl-cards.js"></script>
+<script src="ddl-sales.js"></script>
 <script>
 /* ══════════════ STATE ══════════════ */
 const CARDS = (window.DDL_CARDS || []).slice();
@@ -716,6 +742,16 @@ function shareDeck(){
 }
 
 /* ══════════════ CARD MODAL ══════════════ */
+function marketHtml(c){
+  if(!window.DDL_PRICE) return '';
+  const P = window.DDL_PRICE;
+  const versions = c.fullArt ? [['fullart','Full Art']] : [['base','Base'],['holo','Holo']];
+  const body = versions.map(([v,label])=>P.detailsHtml(c.id, v, label)).join('');
+  return `<div class="px-box">
+    <div class="px-title"><span>Market Value · eBay sold</span><span>updated ${P.fmtDate(P.meta.updated)}</span></div>
+    ${body}
+  </div>`;
+}
 function openCard(id){
   const c = byId[id]; if(!c || c.sealed) return;
   const art = c.image
@@ -747,6 +783,7 @@ function openCard(id){
       ${tierTag}
     </div>
     ${scarcity}
+    ${marketHtml(c)}
     ${stats}
     <div class="modal-text">${esc(c.text)}</div>
     ${kw}
