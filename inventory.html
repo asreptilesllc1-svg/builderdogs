@@ -115,39 +115,56 @@
   .table-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); }
   .inv-row { display:grid; grid-template-columns:52px 1.8fr 0.8fr 0.9fr 2.1fr 0.9fr 1.3fr; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--border); font-size:14px; }
   /* ── Market value (eBay sold data) ── */
-  .px-box { margin-bottom:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface2); overflow:hidden; }
-  .px-title { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); border-bottom:1px solid var(--border); }
-  .px-title a { color:var(--muted); text-transform:none; letter-spacing:0; }
-  .px-row, .px-details summary { display:flex; align-items:center; gap:10px; padding:10px 12px; font-size:14px; }
-  .px-details { border-bottom:1px solid var(--border); }
-  .px-details:last-child, .px-row:last-child { border-bottom:none; }
-  .px-row { border-bottom:1px solid var(--border); }
-  .px-details summary { cursor:pointer; list-style:none; }
-  .px-details summary::-webkit-details-marker { display:none; }
-  .px-details summary:hover { background:rgba(255,255,255,0.03); }
-  .px-label { font-weight:600; min-width:64px; }
-  .px-val { font-family:'Oswald',sans-serif; font-weight:600; font-size:17px; color:var(--gold); }
-  .px-ask { font-family:'Oswald',sans-serif; font-size:15px; color:var(--muted2); }
-  .px-meta { font-size:12px; color:var(--muted); margin-left:auto; }
-  .px-none { font-size:13px; color:var(--muted); margin-left:auto; }
-  .px-caret { color:var(--muted); font-size:12px; transition:transform 0.15s; }
-  .px-details[open] .px-caret { transform:rotate(180deg); }
-  .px-list { list-style:none; margin:0; padding:0 12px 8px; }
-  .px-list li { display:grid; grid-template-columns:70px 1fr auto; gap:8px; padding:6px 0; border-top:1px dashed var(--border); font-size:13px; }
-  .px-list li strong { font-family:'Oswald',sans-serif; font-weight:600; }
-  .px-kind { color:var(--muted2); font-size:12px; }
-  .px-askrow { opacity:0.55; }
-  .px-note { font-size:11px; color:var(--muted); padding:0 12px 10px; line-height:1.45; }
+  .px-panel { margin-bottom:16px; border:1px solid var(--border); border-radius:12px; background:var(--surface); overflow:hidden; }
+  .px-head { display:flex; justify-content:space-between; align-items:baseline; padding:10px 14px; border-bottom:1px solid var(--border); font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); }
+  .px-head span:last-child { letter-spacing:0.3px; text-transform:none; color:var(--muted); font-size:11px; }
+  .px-ver { border-bottom:1px solid var(--border); }
+  .px-ver:last-child { border-bottom:none; }
+  .px-ver summary, .px-summary { display:flex; align-items:center; gap:10px; padding:12px 14px 2px; cursor:pointer; list-style:none; }
+  .px-ver.flat .px-summary { cursor:default; }
+  .px-ver summary::-webkit-details-marker { display:none; }
+  .px-label { font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); min-width:62px; }
+  .px-val { font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; color:var(--white); letter-spacing:0.2px; }
+  .px-val.est { color:var(--muted2); }
+  .px-none { font-size:14px; color:var(--muted); }
+  .px-chip { font-size:10px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; padding:3px 8px; border-radius:20px; border:1px solid; }
+  .px-chip.solid { color:#4ade80; border-color:rgba(74,222,128,0.35); background:rgba(74,222,128,0.08); }
+  .px-chip.fair  { color:#60a5fa; border-color:rgba(96,165,250,0.35); background:rgba(96,165,250,0.08); }
+  .px-chip.thin  { color:#fbbf24; border-color:rgba(251,191,36,0.35); background:rgba(251,191,36,0.08); }
+  .px-chip.est   { color:var(--muted2); border-color:var(--border2); background:transparent; }
+  .px-caret { margin-left:auto; width:8px; height:8px; border-right:2px solid var(--muted); border-bottom:2px solid var(--muted); transform:rotate(45deg); transition:transform 0.15s; margin-right:4px; }
+  .px-ver[open] .px-caret { transform:rotate(225deg); }
+  .px-sub { padding:2px 14px 12px; font-size:12px; color:var(--muted); line-height:1.5; }
+  .px-ver summary:hover .px-val { color:var(--gold); }
+  .px-body { padding:2px 14px 14px; }
+  .px-strip { position:relative; height:22px; margin:4px 6px 0; }
+  .px-track { position:absolute; left:0; right:0; top:10px; height:2px; background:var(--border2); border-radius:2px; }
+  .px-dot { position:absolute; top:6px; width:10px; height:10px; margin-left:-5px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 2px var(--surface); }
+  .px-dot.weak { background:transparent; border:2px solid var(--gold); width:10px; height:10px; box-sizing:border-box; }
+  .px-mark { position:absolute; top:1px; width:2px; height:20px; margin-left:-1px; background:var(--white); border-radius:1px; }
+  .px-ends { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin:2px 0 10px; font-family:'Oswald',sans-serif; }
+  .px-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .px-table th { text-align:left; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:6px 0; border-bottom:1px solid var(--border); }
+  .px-table td { padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--muted2); }
+  .px-table .num { text-align:right; font-family:'Oswald',sans-serif; }
+  .px-table .strong { color:var(--white); font-weight:600; }
+  .px-table tr.asking td { opacity:0.45; font-style:italic; }
+  .px-foot { font-size:11px; color:var(--muted); margin-top:8px; line-height:1.5; }
 
-  .inv-val { font-family:'Oswald',sans-serif; font-weight:600; color:var(--gold); background:none; border:1px solid var(--border2); border-radius:6px; padding:5px 9px; cursor:pointer; font-size:14px; white-space:nowrap; }
-  .inv-val:hover { border-color:var(--orange); }
+  .inv-val { display:inline-flex; align-items:center; gap:8px; font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; color:var(--white); background:transparent; border:1px solid var(--border2); border-radius:6px; padding:6px 10px; cursor:pointer; white-space:nowrap; transition:border-color 0.15s; }
+  .inv-val:hover { border-color:var(--gold); }
+  .inv-val.est { color:var(--muted2); }
   .inv-val.none { color:var(--muted); font-family:inherit; font-size:12px; font-weight:500; }
-  .inv-expand { padding:4px 14px 14px 76px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.015); }
-  .inv-expand .px-box { margin:0; max-width:560px; }
-  .value-strip { display:flex; gap:26px; flex-wrap:wrap; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
-  .value-strip .num { font-family:'Oswald',sans-serif; font-size:24px; font-weight:600; color:var(--gold); }
-  .value-strip .lbl { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); }
-  .value-strip .note { font-size:12px; color:var(--muted); margin-left:auto; max-width:360px; line-height:1.45; }
+  .inv-caret { width:6px; height:6px; border-right:1.5px solid var(--muted); border-bottom:1.5px solid var(--muted); transform:rotate(45deg); margin-top:-3px; }
+  .inv-expand { padding:6px 14px 16px 76px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.012); }
+  .inv-expand .px-panel { margin:0; max-width:580px; }
+  .value-strip { display:flex; gap:34px; flex-wrap:wrap; align-items:flex-end; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 22px; margin-bottom:14px; }
+  .vs-lbl { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); }
+  .vs-num { font-family:'Oswald',sans-serif; font-size:32px; font-weight:600; color:var(--white); line-height:1.1; margin-top:4px; }
+  .vs-range { font-size:12px; color:var(--muted); margin-top:2px; }
+  .vs-main { padding-right:30px; border-right:1px solid var(--border); }
+  .vs-n { font-family:'Oswald',sans-serif; font-size:22px; font-weight:600; color:var(--white); }
+  .vs-note { flex-basis:100%; font-size:11.5px; color:var(--muted); line-height:1.55; border-top:1px solid var(--border); padding-top:12px; }
   .inv-row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 14px; }
   .inv-row:last-child { border-bottom:none; }
   .inv-row:not(.head):hover { background:rgba(255,255,255,0.02); }
@@ -614,48 +631,40 @@ const expanded = new Set();
 function groupKey(g){ return g.card_id + '||' + g.holder_handle; }
 function toggleExpand(key){ expanded.has(key) ? expanded.delete(key) : expanded.add(key); renderTable(); }
 function groupValue(g){
-  let total = 0, priced = 0, unpriced = 0;
-  if(!window.DDL_PRICE) return { total, priced, unpriced };
-  Object.entries(g.variants).forEach(([v,info])=>{
-    const r = DDL_PRICE.get(g.card_id, v);
-    if(r.value != null){ total += r.value * info.qty; priced += info.qty; }
-    else unpriced += info.qty;
-  });
-  return { total, priced, unpriced };
+  const items = Object.entries(g.variants).map(([v,info])=>({card_id:g.card_id, variant:v, qty:info.qty}));
+  return DDL_PRICE.collection(items);
 }
 function valueCell(g){
-  const gv = groupValue(g);
+  const c = DDL_PRICE.collection(Object.entries(g.variants).map(([v,info])=>({card_id:g.card_id, variant:v, qty:info.qty})));
   const key = groupKey(g).replace(/'/g,"\\'");
-  const hasAsking = Object.keys(g.variants).some(v=>DDL_PRICE.get(g.card_id, v).asking!=null);
-  const label = gv.priced ? DDL_PRICE.money(gv.total) + (gv.unpriced ? '+' : '') : (hasAsking ? 'Asking only' : 'No sales');
-  return `<div><button class="inv-val${gv.priced?'':' none'}" onclick="toggleExpand('${key}')" title="Show eBay sales">${label} ▾</button></div>`;
+  let label, cls = '';
+  if (c.pricedQty) label = DDL_PRICE.money(c.typical + c.estimated);
+  else if (c.estQty) { label = '~' + DDL_PRICE.money(c.estimated); cls = ' est'; }
+  else { label = 'No data'; cls = ' none'; }
+  return `<div><button class="inv-val${cls}" onclick="toggleExpand('${key}')" title="Show eBay sales">${label}<span class="inv-caret"></span></button></div>`;
 }
-function marketBox(c){
-  const versions = c.fullArt ? [['fullart','Full Art']] : [['base','Base'],['holo','Holo']];
-  return `<div class="px-box">
-    <div class="px-title"><span>Market Value · eBay sold</span><span>updated ${DDL_PRICE.fmtDate(DDL_PRICE.meta.updated)}</span></div>
-    ${versions.map(([v,l])=>DDL_PRICE.detailsHtml(c.id, v, l)).join('')}
-  </div>`;
-}
+function marketBox(c){ return DDL_PRICE.panelHtml(c); }
 function renderValueStrip(){
   const el = document.getElementById('value-strip');
   if(!el) return;
   if(!session || !window.DDL_PRICE || viewMode!=='list'){ el.style.display='none'; return; }
   const mine = rows.filter(r=>r.user_id===session.user.id);
   if(!mine.length){ el.style.display='none'; return; }
-  let total=0, pricedCopies=0, unpricedCopies=0, copies=0;
-  mine.forEach(r=>{
-    const v = DDL_PRICE.get(r.card_id, r.variant).value;
-    copies += r.qty;
-    if(v!=null){ total += v*r.qty; pricedCopies += r.qty; } else unpricedCopies += r.qty;
-  });
+  const c = DDL_PRICE.collection(mine.map(r=>({card_id:r.card_id, variant:r.variant, qty:r.qty})));
+  const M = DDL_PRICE.money, total = c.pricedQty + c.estQty + c.noneQty;
   el.style.display='flex';
   el.innerHTML = `
-    <div><div class="num">${DDL_PRICE.money(total)}</div><div class="lbl">Your Collection Value</div></div>
-    <div><div class="num" style="color:var(--white)">${copies}</div><div class="lbl">Cards Owned</div></div>
-    <div><div class="num" style="color:var(--muted2)">${unpricedCopies}</div><div class="lbl">Without Sale Data</div></div>
-    <div class="note">Based on the median of confirmed eBay sales for each card version. Cards with no confirmed sale yet aren't counted. Data through ${DDL_PRICE.fmtDate(DDL_PRICE.meta.updated)}.</div>`;
+    <div class="vs-main">
+      <div class="vs-lbl">Collection value</div>
+      <div class="vs-num">${M(c.typical + c.estimated)}</div>
+      <div class="vs-range">Range ${M(c.conservative)} – ${M(c.high)}</div>
+    </div>
+    <div class="vs-stat"><div class="vs-n">${total}</div><div class="vs-lbl">Cards</div></div>
+    <div class="vs-stat"><div class="vs-n">${c.pricedQty}</div><div class="vs-lbl">Priced from sales</div></div>
+    <div class="vs-stat"><div class="vs-n">${c.estQty}</div><div class="vs-lbl">Estimated by rarity</div></div>
+    <div class="vs-note">Typical value uses recent confirmed eBay sales, with single-bid auctions weighted half. Cards without sales use the typical price of their rarity and version. The low end of the range uses each card's most recent sale when it's lower. Data through ${DDL_PRICE.fmtDate(DDL_PRICE.meta.updated)}.</div>`;
 }
+
 
 function classColor(c){
   return {Bow:'#22c55e',Crown:'#f5c842',Pirate:'#ef4444',Wizard:'#a855f7',Zombie:'#5b9bd5',Neutral:'#9a9aa2',All:'#e8b34a'}[c] || 'var(--muted)';

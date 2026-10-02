@@ -293,29 +293,41 @@
   .scarcity-fill { height:100%; border-radius:3px; transition:width 0.3s; }
   .scarcity-note { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4; }
   /* ── Market value (eBay sold data) ── */
-  .px-box { margin-bottom:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface2); overflow:hidden; }
-  .px-title { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); border-bottom:1px solid var(--border); }
-  .px-title a { color:var(--muted); text-transform:none; letter-spacing:0; }
-  .px-row, .px-details summary { display:flex; align-items:center; gap:10px; padding:10px 12px; font-size:14px; }
-  .px-details { border-bottom:1px solid var(--border); }
-  .px-details:last-child, .px-row:last-child { border-bottom:none; }
-  .px-row { border-bottom:1px solid var(--border); }
-  .px-details summary { cursor:pointer; list-style:none; }
-  .px-details summary::-webkit-details-marker { display:none; }
-  .px-details summary:hover { background:rgba(255,255,255,0.03); }
-  .px-label { font-weight:600; min-width:64px; }
-  .px-val { font-family:'Oswald',sans-serif; font-weight:600; font-size:17px; color:var(--gold); }
-  .px-ask { font-family:'Oswald',sans-serif; font-size:15px; color:var(--muted2); }
-  .px-meta { font-size:12px; color:var(--muted); margin-left:auto; }
-  .px-none { font-size:13px; color:var(--muted); margin-left:auto; }
-  .px-caret { color:var(--muted); font-size:12px; transition:transform 0.15s; }
-  .px-details[open] .px-caret { transform:rotate(180deg); }
-  .px-list { list-style:none; margin:0; padding:0 12px 8px; }
-  .px-list li { display:grid; grid-template-columns:70px 1fr auto; gap:8px; padding:6px 0; border-top:1px dashed var(--border); font-size:13px; }
-  .px-list li strong { font-family:'Oswald',sans-serif; font-weight:600; }
-  .px-kind { color:var(--muted2); font-size:12px; }
-  .px-askrow { opacity:0.55; }
-  .px-note { font-size:11px; color:var(--muted); padding:0 12px 10px; line-height:1.45; }
+  .px-panel { margin-bottom:16px; border:1px solid var(--border); border-radius:12px; background:var(--surface); overflow:hidden; }
+  .px-head { display:flex; justify-content:space-between; align-items:baseline; padding:10px 14px; border-bottom:1px solid var(--border); font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); }
+  .px-head span:last-child { letter-spacing:0.3px; text-transform:none; color:var(--muted); font-size:11px; }
+  .px-ver { border-bottom:1px solid var(--border); }
+  .px-ver:last-child { border-bottom:none; }
+  .px-ver summary, .px-summary { display:flex; align-items:center; gap:10px; padding:12px 14px 2px; cursor:pointer; list-style:none; }
+  .px-ver.flat .px-summary { cursor:default; }
+  .px-ver summary::-webkit-details-marker { display:none; }
+  .px-label { font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); min-width:62px; }
+  .px-val { font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; color:var(--white); letter-spacing:0.2px; }
+  .px-val.est { color:var(--muted2); }
+  .px-none { font-size:14px; color:var(--muted); }
+  .px-chip { font-size:10px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; padding:3px 8px; border-radius:20px; border:1px solid; }
+  .px-chip.solid { color:#4ade80; border-color:rgba(74,222,128,0.35); background:rgba(74,222,128,0.08); }
+  .px-chip.fair  { color:#60a5fa; border-color:rgba(96,165,250,0.35); background:rgba(96,165,250,0.08); }
+  .px-chip.thin  { color:#fbbf24; border-color:rgba(251,191,36,0.35); background:rgba(251,191,36,0.08); }
+  .px-chip.est   { color:var(--muted2); border-color:var(--border2); background:transparent; }
+  .px-caret { margin-left:auto; width:8px; height:8px; border-right:2px solid var(--muted); border-bottom:2px solid var(--muted); transform:rotate(45deg); transition:transform 0.15s; margin-right:4px; }
+  .px-ver[open] .px-caret { transform:rotate(225deg); }
+  .px-sub { padding:2px 14px 12px; font-size:12px; color:var(--muted); line-height:1.5; }
+  .px-ver summary:hover .px-val { color:var(--gold); }
+  .px-body { padding:2px 14px 14px; }
+  .px-strip { position:relative; height:22px; margin:4px 6px 0; }
+  .px-track { position:absolute; left:0; right:0; top:10px; height:2px; background:var(--border2); border-radius:2px; }
+  .px-dot { position:absolute; top:6px; width:10px; height:10px; margin-left:-5px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 2px var(--surface); }
+  .px-dot.weak { background:transparent; border:2px solid var(--gold); width:10px; height:10px; box-sizing:border-box; }
+  .px-mark { position:absolute; top:1px; width:2px; height:20px; margin-left:-1px; background:var(--white); border-radius:1px; }
+  .px-ends { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin:2px 0 10px; font-family:'Oswald',sans-serif; }
+  .px-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .px-table th { text-align:left; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:6px 0; border-bottom:1px solid var(--border); }
+  .px-table td { padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--muted2); }
+  .px-table .num { text-align:right; font-family:'Oswald',sans-serif; }
+  .px-table .strong { color:var(--white); font-weight:600; }
+  .px-table tr.asking td { opacity:0.45; font-style:italic; }
+  .px-foot { font-size:11px; color:var(--muted); margin-top:8px; line-height:1.5; }
 
   .modal-stat { text-align:center; }
   .modal-stat-val { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; }
@@ -742,16 +754,7 @@ function shareDeck(){
 }
 
 /* ══════════════ CARD MODAL ══════════════ */
-function marketHtml(c){
-  if(!window.DDL_PRICE) return '';
-  const P = window.DDL_PRICE;
-  const versions = c.fullArt ? [['fullart','Full Art']] : [['base','Base'],['holo','Holo']];
-  const body = versions.map(([v,label])=>P.detailsHtml(c.id, v, label)).join('');
-  return `<div class="px-box">
-    <div class="px-title"><span>Market Value · eBay sold</span><span>updated ${P.fmtDate(P.meta.updated)}</span></div>
-    ${body}
-  </div>`;
-}
+function marketHtml(c){ return window.DDL_PRICE ? DDL_PRICE.panelHtml(c) : ''; }
 function openCard(id){
   const c = byId[id]; if(!c || c.sealed) return;
   const art = c.image
