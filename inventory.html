@@ -209,6 +209,51 @@
   .bv-step .bv-n { margin-left:0; }
   .bv-n.has { color:var(--white); }
   @media (max-width:600px){ .binder-grid { grid-template-columns:repeat(2,1fr); gap:10px; } .b-head { gap:18px; } .bh-stat { min-width:120px; } }
+  /* ── Stats / history ── */
+  .st-top { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:14px; }
+  .st-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; }
+  .st-l { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); }
+  .st-n { font-family:'Oswald',sans-serif; font-size:26px; font-weight:600; margin-top:2px; }
+  .st-n.in { color:#4ade80; } .st-n.out { color:#f87171; }
+  .st-cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .st-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .st-panel h3 { font-size:12px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); font-weight:700; margin:0 0 12px; }
+  .st-hint { display:block; text-transform:none; letter-spacing:0; font-weight:400; color:var(--muted); font-size:12px; margin-top:4px; }
+  .fl-row { display:grid; grid-template-columns:130px 1fr 34px; gap:10px; align-items:center; padding:5px 0; font-size:13px; }
+  .fl-l { color:var(--muted2); }
+  .fl-track { height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+  .fl-track i { display:block; height:100%; border-radius:4px; }
+  .fl-track i.in { background:#4ade80; } .fl-track i.out { background:#f87171; }
+  .fl-n { font-family:'Oswald',sans-serif; text-align:right; font-weight:600; }
+  .st-scroll { overflow-x:auto; }
+  .st-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .st-table th { text-align:left; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:6px 8px 6px 0; border-bottom:1px solid var(--border); }
+  .st-table td { padding:8px 8px 8px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .st-table .num { text-align:right; font-family:'Oswald',sans-serif; }
+  .st-table .out { color:#f87171; }
+  .st-empty { color:var(--muted); font-size:13px; }
+  .vtag { font-size:10px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted2); }
+  .vtag.holo { color:#c8a8f5; } .vtag.fullart { color:var(--orange); }
+  .h-list { display:flex; flex-direction:column; }
+  .h-row { display:grid; grid-template-columns:56px minmax(140px,1.4fr) 44px 2fr auto auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; }
+  .h-row.voided { opacity:0.45; } .h-row.voided .h-why { text-decoration:line-through; }
+  .h-date { color:var(--muted); font-size:12px; }
+  .h-card { font-weight:600; }
+  .hq { font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; text-align:right; }
+  .hq.in { color:#4ade80; } .hq.out { color:#f87171; }
+  .h-why { color:var(--muted2); }
+  .h-note { display:block; color:var(--muted); font-size:12px; font-style:italic; }
+  .htag { font-size:10px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; border:1px solid var(--border2); color:var(--muted2); border-radius:20px; padding:2px 7px; margin-left:4px; cursor:default; }
+  .htag.undone { border-color:rgba(248,113,113,0.4); color:#f87171; }
+  .htag.fix { border-color:rgba(56,189,248,0.4); color:var(--blue); }
+  .h-acts { display:flex; gap:6px; }
+  .hbtn { background:transparent; border:1px solid var(--border2); color:var(--muted2); border-radius:6px; padding:4px 10px; font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+  .hbtn:hover { color:var(--white); border-color:var(--muted2); }
+  .h-more { margin-top:12px; width:100%; }
+  @media (max-width:760px){
+    .st-top { grid-template-columns:1fr 1fr; } .st-cols { grid-template-columns:1fr; }
+    .h-row { grid-template-columns:48px 1fr 40px; } .h-why { grid-column:2 / 4; } .h-tags, .h-acts { grid-column:2 / 4; }
+  }
   .inv-row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 14px; }
   .inv-row:last-child { border-bottom:none; }
   .inv-row:not(.head):hover { background:rgba(255,255,255,0.02); }
@@ -230,6 +275,27 @@
   #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface2); border:1px solid var(--border2); color:var(--white); padding:12px 20px; border-radius:8px; font-size:14px; z-index:300; opacity:0; transition:opacity 0.2s; pointer-events:none; }
   #toast.show { opacity:1; }
   #toast.err { border-color:rgba(239,68,68,0.5); color:#f87171; }
+  #toast.act { pointer-events:auto; display:flex; align-items:center; gap:14px; }
+  .toast-act { background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:6px; padding:5px 12px; font-family:inherit; font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+  /* ── Change (reason) dialog ── */
+  .chg-modal { max-width:460px; }
+  .chg-card { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .chg-card img { width:46px; height:64px; object-fit:cover; border-radius:5px; background:var(--surface2); }
+  .chg-card .cn { font-weight:600; font-size:15px; } .chg-card .cm { font-size:12px; color:var(--muted); }
+  .chg-sub { font-size:13px; color:var(--muted2); margin:-2px 0 14px; }
+  .chg-reasons { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .chg-r { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border2); border-radius:9px; padding:12px; color:var(--white); font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; text-align:left; }
+  .chg-r:hover { border-color:var(--muted2); }
+  .chg-r.on { border-color:var(--gold); background:rgba(245,200,66,0.08); }
+  .chg-r .ic { font-size:17px; }
+  .chg-fix { width:100%; margin-top:8px; background:transparent; border:1px dashed var(--border2); border-radius:9px; padding:10px 12px; color:var(--muted2); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; text-align:left; }
+  .chg-fix span { font-weight:400; color:var(--muted); }
+  .chg-fix.on { border-style:solid; border-color:var(--blue); color:var(--white); background:rgba(56,189,248,0.07); }
+  .chg-fields { display:grid; grid-template-columns:auto 1fr; gap:14px; margin-top:16px; }
+  .chg-qty { display:flex; align-items:center; gap:8px; }
+  .chg-qty button { width:38px; height:38px; border-radius:8px; border:1px solid var(--border2); background:var(--surface2); color:var(--white); font-size:18px; font-weight:700; cursor:pointer; }
+  .chg-qty span { min-width:26px; text-align:center; font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; }
+  @media (max-width:480px){ .chg-reasons { grid-template-columns:1fr; } }
   .qty-btn:hover { background:var(--orange); color:#0a0a0a; }
   .inv-holder { color:var(--muted2); font-size:13px; }
   @media (max-width:900px) {
@@ -332,8 +398,12 @@
   </div>
 
   <div class="bar" id="stats-bar" style="display:none;">
-    <button class="chip on" id="stat-scope-mine" onclick="setStatScope('mine')">👤 My Acquisitions</button>
-    <button class="chip" id="stat-scope-all" onclick="setStatScope('all')">🌐 Public Collections</button>
+    <div class="seg" role="group" aria-label="Period">
+      <button class="seg-opt on" id="sp-all" onclick="setStatPeriod('all')">All time</button>
+      <button class="seg-opt" id="sp-30" onclick="setStatPeriod('30')">Last 30 days</button>
+      <button class="seg-opt" id="sp-7" onclick="setStatPeriod('7')">Last 7 days</button>
+    </div>
+    <button class="btn" onclick="exportHistoryCSV()" style="margin-left:auto;">⬇ Export history</button>
   </div>
 
   <div class="bar" id="master-bar" style="display:none;">
@@ -366,44 +436,33 @@
 
 </div>
 
-<!-- ADD MODAL -->
-<div class="modal-bg" id="add-bg" onclick="closeAdd(event)">
-  <div class="modal">
-    <span class="modal-close" onclick="closeAdd()">×</span>
-    <h2>Add to Inventory</h2>
-    <div class="sub">Pick a card, set how many of each you own.</div>
-
-    <div class="field">
-      <label>Card</label>
-      <input id="card-search" placeholder="Search by card name…" autocomplete="off" oninput="searchCards()" onfocus="searchCards()">
-      <div class="suggest-list" id="suggest-list"></div>
-      <div class="card-picked" id="card-picked">
-        <img id="picked-img" src="" alt="">
-        <div class="info"><strong id="picked-name"></strong><br><span id="picked-meta" style="color:var(--muted2);font-size:12px;"></span></div>
-        <span class="clear" onclick="clearPick()">×</span>
+<!-- CHANGE (reason) DIALOG -->
+<div class="modal-bg" id="chg-bg" onclick="if(event.target.id==='chg-bg')closeChange()">
+  <div class="modal chg-modal" role="dialog" aria-modal="true" aria-labelledby="chg-title">
+    <span class="modal-close" onclick="closeChange()">×</span>
+    <div class="chg-card" id="chg-card"></div>
+    <h2 id="chg-title"></h2>
+    <div class="chg-sub" id="chg-sub"></div>
+    <div class="chg-reasons" id="chg-reasons"></div>
+    <button class="chg-fix" id="chg-fix" onclick="chgSetReason('correction')">✏️ Fix a miscount <span>· won't count as a pull, buy, or sale</span></button>
+    <div class="chg-fields">
+      <div class="field" id="chg-qty-field">
+        <label>Quantity</label>
+        <div class="chg-qty"><button onclick="chgQty(-1)">−</button><span id="chg-qty">1</span><button onclick="chgQty(1)">+</button></div>
+      </div>
+      <div class="field" id="chg-price-field">
+        <label id="chg-price-label">Price each <span class="opt">optional</span></label>
+        <input id="chg-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00">
       </div>
     </div>
-
     <div class="field">
-      <label>Quantities</label>
-      <div class="variant-qtys">
-        <div class="vq" id="vq-base"><label>Base</label><input type="number" id="q-base" min="0" value="0"></div>
-        <div class="vq" id="vq-holo"><label>Holo</label><input type="number" id="q-holo" min="0" value="0"></div>
-        <div class="vq" id="vq-fullart"><label>Full Art</label><input type="number" id="q-fullart" min="0" value="0"></div>
-      </div>
-      <div class="vq-note" id="vq-note" style="display:none;font-size:11px;color:var(--muted);margin-top:6px;"></div>
+      <label>Note <span class="opt">optional</span></label>
+      <input id="chg-note" maxlength="200" placeholder="e.g. traded with @someone for 2 holos">
     </div>
-
-    <div class="field">
-      <label>Adding As</label>
-      <div id="add-as-handle" style="padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;"></div>
-    </div>
-
-    <div class="form-msg" id="add-msg"></div>
-
+    <div class="form-msg" id="chg-msg"></div>
     <div class="modal-actions">
-      <button class="btn" style="flex:1" onclick="closeAdd()">Cancel</button>
-      <button class="btn btn-primary" style="flex:2" id="add-btn" onclick="submitAdd()">Add to Inventory</button>
+      <button class="btn" style="flex:1" onclick="closeChange()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" id="chg-save" onclick="saveChange()">Save</button>
     </div>
   </div>
 </div>
@@ -427,7 +486,6 @@ const CLASSES = [...new Set(CARDS.map(c => c.class))].sort();
 let rows = [];
 let typeFilter = 'all';
 let mineOnly = false;
-let pickedCard = null;
 let deviceToken = getDeviceToken();
 let session = null;
 let myHandle = null;
@@ -598,9 +656,11 @@ async function loadInventory(){
     const { data, error } = await db.from('card_inventory').select('*').order('created_at',{ascending:false});
     if(error) throw error;
     rows = data || [];
+    await loadEvents();
     buildTypeTabs();
     renderTable();
     if(viewMode==='binder') renderBinder();
+    if(viewMode==='stats') renderStats();
   } catch(e){
     document.getElementById('table-wrap').innerHTML = `<div class="empty-row" style="color:#f87171">⚠ Could not load inventory: ${esc(e.message||'error')}</div>`;
     console.error(e);
@@ -695,7 +755,6 @@ function renderTable(){
       ${valueCell(g)}
       <div class="holder-cell">
         <span class="inv-holder">@${esc(g.holder_handle)}</span>
-        ${isMyGroup(g) ? `<button class="row-del" onclick="deleteCard('${g.card_id.replace(/'/g,"\\'")}','${g.holder_handle.replace(/'/g,"\\'")}')">🗑 Delete</button>` : ''}
       </div>
     </div>${expanded.has(groupKey(g)) ? `<div class="inv-expand">${marketBox(c)}</div>` : ''}`;
   }).join('');
@@ -825,60 +884,117 @@ function renderMaster(){
   document.getElementById('master-wrap').innerHTML = header + `<div class="master-grid">${grid}</div>`;
 }
 
-function setStatScope(s){
-  statScope = s;
-  document.getElementById('stat-scope-mine').classList.toggle('on', s==='mine');
-  document.getElementById('stat-scope-all').classList.toggle('on', s==='all');
+let statPeriod = 'all';
+let histShown = 40;
+function setStatPeriod(p){
+  statPeriod = p; histShown = 40;
+  ['all','30','7'].forEach(x=>document.getElementById('sp-'+x).classList.toggle('on', x===p));
   renderStats();
 }
-
+const IN_REASONS = ['pulled','bought','traded_in','gift_in'];
+const OUT_REASONS = ['sold','traded_out','lost','gift_out'];
+function inPeriod(e){
+  if(statPeriod==='all') return true;
+  return (Date.now() - new Date(e.created_at).getTime()) <= parseInt(statPeriod,10)*86400000;
+}
 function renderStats(){
-  const scoped = statScope==='mine' ? (session ? rows.filter(r=>r.user_id===session.user.id) : []) : rows;
   const el = document.getElementById('stats-wrap');
+  if(!session || !myHandle){ el.innerHTML = `<div class="empty-row">Sign in to see your collection history.</div>`; return; }
+  if(!events.length){ el.innerHTML = `<div class="empty-row">No history yet. Every + and − you make in the Binder shows up here.</div>`; return; }
 
-  if(!scoped.length){
-    el.innerHTML = `<div class="empty-row">${statScope==='mine' ? "You haven't logged any acquisitions yet." : 'No inventory data yet.'}</div>`;
-    return;
-  }
+  const live = events.filter(e=>!e.voided && inPeriod(e));
+  const flow = live.filter(e=>IN_REASONS.includes(e.reason) || OUT_REASONS.includes(e.reason));
+  const sum = (arr, f) => arr.reduce((t,e)=>t+f(e),0);
+  const byReason = r => sum(flow.filter(e=>e.reason===r), e=>Math.abs(e.delta));
+  const inTotal = sum(flow.filter(e=>e.delta>0), e=>e.delta);
+  const outTotal = sum(flow.filter(e=>e.delta<0), e=>-e.delta);
+  const spent = sum(flow.filter(e=>e.reason==='bought' && e.price!=null), e=>e.price*e.delta);
+  const earned = sum(flow.filter(e=>e.reason==='sold' && e.price!=null), e=>e.price*-e.delta);
+  const corrections = live.filter(e=>e.reason==='correction').length;
+  const M = n => '$' + n.toFixed(2);
 
-  // total qty acquired per card (sum across all matching rows/variants)
-  const totals = {};
-  let totalCopies = 0, totalEvents = 0;
-  scoped.forEach(r=>{
-    if(!byId[r.card_id]) return;
-    totals[r.card_id] = (totals[r.card_id]||0) + r.qty;
-    totalCopies += r.qty;
-    totalEvents++;
-  });
-  const ranked = Object.entries(totals).map(([id,qty])=>({card:byId[id], qty})).sort((a,b)=>b.qty-a.qty);
-  const uniqueCards = ranked.length;
-  const maxQty = ranked[0] ? ranked[0].qty : 1;
-
-  const header = `<div class="stat-header">
-    <div class="stat-box"><div class="num">${totalCopies}</div><div class="lbl">Total Copies</div></div>
-    <div class="stat-box"><div class="num">${uniqueCards}</div><div class="lbl">Unique Cards</div></div>
-    <div class="stat-box"><div class="num">${totalEvents}</div><div class="lbl">Times Logged</div></div>
-  </div>`;
-
-  const listHead = `<div class="stat-row head">
-    <span></span><span></span><span>Card</span><span>Class / Rarity</span><span style="text-align:right">Qty</span><span>Frequency</span>
-  </div>`;
-
-  const listBody = ranked.map((r,i)=>{
-    const c = r.card;
-    const img = c.image ? `<img class="stat-thumb" src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div class="stat-thumb"></div>`;
-    const pct = Math.max(3, Math.round(r.qty/maxQty*100));
-    return `<div class="stat-row">
-      <span class="stat-rank">#${i+1}</span>
-      ${img}
-      <div><span class="inv-name">${esc(c.name)}</span><span class="inv-id">${esc(c.id)}</span></div>
-      <span><span style="color:${classColor(c.class)}">${esc(c.class)}</span> · <span style="color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span></span>
-      <span class="stat-qty">${r.qty}</span>
-      <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
-    </div>`;
+  const bars = (reasons, total, cls) => reasons.map(r=>{
+    const n = byReason(r), pct = total ? Math.round(n/total*100) : 0;
+    return `<div class="fl-row"><span class="fl-l">${REASON_LABEL[r]}</span><div class="fl-track"><i class="${cls}" style="width:${pct}%"></i></div><span class="fl-n">${n}</span></div>`;
   }).join('');
 
-  el.innerHTML = header + listHead + listBody;
+  // per-card frequency
+  const pc = {};
+  flow.forEach(e=>{
+    const k = e.card_id+'|'+e.variant;
+    pc[k] = pc[k] || { card_id:e.card_id, variant:e.variant, pulled:0, bought:0, otherIn:0, out:0 };
+    if(e.reason==='pulled') pc[k].pulled += e.delta;
+    else if(e.reason==='bought') pc[k].bought += e.delta;
+    else if(e.delta>0) pc[k].otherIn += e.delta;
+    else pc[k].out += -e.delta;
+  });
+  const freq = Object.values(pc).sort((a,b)=>(b.pulled+b.bought+b.otherIn+b.out)-(a.pulled+a.bought+a.otherIn+a.out)).slice(0,15);
+  const freqRows = freq.map(f=>{
+    const c = byId[f.card_id]; if(!c) return '';
+    return `<tr><td><span class="inv-name">${esc(c.name)}</span> <span class="inv-id">${esc(c.id)}</span></td>
+      <td><span class="vtag ${f.variant}">${VERSION_LABEL[f.variant]}</span></td>
+      <td class="num">${f.pulled||''}</td><td class="num">${f.bought||''}</td><td class="num">${f.otherIn||''}</td><td class="num out">${f.out||''}</td></tr>`;
+  }).join('');
+
+  // history log (all entries incl. undone / starting / corrections)
+  const hist = events.filter(inPeriod);
+  const histRows = hist.slice(0, histShown).map(e=>{
+    const c = byId[e.card_id];
+    const d = new Date(e.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const qty = `<span class="hq ${e.delta>0?'in':'out'}">${e.delta>0?'+':'−'}${Math.abs(e.delta)}</span>`;
+    const price = e.price!=null ? ` · $${Number(e.price).toFixed(2)}${Math.abs(e.delta)>1?' each':''}` : '';
+    const tags = (e.voided ? '<span class="htag undone">Undone</span>' : '')
+      + (e.edited_at ? `<span class="htag" title="${esc(e.edit_note||'')}">Edited</span>` : '')
+      + (e.reason==='correction' ? '<span class="htag fix">Not counted</span>' : '');
+    const acts = e.voided ? '' : `<button class="hbtn" onclick="openEditEvent('${e.id}')">Edit</button><button class="hbtn" onclick="confirmUndo('${e.id}')">Undo</button>`;
+    return `<div class="h-row${e.voided?' voided':''}">
+      <span class="h-date">${d}</span>
+      <span class="h-card">${c?esc(c.name):esc(e.card_id)} <span class="vtag ${e.variant}">${VERSION_LABEL[e.variant]}</span></span>
+      ${qty}
+      <span class="h-why">${REASON_LABEL[e.reason]}${price}${e.note?`<span class="h-note">${esc(e.note)}</span>`:''}</span>
+      <span class="h-tags">${tags}</span>
+      <span class="h-acts">${acts}</span>
+    </div>`;
+  }).join('');
+  const more = hist.length > histShown ? `<button class="btn h-more" onclick="histShown+=60;renderStats()">Show more (${hist.length-histShown} older)</button>` : '';
+
+  el.innerHTML = `
+    <div class="st-top">
+      <div class="st-card"><div class="st-l">Cards in</div><div class="st-n in">+${inTotal}</div></div>
+      <div class="st-card"><div class="st-l">Cards out</div><div class="st-n out">−${outTotal}</div></div>
+      <div class="st-card"><div class="st-l">Spent on buys</div><div class="st-n">${M(spent)}</div></div>
+      <div class="st-card"><div class="st-l">Earned from sales</div><div class="st-n">${M(earned)}</div></div>
+    </div>
+    <div class="st-cols">
+      <div class="st-panel"><h3>Where cards came from</h3>${bars(IN_REASONS, inTotal, 'in')}</div>
+      <div class="st-panel"><h3>Where cards went</h3>${bars(OUT_REASONS, outTotal, 'out')}</div>
+    </div>
+    <div class="st-panel">
+      <h3>Most active cards</h3>
+      ${freqRows ? `<div class="st-scroll"><table class="st-table"><thead><tr><th>Card</th><th>Version</th><th class="num">Pulled</th><th class="num">Bought</th><th class="num">Other in</th><th class="num">Out</th></tr></thead><tbody>${freqRows}</tbody></table></div>` : '<div class="st-empty">No pulls, buys, trades, or sales in this period yet.</div>'}
+    </div>
+    <div class="st-panel">
+      <h3>History <span class="st-hint">Undone entries and miscount fixes are kept for your records but never counted.${corrections?` ${corrections} miscount fix${corrections===1?'':'es'} in this period.`:''}</span></h3>
+      <div class="h-list">${histRows || '<div class="st-empty">Nothing in this period.</div>'}</div>
+      ${more}
+    </div>`;
+}
+
+function exportHistoryCSV(){
+  if(!events.length){ alert('No history yet.'); return; }
+  const headers = ['date','card_id','card_name','version','change','reason','price_each','note','edited','edit_note','undone'];
+  const lines = [headers.join(',')];
+  events.forEach(e=>{
+    const c = byId[e.card_id] || {};
+    const vals = [e.created_at, e.card_id, c.name||'', VERSION_LABEL[e.variant]||e.variant, e.delta, REASON_LABEL[e.reason]||e.reason,
+      e.price==null?'':e.price, e.note||'', e.edited_at?'yes':'', e.edit_note||'', e.voided?'yes':'']
+      .map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`);
+    lines.push(vals.join(','));
+  });
+  const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `builderdogs-history-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 /* ── Export as CSV — personal backup, works anytime ── */
@@ -903,58 +1019,164 @@ function exportCSV(){
 }
 
 
-async function stepVariant(cardId, holder, variant, delta){
-  const matching = rows.filter(r=>r.card_id===cardId && r.holder_handle===holder && r.variant===variant);
-  if(!session) return;
-  if(!matching.length || matching.some(r=>r.user_id!==session.user.id)) return;
-  matching.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
-  const target = matching[0];
-  const next = target.qty + delta;
-  try {
-    if(next <= 0){
-      const { error } = await db.from('card_inventory').delete().eq('id', target.id);
-      if(error) throw error;
-      rows = rows.filter(r=>r.id!==target.id);
-    } else {
-      const { error } = await db.from('card_inventory').update({ qty: next }).eq('id', target.id);
-      if(error) throw error;
-      target.qty = next;
-    }
-    buildTypeTabs(); renderTable();
-  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not update quantity.'), true); }
-}
+function stepVariant(cardId, holder, variant, delta){ openChange(cardId, variant, delta>0 ? 1 : -1); }
 
 function isMyGroup(g){
   return !!session && Object.values(g.variants).every(v=>v.allMine);
 }
 
-async function deleteCard(cardId, holder){
-  if(!session) return;
-  const mine = rows.filter(r=>r.card_id===cardId && r.holder_handle===holder && r.user_id===session.user.id);
-  if(!mine.length) return;
-  const c = byId[cardId];
-  if(!confirm(`Remove ${c ? c.name : cardId} (all variants) from your inventory?`)) return;
-  try {
-    const ids = mine.map(r=>r.id);
-    const { error } = await db.from('card_inventory').delete().in('id', ids);
-    if(error) throw error;
-    rows = rows.filter(r=>!ids.includes(r.id));
-    buildTypeTabs(); renderTable();
-    toast('Removed from your inventory.');
-  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not delete.'), true); }
-}
 
 let toastTimer = null;
-function toast(msg, isErr){
+function toast(msg, isErr, actionLabel, actionFn){
   let el = document.getElementById('toast');
   if(!el){ el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
-  el.textContent = msg;
-  el.className = 'show' + (isErr ? ' err' : '');
+  el.innerHTML = '';
+  const span = document.createElement('span'); span.textContent = msg; el.appendChild(span);
+  if(actionLabel && actionFn){
+    const b = document.createElement('button'); b.className = 'toast-act'; b.textContent = actionLabel;
+    b.onclick = ()=>{ el.className=''; actionFn(); };
+    el.appendChild(b);
+  }
+  el.className = 'show' + (isErr ? ' err' : '') + (actionLabel ? ' act' : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ el.className = ''; }, 2600);
+  toastTimer = setTimeout(()=>{ el.className = ''; }, actionLabel ? 7000 : 2600);
 }
 
 /* ── Add modal ── */
+
+/* ══════════════ COLLECTION CHANGES (with reasons) ══════════════
+   Every + / − is logged with a reason through the database ledger. */
+const REASONS = {
+  in:  [['pulled','📦','Pulled from a pack'],['bought','💵','Bought'],['traded_in','🔄','Traded for'],['gift_in','🎁','Gift / other']],
+  out: [['sold','💵','Sold'],['traded_out','🔄','Traded away'],['lost','⚠️','Lost / damaged'],['gift_out','🎁','Gift / other']]
+};
+const REASON_LABEL = { pulled:'Pulled from a pack', bought:'Bought', traded_in:'Traded for', gift_in:'Gift / other',
+  sold:'Sold', traded_out:'Traded away', lost:'Lost / damaged', gift_out:'Gift / other',
+  correction:'Miscount fix', starting:'Starting collection' };
+const VERSION_LABEL = { base:'Base', holo:'Holo', fullart:'Full Art' };
+let chg = null;
+let events = [];
+
+function ownedQty(cardId, variant){
+  if(!session) return 0;
+  return rows.filter(r=>r.user_id===session.user.id && r.card_id===cardId && r.variant===variant).reduce((t,r)=>t+r.qty,0);
+}
+function lastReason(dir){ try { return localStorage.getItem('ddl-last-reason-'+dir) || (dir==='in'?'pulled':'sold'); } catch(e){ return dir==='in'?'pulled':'sold'; } }
+
+function openChange(cardId, variant, sign){
+  if(!session || !myHandle){ toast('Sign in to update your collection.', true); return; }
+  const c = byId[cardId]; if(!c) return;
+  const have = ownedQty(cardId, variant);
+  if(sign<0 && have<=0) return;
+  const dir = sign>0 ? 'in' : 'out';
+  chg = { mode:'log', cardId, variant, dir, reason:lastReason(dir), qty:1, max: sign<0 ? have : 500 };
+  document.getElementById('chg-price').value = '';
+  document.getElementById('chg-note').value = '';
+  renderChange();
+  document.getElementById('chg-bg').classList.add('show');
+}
+function openEditEvent(eventId){
+  const e = events.find(x=>x.id===eventId); if(!e) return;
+  const dir = e.delta>0 ? 'in' : 'out';
+  chg = { mode:'edit', eventId, cardId:e.card_id, variant:e.variant, dir, reason:e.reason, qty:Math.abs(e.delta), max:Math.abs(e.delta) };
+  document.getElementById('chg-price').value = e.price!=null ? e.price : '';
+  document.getElementById('chg-note').value = e.note || '';
+  renderChange();
+  document.getElementById('chg-bg').classList.add('show');
+}
+function closeChange(){ document.getElementById('chg-bg').classList.remove('show'); chg = null; }
+
+function renderChange(){
+  const c = byId[chg.cardId];
+  const have = ownedQty(chg.cardId, chg.variant);
+  document.getElementById('chg-card').innerHTML =
+    `${c.image?`<img src="${esc(c.image)}" alt="" onerror="this.style.visibility='hidden'">`:''}
+     <div><div class="cn">${esc(c.name)} <span class="inv-id">${esc(c.id)}</span></div>
+     <div class="cm">${VERSION_LABEL[chg.variant]} · you have ${have}</div></div>`;
+  document.getElementById('chg-title').textContent =
+    chg.mode==='edit' ? 'Edit this entry' : (chg.dir==='in' ? 'Add to collection' : 'Remove from collection');
+  document.getElementById('chg-sub').textContent =
+    chg.mode==='edit' ? `Change the reason, price, or note. The quantity (${chg.dir==='in'?'+':'−'}${chg.qty}) stays the same; use Undo in your history to reverse it.`
+                      : (chg.dir==='in' ? 'Where did it come from?' : 'Where did it go?');
+  let opts = REASONS[chg.dir];
+  if(chg.mode==='edit' && chg.reason==='starting') opts = [['starting','🗂','Starting collection'], ...opts];
+  document.getElementById('chg-reasons').innerHTML = opts.map(([k,ic,l])=>
+    `<button class="chg-r${chg.reason===k?' on':''}" onclick="chgSetReason('${k}')"><span class="ic">${ic}</span>${l}</button>`).join('');
+  document.getElementById('chg-fix').classList.toggle('on', chg.reason==='correction');
+  document.getElementById('chg-qty').textContent = chg.qty;
+  document.getElementById('chg-qty-field').style.opacity = chg.mode==='edit' ? 0.45 : 1;
+  document.getElementById('chg-qty-field').style.pointerEvents = chg.mode==='edit' ? 'none' : 'auto';
+  const priced = ['bought','sold'].includes(chg.reason);
+  document.getElementById('chg-price-field').style.visibility = priced ? 'visible' : 'hidden';
+  document.getElementById('chg-price-label').innerHTML = (chg.reason==='sold' ? 'Sold for, each' : 'Paid, each') + ' <span class="opt">optional</span>';
+  document.getElementById('chg-msg').className = 'form-msg';
+  document.getElementById('chg-save').textContent = chg.mode==='edit' ? 'Save changes'
+    : (chg.dir==='in' ? `Add ${chg.qty}` : `Remove ${chg.qty}`);
+}
+function chgSetReason(r){ chg.reason = r; renderChange(); }
+function chgQty(d){ chg.qty = Math.max(1, Math.min(chg.max, chg.qty + d)); renderChange(); }
+
+async function saveChange(){
+  const btn = document.getElementById('chg-save');
+  const priceRaw = document.getElementById('chg-price').value;
+  const price = (['bought','sold'].includes(chg.reason) && priceRaw!=='') ? Math.round(parseFloat(priceRaw)*100)/100 : null;
+  if(price!=null && (isNaN(price) || price<0)){ chgError('Enter a valid price.'); return; }
+  const note = document.getElementById('chg-note').value.trim() || null;
+  btn.disabled = true;
+  try {
+    if(chg.mode==='edit'){
+      const { error } = await db.rpc('edit_collection_event', { p_event_id: chg.eventId, p_reason: chg.reason, p_price: price, p_note: note });
+      if(error) throw error;
+      closeChange(); await refreshMine(); toast('Entry updated.');
+    } else {
+      const delta = chg.dir==='in' ? chg.qty : -chg.qty;
+      const { data, error } = await db.rpc('log_collection_change', {
+        p_card_id: chg.cardId, p_variant: chg.variant, p_delta: delta, p_reason: chg.reason, p_price: price, p_note: note });
+      if(error) throw error;
+      if(chg.reason!=='correction'){ try { localStorage.setItem('ddl-last-reason-'+chg.dir, chg.reason); } catch(e){} }
+      const c = byId[chg.cardId], v = VERSION_LABEL[chg.variant], label = REASON_LABEL[chg.reason];
+      const evId = data && data.event_id;
+      closeChange(); await refreshMine();
+      toast(`${delta>0?'Added':'Removed'} ${Math.abs(delta)} ${c.name} ${v} · ${label}`, false, evId ? 'Undo' : null, ()=>undoEvent(evId));
+    }
+  } catch(e){ console.error(e); chgError(e.message || 'Could not save.'); }
+  finally { btn.disabled = false; }
+}
+function chgError(m){ const el=document.getElementById('chg-msg'); el.textContent='⚠ '+m; el.className='form-msg err'; }
+
+async function undoEvent(eventId){
+  try {
+    const { error } = await db.rpc('undo_collection_event', { p_event_id: eventId });
+    if(error) throw error;
+    await refreshMine(); toast('Undone. That change no longer counts anywhere.');
+  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not undo.'), true); }
+}
+function confirmUndo(eventId){
+  const e = events.find(x=>x.id===eventId); if(!e) return;
+  const c = byId[e.card_id];
+  if(confirm(`Undo "${REASON_LABEL[e.reason]}" ${e.delta>0?'+':'−'}${Math.abs(e.delta)} ${c?c.name:e.card_id}? Your count will be reversed and the entry marked as undone.`)) undoEvent(eventId);
+}
+
+async function loadEvents(){
+  if(!session){ events = []; return; }
+  try {
+    const { data, error } = await db.from('collection_events').select('*').order('created_at',{ascending:false}).limit(2000);
+    if(error) throw error;
+    events = data || [];
+  } catch(e){ console.error(e); events = []; }
+}
+async function refreshMine(){
+  try {
+    const { data, error } = await db.from('card_inventory').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    rows = data || [];
+  } catch(e){ console.error(e); }
+  await loadEvents();
+  buildTypeTabs();
+  if(viewMode==='binder') renderBinder();
+  if(viewMode==='list') renderTable();
+  if(viewMode==='stats') renderStats();
+}
 
 /* ══════════════ BINDER ══════════════
    Every card in set order. Tap +/− right on the tile to update your collection. */
@@ -984,7 +1206,7 @@ function binderTile(c, q){
       else if(r.estimate) val = `<span class="bv-val est">~${DDL_PRICE.money(r.estimate.value)}</span>`;
     }
     const step = canEdit
-      ? `<div class="bv-step"><button aria-label="Remove one ${label}" onclick="binderStep('${c.id}','${v}',-1)" ${n?'':'disabled'}>−</button><span class="bv-n${n?' has':''}">${n}</span><button aria-label="Add one ${label}" onclick="binderStep('${c.id}','${v}',1)">+</button></div>`
+      ? `<div class="bv-step"><button aria-label="Remove ${label}" onclick="openChange('${c.id}','${v}',-1)" ${n?'':'disabled'}>−</button><span class="bv-n${n?' has':''}">${n}</span><button aria-label="Add ${label}" onclick="openChange('${c.id}','${v}',1)">+</button></div>`
       : `<span class="bv-n${n?' has':''}">${n||''}</span>`;
     return `<div class="bv-row ${v}"><span class="bv-label">${label}</span>${val}${step}</div>`;
   }).join('');
@@ -1035,155 +1257,13 @@ function renderBinder(){
     ? list.map(c=>binderTile(c,q)).join('')
     : `<div class="empty-row" style="grid-column:1/-1">No cards match.</div>`;
 }
-async function binderStep(cardId, variant, delta){
-  if(!session || !myHandle){ toast('Sign in to update your collection.', true); return; }
-  const key = cardId+'|'+variant;
-  if(binderBusy.has(key)) return;
-  binderBusy.add(key);
-  try {
-    const mine = rows.filter(r=>r.user_id===session.user.id && r.card_id===cardId && r.variant===variant)
-                     .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-    if(delta>0){
-      if(mine.length){
-        const t = mine[0];
-        const { error } = await db.from('card_inventory').update({ qty: t.qty+1 }).eq('id', t.id);
-        if(error) throw error;
-        t.qty += 1;
-      } else {
-        const { data, error } = await db.from('card_inventory').insert([{ holder_handle:myHandle, card_id:cardId, variant, qty:1, owner_token:deviceToken, user_id:session.user.id }]).select();
-        if(error) throw error;
-        rows = [...(data||[]), ...rows];
-      }
-    } else if(mine.length){
-      const t = mine[0];
-      if(t.qty-1 <= 0){
-        const { error } = await db.from('card_inventory').delete().eq('id', t.id);
-        if(error) throw error;
-        rows = rows.filter(r=>r.id!==t.id);
-      } else {
-        const { error } = await db.from('card_inventory').update({ qty: t.qty-1 }).eq('id', t.id);
-        if(error) throw error;
-        t.qty -= 1;
-      }
-    }
-    const q = myQtyMap();
-    const tile = document.getElementById('bt-'+cardId);
-    const c = CARDS.find(x=>x.id===cardId);
-    if(tile && c){ tile.outerHTML = binderTile(c,q); }
-    renderBinderHead(q);
-    buildTypeTabs();
-  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not update.'), true); }
-  finally { binderBusy.delete(key); }
-}
 
 function openAdd(){
-  if(!session){ toast('Sign in to add cards to your inventory.'); return; }
-  if(!myHandle){ toast('Claim your X handle first (see the bar above).'); return; }
-  document.getElementById('add-as-handle').textContent = '@' + myHandle;
-  document.getElementById('add-bg').classList.add('show');
+  setView('binder');
+  const el = document.getElementById('binder-search');
+  if(el){ el.focus(); el.scrollIntoView({behavior:'smooth', block:'center'}); }
 }
-function closeAdd(e){
-  if(e && e.target.id!=='add-bg' && !e.target.classList.contains('modal-close')) return;
-  document.getElementById('add-bg').classList.remove('show');
-}
-
-function searchCards(){
-  const q = document.getElementById('card-search').value.trim().toLowerCase();
-  const list = document.getElementById('suggest-list');
-  if(!q){ list.classList.remove('show'); return; }
-  const matches = CARDS.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8);
-  if(!matches.length){ list.classList.remove('show'); return; }
-  list.innerHTML = matches.map(c=>`
-    <div class="suggest-item" onclick="pickCard('${c.id}')">
-      <span>${esc(c.name)}</span><span style="color:var(--muted2);font-size:11px;">${esc(c.class)}</span><span class="sid">${esc(c.id)}</span>
-    </div>`).join('');
-  list.classList.add('show');
-}
-function pickCard(id){
-  pickedCard = byId[id];
-  document.getElementById('card-search').value = '';
-  document.getElementById('suggest-list').classList.remove('show');
-  const pk = document.getElementById('card-picked');
-  pk.classList.add('show');
-  document.getElementById('picked-img').src = pickedCard.image || '';
-  document.getElementById('picked-name').textContent = pickedCard.name + ' (' + pickedCard.id + ')';
-  document.getElementById('picked-meta').textContent = `${pickedCard.class} · ${pickedCard.type} · ${pickedCard.rarity}`;
-
-  // Full-art cards only exist as full art (no separate base/holo print).
-  // Non-full-art cards never come in a full-art print.
-  const note = document.getElementById('vq-note');
-  if(pickedCard.fullArt){
-    document.getElementById('vq-base').style.display = 'none';
-    document.getElementById('vq-holo').style.display = 'none';
-    document.getElementById('vq-fullart').style.display = 'block';
-    document.getElementById('q-base').value = 0;
-    document.getElementById('q-holo').value = 0;
-    note.style.display = 'block';
-    note.textContent = 'This card is full-art only — it doesn\'t come in a base or holo print.';
-  } else {
-    document.getElementById('vq-base').style.display = 'block';
-    document.getElementById('vq-holo').style.display = 'block';
-    document.getElementById('vq-fullart').style.display = 'none';
-    document.getElementById('q-fullart').value = 0;
-    note.style.display = 'none';
-  }
-}
-function clearPick(){
-  pickedCard = null;
-  document.getElementById('card-picked').classList.remove('show');
-  // reset variant fields to default (all visible) for the next pick
-  document.getElementById('vq-base').style.display = 'block';
-  document.getElementById('vq-holo').style.display = 'block';
-  document.getElementById('vq-fullart').style.display = 'block';
-  document.getElementById('vq-note').style.display = 'none';
-}
-
-function showMsg(text, ok){
-  const m = document.getElementById('add-msg');
-  m.textContent = text; m.className = 'form-msg ' + (ok?'ok':'err');
-}
-
-async function submitAdd(){
-  if(!session || !myHandle){ showMsg('Please sign in and claim your handle first.', false); return; }
-  const handle = myHandle;
-  const qBase = parseInt(document.getElementById('q-base').value)||0;
-  const qHolo = parseInt(document.getElementById('q-holo').value)||0;
-  const qFull = parseInt(document.getElementById('q-fullart').value)||0;
-  const btn = document.getElementById('add-btn');
-
-  if(!pickedCard){ showMsg('Please pick a card first.', false); return; }
-  if(qBase<=0 && qHolo<=0 && qFull<=0){ showMsg('Enter a quantity for at least one variant.', false); return; }
-
-  const inserts = [];
-  if(qBase>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'base', qty:qBase, owner_token:deviceToken, user_id:session.user.id });
-  if(qHolo>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'holo', qty:qHolo, owner_token:deviceToken, user_id:session.user.id });
-  if(qFull>0) inserts.push({ holder_handle:handle, card_id:pickedCard.id, variant:'fullart', qty:qFull, owner_token:deviceToken, user_id:session.user.id });
-
-  btn.disabled = true; btn.textContent = 'Adding…';
-  try {
-    const { data, error } = await db.from('card_inventory').insert(inserts).select();
-    if(error) throw error;
-    rows = [...(data||[]), ...rows];
-    buildTypeTabs(); renderTable();
-    showMsg('✓ Added! Search for another card to keep going.', true);
-    clearPick();
-    document.getElementById('q-base').value = 0;
-    document.getElementById('q-holo').value = 0;
-    document.getElementById('q-fullart').value = 0;
-    btn.disabled = false; btn.textContent = 'Add to Inventory';
-    document.getElementById('card-search').focus();
-    setTimeout(()=>{ const m=document.getElementById('add-msg'); if(m.classList.contains('ok')) m.className='form-msg'; }, 2200);
-  } catch(e){
-    showMsg('⚠ ' + (e.message || 'Something went wrong. Please try again.'), false);
-    console.error(e);
-    btn.disabled = false; btn.textContent = 'Add to Inventory';
-  }
-}
-
-document.addEventListener('click', e=>{
-  if(!e.target.closest('#card-search') && !e.target.closest('#suggest-list')) document.getElementById('suggest-list').classList.remove('show');
-});
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAdd({target:{id:'add-bg'}}); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && chg) closeChange(); });
 
 populateClassFilter();
 setView('binder');
