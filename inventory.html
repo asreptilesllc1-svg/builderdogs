@@ -170,6 +170,45 @@
   .vis-opt + .vis-opt { border-left:1px solid var(--border2); }
   .vis-opt.on { background:var(--surface2); color:var(--white); }
   .vis-hint { font-size:12px; color:var(--muted); }
+  /* ── Binder ── */
+  .seg { display:inline-flex; border:1px solid var(--border2); border-radius:8px; overflow:hidden; }
+  .seg-opt { background:transparent; border:none; color:var(--muted2); font-family:inherit; font-size:12px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; padding:9px 14px; cursor:pointer; }
+  .seg-opt + .seg-opt { border-left:1px solid var(--border2); }
+  .seg-opt.on { background:var(--surface2); color:var(--white); }
+  .b-signin { background:var(--surface); border:1px dashed var(--border2); border-radius:12px; padding:14px 18px; color:var(--muted2); font-size:14px; margin-bottom:14px; }
+  .b-head { display:flex; gap:34px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 20px; margin-bottom:16px; }
+  .bh-stat { min-width:150px; }
+  .bh-lbl { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); }
+  .bh-num { font-family:'Oswald',sans-serif; font-size:26px; font-weight:600; color:var(--white); line-height:1.15; }
+  .bh-num span { font-size:15px; color:var(--muted); }
+  .bh-bar { height:4px; background:var(--surface2); border-radius:3px; overflow:hidden; margin-top:6px; }
+  .bh-bar i { display:block; height:100%; background:linear-gradient(90deg,var(--orange),var(--gold)); }
+  .bh-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+  .binder-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(178px,1fr)); gap:14px; }
+  .b-tile { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transition:border-color 0.15s; }
+  .b-tile.owned { border-color:rgba(245,200,66,0.35); }
+  .b-art { position:relative; aspect-ratio:63/88; background:var(--surface2); }
+  .b-art img { width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(0.85) brightness(0.55); transition:filter 0.2s; }
+  .b-tile.owned .b-art img { filter:none; }
+  .b-check { position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%; background:var(--gold); color:#0a0a0a; font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.5); }
+  .b-info { padding:10px 11px 11px; display:flex; flex-direction:column; gap:6px; }
+  .b-name { display:flex; justify-content:space-between; align-items:baseline; gap:6px; font-weight:600; font-size:15px; }
+  .b-id { font-family:'Oswald',sans-serif; font-size:11px; color:var(--muted); font-weight:400; }
+  .b-meta { font-size:11px; color:var(--muted); margin-top:-4px; }
+  .bv-row { display:flex; align-items:center; gap:6px; padding-top:6px; border-top:1px solid var(--border); }
+  .bv-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); min-width:44px; }
+  .bv-row.holo .bv-label { color:#c8a8f5; }
+  .bv-row.fullart .bv-label { color:var(--orange); }
+  .bv-val { font-family:'Oswald',sans-serif; font-size:12px; color:var(--muted2); }
+  .bv-val.est { color:var(--muted); }
+  .bv-step { margin-left:auto; display:flex; align-items:center; gap:4px; }
+  .bv-step button { width:30px; height:30px; border-radius:7px; border:1px solid var(--border2); background:var(--surface2); color:var(--white); font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .bv-step button:hover:not(:disabled) { border-color:var(--orange); color:var(--orange); }
+  .bv-step button:disabled { opacity:0.3; cursor:default; }
+  .bv-n { min-width:20px; text-align:center; font-family:'Oswald',sans-serif; font-weight:600; font-size:15px; color:var(--muted); margin-left:auto; }
+  .bv-step .bv-n { margin-left:0; }
+  .bv-n.has { color:var(--white); }
+  @media (max-width:600px){ .binder-grid { grid-template-columns:repeat(2,1fr); gap:10px; } .b-head { gap:18px; } .bh-stat { min-width:120px; } }
   .inv-row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 14px; }
   .inv-row:last-child { border-bottom:none; }
   .inv-row:not(.head):hover { background:rgba(255,255,255,0.02); }
@@ -265,9 +304,9 @@
   </div>
 
   <div class="view-tabs" id="view-tabs">
-    <button class="view-tab on" onclick="setView('list')" id="view-list">📋 Inventory List</button>
-    <button class="view-tab" onclick="setView('stats')" id="view-stats">📊 Acquisition Stats</button>
-    <button class="view-tab" onclick="setView('master')" id="view-master">🏆 Master Set (203)</button>
+    <button class="view-tab on" onclick="setView('binder')" id="view-binder">📒 Binder</button>
+    <button class="view-tab" onclick="setView('list')" id="view-list">📋 List</button>
+    <button class="view-tab" onclick="setView('stats')" id="view-stats">📊 Stats</button>
     <button class="btn" onclick="exportCSV()" style="margin-left:auto;">⬇ Export CSV</button>
   </div>
 
@@ -303,6 +342,18 @@
     <button class="chip" id="master-show-owned" onclick="setMasterFilter('owned')">Owned</button>
     <button class="chip" id="master-show-missing" onclick="setMasterFilter('missing')">Missing</button>
   </div>
+
+  <div class="bar" id="binder-bar">
+    <input class="search" id="binder-search" placeholder="Find a card by name or number…" oninput="renderBinder()">
+    <select class="sel" id="binder-class" onchange="renderBinder()"><option value="">All Classes</option></select>
+    <div class="seg" role="group" aria-label="Show">
+      <button class="seg-opt on" id="bf-all" onclick="setBinderFilter('all')">All 111</button>
+      <button class="seg-opt" id="bf-owned" onclick="setBinderFilter('owned')">Owned</button>
+      <button class="seg-opt" id="bf-missing" onclick="setBinderFilter('missing')">Missing</button>
+    </div>
+  </div>
+  <div id="binder-head"></div>
+  <div class="binder-grid" id="binder-grid"></div>
 
   <div class="value-strip" id="value-strip" style="display:none;"></div>
 
@@ -382,7 +433,7 @@ let session = null;
 let myHandle = null;
 let myPublic = false;
 let authView = 'signin'; // 'signin' | 'signup'
-let viewMode = 'list';
+let viewMode = 'binder';
 let statScope = 'mine';
 
 function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
@@ -456,6 +507,7 @@ function renderAcctBar(){
       <span class="acct-msg" id="auth-msg"></span>
     </div>`;
   }
+  if(viewMode==='binder' && typeof renderBinder==='function') renderBinder();
 }
 
 function authMsg(text, ok){
@@ -537,6 +589,7 @@ function toggleMine(){ mineOnly=!mineOnly; document.getElementById('mine-toggle'
 function populateClassFilter(){
   const sel = document.getElementById('inv-class');
   sel.insertAdjacentHTML('beforeend', CLASSES.map(c=>`<option>${esc(c)}</option>`).join(''));
+  document.getElementById('binder-class').insertAdjacentHTML('beforeend', CLASSES.map(c=>`<option>${esc(c)}</option>`).join(''));
 }
 
 /* ── Load ── */
@@ -547,6 +600,7 @@ async function loadInventory(){
     rows = data || [];
     buildTypeTabs();
     renderTable();
+    if(viewMode==='binder') renderBinder();
   } catch(e){
     document.getElementById('table-wrap').innerHTML = `<div class="empty-row" style="color:#f87171">⚠ Could not load inventory: ${esc(e.message||'error')}</div>`;
     console.error(e);
@@ -700,19 +754,21 @@ function rarityColor(r){
 /* ── View mode: Inventory List vs Acquisition Stats vs Master Set ── */
 function setView(v){
   viewMode = v;
-  document.getElementById('view-list').classList.toggle('on', v==='list');
-  document.getElementById('view-stats').classList.toggle('on', v==='stats');
-  document.getElementById('view-master').classList.toggle('on', v==='master');
-  document.getElementById('type-tabs').style.display = v==='list' ? 'flex' : 'none';
-  document.getElementById('list-bar').style.display = v==='list' ? 'flex' : 'none';
-  document.getElementById('stats-bar').style.display = v==='stats' ? 'flex' : 'none';
-  document.getElementById('master-bar').style.display = v==='master' ? 'flex' : 'none';
-  document.getElementById('table-wrap').style.display = v==='list' ? 'block' : 'none';
+  ['binder','list','stats'].forEach(x=>document.getElementById('view-'+x).classList.toggle('on', x===v));
+  const show=(id,on,disp)=>{ const el=document.getElementById(id); if(el) el.style.display = on ? (disp||'block') : 'none'; };
+  show('binder-bar', v==='binder', 'flex');
+  show('binder-head', v==='binder');
+  show('binder-grid', v==='binder', 'grid');
+  show('type-tabs', v==='list', 'flex');
+  show('list-bar', v==='list', 'flex');
+  show('table-wrap', v==='list');
+  show('stats-bar', v==='stats', 'flex');
+  show('stats-wrap', v==='stats');
+  show('master-bar', false); show('master-wrap', false);
   renderValueStrip();
-  document.getElementById('stats-wrap').style.display = v==='stats' ? 'block' : 'none';
-  document.getElementById('master-wrap').style.display = v==='master' ? 'block' : 'none';
+  if(v==='binder') renderBinder();
+  if(v==='list') renderTable();
   if(v==='stats') renderStats();
-  if(v==='master') renderMaster();
 }
 let masterFilter = 'all';
 function setMasterFilter(f){
@@ -899,6 +955,127 @@ function toast(msg, isErr){
 }
 
 /* ── Add modal ── */
+
+/* ══════════════ BINDER ══════════════
+   Every card in set order. Tap +/− right on the tile to update your collection. */
+let binderFilter = 'all';
+const binderBusy = new Set();
+function setBinderFilter(f){
+  binderFilter = f;
+  ['all','owned','missing'].forEach(x=>document.getElementById('bf-'+x).classList.toggle('on', x===f));
+  renderBinder();
+}
+function versionsOf(c){ return c.fullArt ? [['fullart','Full Art']] : [['base','Base'],['holo','Holo']]; }
+function myQtyMap(){
+  const m = {};
+  if(!session) return m;
+  rows.forEach(r=>{ if(r.user_id===session.user.id){ const k=r.card_id+'|'+r.variant; m[k]=(m[k]||0)+r.qty; } });
+  return m;
+}
+function binderTile(c, q){
+  const owned = versionsOf(c).some(([v])=>q[c.id+'|'+v]>0);
+  const canEdit = !!(session && myHandle);
+  const vers = versionsOf(c).map(([v,label])=>{
+    const n = q[c.id+'|'+v]||0;
+    let val = '';
+    if(window.DDL_PRICE){
+      const r = DDL_PRICE.get(c.id, v);
+      if(r.typical!=null) val = `<span class="bv-val">${DDL_PRICE.money(r.typical)}</span>`;
+      else if(r.estimate) val = `<span class="bv-val est">~${DDL_PRICE.money(r.estimate.value)}</span>`;
+    }
+    const step = canEdit
+      ? `<div class="bv-step"><button aria-label="Remove one ${label}" onclick="binderStep('${c.id}','${v}',-1)" ${n?'':'disabled'}>−</button><span class="bv-n${n?' has':''}">${n}</span><button aria-label="Add one ${label}" onclick="binderStep('${c.id}','${v}',1)">+</button></div>`
+      : `<span class="bv-n${n?' has':''}">${n||''}</span>`;
+    return `<div class="bv-row ${v}"><span class="bv-label">${label}</span>${val}${step}</div>`;
+  }).join('');
+  const img = c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.visibility='hidden'">` : '';
+  return `<div class="b-tile${owned?' owned':''}" id="bt-${c.id}">
+    <div class="b-art">${img}${owned?'<span class="b-check">✓</span>':''}</div>
+    <div class="b-info">
+      <div class="b-name"><span>${esc(c.name)}</span><span class="b-id">${esc(c.id)}</span></div>
+      <div class="b-meta"><span style="color:${classColor(c.class)}">${esc(c.class)}</span> · <span style="color:${rarityColor(c.rarity)}">${esc(c.rarity)}</span></div>
+      ${vers}
+    </div>
+  </div>`;
+}
+function renderBinderHead(q){
+  const el = document.getElementById('binder-head');
+  if(!session || !myHandle){
+    el.innerHTML = `<div class="b-signin">Sign in above to track your collection. Tap + on any card to add it.</div>`;
+    return;
+  }
+  let cardsOwned=0, versOwned=0;
+  CARDS.forEach(c=>{
+    const vs = versionsOf(c).filter(([v])=>q[c.id+'|'+v]>0).length;
+    if(vs) cardsOwned++; versOwned += vs;
+  });
+  const items = Object.entries(q).filter(([,n])=>n>0).map(([k,n])=>{ const [card_id,variant]=k.split('|'); return {card_id,variant,qty:n}; });
+  const val = window.DDL_PRICE ? DDL_PRICE.collection(items) : null;
+  const pct = (a,b)=>Math.round(a/b*100);
+  el.innerHTML = `<div class="b-head">
+    <div class="bh-stat"><div class="bh-lbl">Cards</div><div class="bh-num">${cardsOwned}<span>/111</span></div><div class="bh-bar"><i style="width:${pct(cardsOwned,111)}%"></i></div></div>
+    <div class="bh-stat"><div class="bh-lbl">Master set</div><div class="bh-num">${versOwned}<span>/203</span></div><div class="bh-bar"><i style="width:${pct(versOwned,203)}%"></i></div></div>
+    ${val ? `<div class="bh-stat"><div class="bh-lbl">Collection value</div><div class="bh-num">${DDL_PRICE.money(val.typical+val.estimated)}</div><div class="bh-sub">Range ${DDL_PRICE.money(val.conservative)}–${DDL_PRICE.money(val.high)}</div></div>` : ''}
+  </div>`;
+}
+function renderBinder(){
+  const q = myQtyMap();
+  renderBinderHead(q);
+  const s = (document.getElementById('binder-search').value||'').trim().toLowerCase();
+  const cl = document.getElementById('binder-class').value;
+  const list = CARDS.filter(c=>{
+    if(cl && c.class!==cl) return false;
+    if(s && !(c.name.toLowerCase().includes(s) || c.id.toLowerCase().includes(s))) return false;
+    const vs = versionsOf(c).map(([v])=>q[c.id+'|'+v]>0);
+    if(binderFilter==='owned' && !vs.some(Boolean)) return false;
+    if(binderFilter==='missing' && vs.every(Boolean)) return false;
+    return true;
+  }).sort((a,b)=>a.id.localeCompare(b.id));
+  document.getElementById('binder-grid').innerHTML = list.length
+    ? list.map(c=>binderTile(c,q)).join('')
+    : `<div class="empty-row" style="grid-column:1/-1">No cards match.</div>`;
+}
+async function binderStep(cardId, variant, delta){
+  if(!session || !myHandle){ toast('Sign in to update your collection.', true); return; }
+  const key = cardId+'|'+variant;
+  if(binderBusy.has(key)) return;
+  binderBusy.add(key);
+  try {
+    const mine = rows.filter(r=>r.user_id===session.user.id && r.card_id===cardId && r.variant===variant)
+                     .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    if(delta>0){
+      if(mine.length){
+        const t = mine[0];
+        const { error } = await db.from('card_inventory').update({ qty: t.qty+1 }).eq('id', t.id);
+        if(error) throw error;
+        t.qty += 1;
+      } else {
+        const { data, error } = await db.from('card_inventory').insert([{ holder_handle:myHandle, card_id:cardId, variant, qty:1, owner_token:deviceToken, user_id:session.user.id }]).select();
+        if(error) throw error;
+        rows = [...(data||[]), ...rows];
+      }
+    } else if(mine.length){
+      const t = mine[0];
+      if(t.qty-1 <= 0){
+        const { error } = await db.from('card_inventory').delete().eq('id', t.id);
+        if(error) throw error;
+        rows = rows.filter(r=>r.id!==t.id);
+      } else {
+        const { error } = await db.from('card_inventory').update({ qty: t.qty-1 }).eq('id', t.id);
+        if(error) throw error;
+        t.qty -= 1;
+      }
+    }
+    const q = myQtyMap();
+    const tile = document.getElementById('bt-'+cardId);
+    const c = CARDS.find(x=>x.id===cardId);
+    if(tile && c){ tile.outerHTML = binderTile(c,q); }
+    renderBinderHead(q);
+    buildTypeTabs();
+  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not update.'), true); }
+  finally { binderBusy.delete(key); }
+}
+
 function openAdd(){
   if(!session){ toast('Sign in to add cards to your inventory.'); return; }
   if(!myHandle){ toast('Claim your X handle first (see the bar above).'); return; }
@@ -1009,6 +1186,7 @@ document.addEventListener('click', e=>{
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAdd({target:{id:'add-bg'}}); });
 
 populateClassFilter();
+setView('binder');
 initAuth();
 loadInventory();
 </script>
