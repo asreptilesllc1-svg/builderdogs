@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merch Sales — Builder Dogs</title>
+<meta name="description" content="Recent eBay sold prices for Doginal Dogs merch: pins, keychains, figurines, hats, apparel, and bags.">
+<link rel="canonical" href="https://builderdogs.com/merch-sales.html">
+<meta property="og:title" content="Doginal Dogs Merch Sales — Builder Dogs">
+<meta property="og:description" content="What Doginal Dogs pins, keychains, figurines, and apparel actually sell for on eBay.">
+<meta property="og:url" content="https://builderdogs.com/merch-sales.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Builder Dogs">
+<meta property="og:image" content="https://builderdogs.com/share.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BooMetaX">
+<meta name="twitter:image" content="https://builderdogs.com/share.png">
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="ddl-sales.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1a1a1a; --border:#262626; --border2:#333;
+    --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#666; --muted2:#888;
+    --green:#22c55e; --blue:#38bdf8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; text-decoration:none; }
+
+  .nav { position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px; padding:12px 20px; background:rgba(10,10,10,0.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+  .nav-logo { font-family:'Black Ops One',sans-serif; font-size:16px; letter-spacing:0.5px; }
+  .nav-logo span { color:var(--orange); }
+  .nav-spacer { flex:1; }
+  .nav-a { font-size:13px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted2); padding:6px 10px; transition:color 0.15s; }
+  .nav-a:hover { color:var(--white); }
+
+  .hero { text-align:center; padding:44px 20px 26px; border-bottom:1px solid var(--border); background:radial-gradient(120% 100% at 50% 0%, #16110b 0%, #0d0d0d 55%, #0a0a0a 100%); }
+  .hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:var(--orange); margin-bottom:12px; }
+  .hero h1 { font-family:'Black Ops One',sans-serif; font-size:clamp(28px,5.5vw,46px); line-height:1; margin-bottom:12px; }
+  .hero h1 span { color:var(--orange); }
+  .hero p { color:var(--muted2); max-width:600px; margin:0 auto; font-size:15px; }
+
+  .wrap { max-width:1000px; margin:0 auto; padding:24px 20px 80px; }
+
+  .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+  .sum-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; }
+  .sum-l { font-size:11px; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted2); }
+  .sum-n { font-family:'Oswald',sans-serif; font-size:26px; font-weight:600; margin-top:2px; }
+  .sum-s { font-size:12px; color:var(--muted); }
+
+  .bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { font-family:inherit; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:20px; color:var(--muted2); padding:7px 14px; cursor:pointer; transition:all 0.15s; }
+  .chip:hover { color:var(--white); }
+  .chip.on { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .chip .n { opacity:0.7; margin-left:4px; }
+  .sel { margin-left:auto; background:var(--surface); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:14px; padding:8px 12px; cursor:pointer; }
+
+  .table { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .row { display:grid; grid-template-columns:70px 1fr 130px 150px 90px; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); font-size:14px; }
+  .row:last-child { border-bottom:none; }
+  .row.head { background:var(--surface2); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:10px 16px; }
+  .row .num { text-align:right; }
+  .r-date { color:var(--muted); font-size:13px; }
+  .r-title { font-weight:600; line-height:1.35; }
+  .r-cat { font-size:11px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted2); }
+  .r-type { font-size:13px; color:var(--muted2); }
+  .r-price { font-family:'Oswald',sans-serif; font-weight:600; font-size:17px; text-align:right; }
+  .row.asking { opacity:0.5; }
+  .row.asking .r-price { font-weight:400; font-style:italic; }
+  .tag-ask { font-size:10px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; border:1px solid var(--border2); border-radius:20px; padding:1px 7px; margin-left:6px; }
+  .empty { text-align:center; color:var(--muted); padding:40px 20px; }
+
+  .note { font-size:12.5px; color:var(--muted); line-height:1.6; margin-top:14px; }
+
+  .foot { text-align:center; padding:30px 20px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; line-height:1.8; }
+  .foot a { color:var(--muted2); text-decoration:underline; }
+  .foot .disclaimer { max-width:600px; margin:8px auto 0; font-size:11px; }
+
+  @media (max-width:700px){
+    .nav-a.hide-mobile { display:none; }
+    .summary { grid-template-columns:1fr 1fr; } .summary .sum-card:last-child { grid-column:1 / -1; }
+    .row.head { display:none; }
+    .row { grid-template-columns:1fr auto; gap:4px 12px; }
+    .r-title { grid-column:1 / 2; grid-row:1; }
+    .r-price { grid-column:2; grid-row:1 / 3; align-self:center; }
+    .r-date, .r-cat, .r-type { grid-column:1; font-size:12px; }
+    .r-date { grid-row:2; } .r-cat { display:none; } .r-type { grid-row:3; }
+    .sel { margin-left:0; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <div class="nav-spacer"></div>
+  <a class="nav-a hide-mobile" href="legends.html">🎴 Legends</a>
+  <a class="nav-a hide-mobile" href="inventory.html">📋 Inventory</a>
+  <a class="nav-a" href="market.html">🃏 Market</a>
+</nav>
+
+<header class="hero">
+  <p class="hero-eyebrow">▸ eBay sold prices</p>
+  <h1>MERCH <span>SALES</span></h1>
+  <p>What Doginal Dogs pins, keychains, figurines, and apparel have actually sold for. Card prices live in the <a href="legends.html" style="color:var(--orange);text-decoration:underline;">Legends</a> guide.</p>
+</header>
+
+<div class="wrap">
+  <div class="summary" id="summary"></div>
+
+  <div class="bar">
+    <div class="chips" id="chips"></div>
+    <select class="sel" id="sort" onchange="render()" aria-label="Sort">
+      <option value="new">Newest first</option>
+      <option value="high">Price: high to low</option>
+      <option value="low">Price: low to high</option>
+    </select>
+  </div>
+
+  <div class="table" id="table"></div>
+
+  <p class="note" id="note"></p>
+</div>
+
+<footer class="foot">
+  <div>Built by <a href="https://x.com/BooMetaX" target="_blank" rel="noopener">@BooMetaX</a> · Builder Dogs · for the Doginal Dogs community</div>
+  <div class="disclaimer">Prices come from public eBay sold listings and are for reference only. Builder Dogs is not affiliated with Doginal Dogs or eBay.</div>
+</footer>
+
+<script>
+const S = window.DDL_SALES || { merch: [], meta: {} };
+const ITEMS = (S.merch || []);
+const CATS = ['Pins','Keychains','Figurines','Apparel & Bags','Other'];
+let cat = 'all';
+
+const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const money = n => '$' + (n >= 100 ? Math.round(n).toLocaleString() : n.toFixed(2));
+const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
+const confirmed = x => x.k !== 'best_offer';
+const typeLabel = x => x.k === 'auction' ? `Auction · ${x.b} bid${x.b === 1 ? '' : 's'}` : x.k === 'fixed' ? 'Buy It Now' : x.k === 'confirmed_offer' ? 'Best Offer' : 'Best Offer';
+
+function setCat(c){ cat = c; render(); }
+
+function renderSummary(){
+  const real = ITEMS.filter(confirmed);
+  const total = real.reduce((t,x)=>t+x.p, 0);
+  const top = real.slice().sort((a,b)=>b.p-a.p)[0];
+  document.getElementById('summary').innerHTML = `
+    <div class="sum-card"><div class="sum-l">Sales tracked</div><div class="sum-n">${ITEMS.length}</div><div class="sum-s">${real.length} with confirmed prices</div></div>
+    <div class="sum-card"><div class="sum-l">Confirmed volume</div><div class="sum-n">${money(total)}</div><div class="sum-s">auctions and Buy It Now</div></div>
+    <div class="sum-card"><div class="sum-l">Top sale</div><div class="sum-n">${top ? money(top.p) : '—'}</div><div class="sum-s">${top ? esc(top.c) + ' · ' + fmtDate(top.d) : ''}</div></div>`;
+}
+
+function render(){
+  const counts = {}; ITEMS.forEach(x => counts[x.c] = (counts[x.c]||0) + 1);
+  const used = CATS.filter(c => counts[c]);
+  document.getElementById('chips').innerHTML =
+    `<button class="chip${cat==='all'?' on':''}" onclick="setCat('all')">All<span class="n">${ITEMS.length}</span></button>` +
+    used.map(c => `<button class="chip${cat===c?' on':''}" onclick="setCat('${c}')">${esc(c)}<span class="n">${counts[c]}</span></button>`).join('');
+
+  const sort = document.getElementById('sort').value;
+  let list = ITEMS.filter(x => cat === 'all' || x.c === cat);
+  list = list.slice().sort((a,b) => sort === 'high' ? b.p - a.p : sort === 'low' ? a.p - b.p : b.d.localeCompare(a.d));
+
+  const head = `<div class="row head"><span>Date</span><span>Item</span><span>Category</span><span>Sale type</span><span class="num">Price</span></div>`;
+  const rows = list.map(x => `<div class="row${confirmed(x) ? '' : ' asking'}">
+      <span class="r-date">${fmtDate(x.d)}</span>
+      <span class="r-title">${esc(x.t)}</span>
+      <span class="r-cat">${esc(x.c)}</span>
+      <span class="r-type">${typeLabel(x)}${confirmed(x) ? '' : '<span class="tag-ask">asking</span>'}</span>
+      <span class="r-price">${money(x.p)}</span>
+    </div>`).join('');
+  document.getElementById('table').innerHTML = head + (rows || `<div class="empty">No merch sales in this category yet.</div>`);
+}
+
+document.getElementById('note').textContent = ITEMS.length
+  ? `From eBay sold listings, ${fmtDate(S.meta.from)} to ${fmtDate(S.meta.updated)}. Dimmed rows sold through Best Offer: eBay hides the accepted price, so the listed asking price is shown and left out of the totals.`
+  : 'No merch sales tracked yet.';
+renderSummary();
+render();
+</script>
+</body>
+</html>
