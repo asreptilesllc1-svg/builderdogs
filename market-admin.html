@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Market Admin — Builder Dogs</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0a0a0a; --surface:#141414; --surface2:#1a1a1a; --border:#262626; --border2:#333; --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#666; --muted2:#888; --green:#22c55e; --red:#ef4444; --blue:#38bdf8; --purple:#a855f7; --yellow:#eab308; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:16px; }
+  a { color:inherit; }
+
+  .login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .login-box { background:var(--surface); border:1px solid var(--border2); border-radius:14px; padding:36px; max-width:360px; width:100%; text-align:center; }
+  .login-logo { font-family:'Black Ops One',sans-serif; font-size:22px; margin-bottom:4px; }
+  .login-logo span { color:var(--orange); }
+  .login-sub { color:var(--muted2); font-size:13px; letter-spacing:2px; text-transform:uppercase; margin-bottom:24px; }
+  .field { text-align:left; margin-bottom:16px; }
+  .field label { display:block; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); margin-bottom:6px; }
+  .field input, .field textarea, .field select { width:100%; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:inherit; font-size:15px; padding:10px 12px; }
+  .field input:focus { outline:none; border-color:var(--orange); }
+  .btn-login { width:100%; background:var(--orange); color:#0a0a0a; border:none; border-radius:6px; font-family:'Black Ops One',sans-serif; font-size:14px; letter-spacing:1px; padding:13px; cursor:pointer; }
+  .error-msg { color:var(--red); font-size:13px; margin-top:12px; }
+
+  .top { display:flex; align-items:center; gap:14px; padding:14px 22px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--bg); z-index:10; }
+  .top-logo { font-family:'Black Ops One',sans-serif; font-size:16px; }
+  .top-logo span { color:var(--orange); }
+  .top-sub { color:var(--muted2); font-size:12px; letter-spacing:2px; text-transform:uppercase; }
+  .top-spacer { flex:1; }
+  .refresh { background:var(--surface2); border:1px solid var(--border2); color:var(--white); font-family:inherit; font-size:13px; padding:8px 14px; border-radius:6px; cursor:pointer; }
+
+  .wrap { max-width:1000px; margin:0 auto; padding:22px; }
+  .tabs { display:flex; gap:8px; margin-bottom:20px; }
+  .tab { font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; background:var(--surface); border:1px solid var(--border2); border-radius:20px; color:var(--muted2); padding:7px 16px; cursor:pointer; }
+  .tab.on { background:var(--orange); color:#0a0a0a; border-color:var(--orange); }
+  .tab .count { background:rgba(0,0,0,0.25); border-radius:10px; padding:1px 7px; margin-left:6px; font-size:12px; }
+
+  .listing { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:14px; }
+  .listing.pending { border-color:rgba(234,179,8,0.4); }
+  .l-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  .pill { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
+  .p-sell { background:rgba(34,197,94,0.15); color:var(--green); }
+  .p-trade { background:rgba(56,189,248,0.15); color:var(--blue); }
+  .p-looking { background:rgba(168,85,247,0.15); color:var(--purple); }
+  .badge { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 10px; border-radius:20px; }
+  .b-pending { background:rgba(234,179,8,0.15); color:var(--yellow); }
+  .b-approved { background:rgba(34,197,94,0.15); color:var(--green); }
+  .b-rejected { background:rgba(239,68,68,0.15); color:var(--red); }
+  .l-date { color:var(--muted); font-size:12px; margin-left:auto; }
+  .l-title { font-family:'Black Ops One',sans-serif; font-size:17px; margin-bottom:10px; }
+  .l-field { font-size:14px; margin-bottom:5px; }
+  .l-field .k { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .l-field .v { color:var(--white); }
+  .l-handle a { color:var(--blue); text-decoration:underline; }
+  .l-actions { display:flex; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+  .act { font-family:inherit; font-size:13px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; padding:9px 16px; border-radius:6px; cursor:pointer; border:1px solid var(--border2); background:var(--surface2); color:var(--white); }
+  .act-approve { background:var(--green); color:#0a0a0a; border-color:var(--green); }
+  .act-reject { background:transparent; color:var(--red); border-color:rgba(239,68,68,0.4); }
+  .act-delete { color:var(--muted2); margin-left:auto; }
+  .act:hover { opacity:0.85; }
+  .empty { text-align:center; color:var(--muted); padding:50px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+
+// ── Admin API: every private read/write goes through the Worker. ──
+// The password is checked there (never stored in this page) and kept
+// only for this browser tab, so closing the tab signs you out.
+const ADMIN_API = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
+let adminPw = null;
+try { adminPw = sessionStorage.getItem('bd-admin-pw'); } catch(e) {}
+let authed = !!adminPw;
+
+async function adminApi(action, params) {
+  const resp = await fetch(ADMIN_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: adminPw, action, params: params || {} })
+  });
+  let data = {};
+  try { data = await resp.json(); } catch(e) {}
+  if (resp.status === 401) {
+    if (authed) { adminSignOut(); throw new Error('Session expired. Please sign in again.'); }
+    throw new Error('Incorrect password');
+  }
+  if (!resp.ok || data.error) throw new Error(data.error || ('Request failed (' + resp.status + ')'));
+  return data;
+}
+
+async function adminLogin(pw, errEl) {
+  errEl.textContent = 'Checking…';
+  adminPw = pw;
+  try {
+    await adminApi('verify_password');
+    try { sessionStorage.setItem('bd-admin-pw', pw); } catch(e) {}
+    authed = true;
+    return true;
+  } catch(e) {
+    adminPw = null;
+    errEl.textContent = '⚠ ' + e.message;
+    return false;
+  }
+}
+
+function adminSignOut() {
+  adminPw = null; authed = false;
+  try { sessionStorage.removeItem('bd-admin-pw'); } catch(e) {}
+  render();
+}
+let listings = [];
+let filter = 'pending';
+
+function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function cleanHandle(h){ return (h||'').trim().replace(/^@+/,'').replace(/[^A-Za-z0-9_]/g,''); }
+
+function render(){
+  document.getElementById('root').innerHTML = authed ? dashboard() : loginScreen();
+}
+function loginScreen(){
+  return `<div class="login-screen"><div class="login-box">
+    <div class="login-logo">BUILDER<span>DOGS</span></div>
+    <div class="login-sub">Market Admin</div>
+    <div class="field"><label>Password</label>
+      <input type="password" id="pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn-login" onclick="login()">ENTER</button>
+    <div class="error-msg" id="login-err"></div>
+  </div></div>`;
+}
+async function login(){
+  if (await adminLogin(document.getElementById('pw').value, document.getElementById('login-err'))) { render(); loadListings(); }
+}
+
+function dashboard(){
+  return `
+    <div class="top">
+      <div><div class="top-logo">BUILDER<span>DOGS</span></div></div>
+      <div class="top-sub">Market Admin</div>
+      <div class="top-spacer"></div>
+      <button class="refresh" onclick="loadListings()">↻ Refresh</button>
+      <button class="refresh" onclick="adminSignOut()">Sign out</button>
+    </div>
+    <div class="wrap">
+      <div class="tabs" id="tabs"></div>
+      <div id="list"></div>
+    </div>`;
+}
+
+async function loadListings(){
+  const listEl = document.getElementById('list');
+  if(listEl) listEl.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    listings = (await adminApi('list', { table: 'market_listings' })).data || [];
+    renderTabs(); renderList();
+  } catch(e){
+    if(listEl) listEl.innerHTML = `<div class="empty" style="color:#f87171">⚠ Could not load: ${esc(e.message||'error')}<br><span style="font-size:12px;color:var(--muted)">Check that the admin Worker is deployed and its secrets are set.</span></div>`;
+    console.error(e);
+  }
+}
+
+function renderTabs(){
+  const counts = { pending:0, approved:0, rejected:0 };
+  listings.forEach(l => { counts[l.status] = (counts[l.status]||0)+1; });
+  const tabs = [['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['all','All']];
+  document.getElementById('tabs').innerHTML = tabs.map(([k,label])=>{
+    const c = k==='all' ? listings.length : (counts[k]||0);
+    return `<button class="tab${filter===k?' on':''}" onclick="setFilter('${k}')">${label}<span class="count">${c}</span></button>`;
+  }).join('');
+}
+function setFilter(f){ filter=f; renderTabs(); renderList(); }
+
+function renderList(){
+  const out = listings.filter(l => filter==='all' || l.status===filter);
+  const el = document.getElementById('list');
+  if(!out.length){ el.innerHTML = `<div class="empty">No ${filter==='all'?'':filter+' '}listings.</div>`; return; }
+  el.innerHTML = out.map(l => {
+    const handle = cleanHandle(l.x_handle);
+    const date = new Date(l.created_at).toLocaleString();
+    const priceRow = l.price ? `<div class="l-field"><span class="k">Price</span> <span class="v">${esc(l.price)}</span></div>` : '';
+    const wantsRow = l.wants ? `<div class="l-field"><span class="k">Wants</span> <span class="v">${esc(l.wants)}</span></div>` : '';
+    const itemLbl = l.category==='merch' ? 'Item' : 'Cards';
+    const cardsRow = l.cards ? `<div class="l-field"><span class="k">${itemLbl}</span> <span class="v">${esc(l.cards)}</span></div>` : '';
+    const imgRow = (l.category==='merch' && l.image_url) ? `<div style="margin:10px 0"><img src="${esc(l.image_url)}" style="max-width:180px;max-height:180px;border-radius:8px;border:1px solid var(--border2);cursor:pointer" onclick="window.open('${esc(l.image_url)}','_blank')"></div>` : '';
+    const catPill = `<span class="pill" style="background:rgba(249,115,22,0.15);color:var(--orange)">${l.category==='merch'?'MERCH':'CARD'}</span>`;
+    const detailsRow = l.details ? `<div class="l-field"><span class="k">Details</span> <span class="v">${esc(l.details)}</span></div>` : '';
+    return `
+      <div class="listing ${l.status}">
+        <div class="l-top">
+          ${catPill}
+          <span class="pill p-${l.listing_type}">${esc(l.listing_type)}</span>
+          <span class="badge b-${l.status}">${esc(l.status)}</span>
+          <span class="l-date">${esc(date)}</span>
+        </div>
+        <div class="l-title">${esc(l.title)}</div>
+        ${imgRow}${cardsRow}${priceRow}${wantsRow}${detailsRow}
+        <div class="l-field l-handle"><span class="k">Contact</span> <a href="https://x.com/${handle}" target="_blank" rel="noopener">@${esc(handle)}</a></div>
+        <div class="l-actions">
+          ${l.status!=='approved' ? `<button class="act act-approve" onclick="setStatus('${l.id}','approved')">✓ Approve</button>` : ''}
+          ${l.status!=='rejected' ? `<button class="act act-reject" onclick="setStatus('${l.id}','rejected')">✕ Reject</button>` : ''}
+          <button class="act act-delete" onclick="delListing('${l.id}')">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function setStatus(id, status){
+  try {
+    await adminApi('set_listing_status', { id, status });
+    const l = listings.find(x=>x.id===id); if(l) l.status = status;
+    renderTabs(); renderList();
+  } catch(e){ alert('Update failed: ' + (e.message||'error')); console.error(e); }
+}
+async function delListing(id){
+  if(!confirm('Delete this listing permanently?')) return;
+  try {
+    await adminApi('delete_listing', { id });
+    listings = listings.filter(x=>x.id!==id);
+    renderTabs(); renderList();
+  } catch(e){ alert('Delete failed: ' + (e.message||'error')); console.error(e); }
+}
+
+render();
+if (authed) loadListings();
+</script>
+</body>
+</html>

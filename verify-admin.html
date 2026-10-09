@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Builder Dogs — Verification Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     --bg: #0a0a0a;
@@ -142,11 +141,6 @@
 <div id="root"></div>
 
 <script>
-const { createClient } = window.supabase;
-const db = createClient(
-  'https://hhscynnazxzwdicobpkl.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
-);
 
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -158,8 +152,50 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-const ADMIN_PW = 'builderdogs2024';
-let authed = false;
+// ── Admin API: every private read/write goes through the Worker. ──
+// The password is checked there (never stored in this page) and kept
+// only for this browser tab, so closing the tab signs you out.
+const ADMIN_API = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
+let adminPw = null;
+try { adminPw = sessionStorage.getItem('bd-admin-pw'); } catch(e) {}
+let authed = !!adminPw;
+
+async function adminApi(action, params) {
+  const resp = await fetch(ADMIN_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: adminPw, action, params: params || {} })
+  });
+  let data = {};
+  try { data = await resp.json(); } catch(e) {}
+  if (resp.status === 401) {
+    if (authed) { adminSignOut(); throw new Error('Session expired. Please sign in again.'); }
+    throw new Error('Incorrect password');
+  }
+  if (!resp.ok || data.error) throw new Error(data.error || ('Request failed (' + resp.status + ')'));
+  return data;
+}
+
+async function adminLogin(pw, errEl) {
+  errEl.textContent = 'Checking…';
+  adminPw = pw;
+  try {
+    await adminApi('verify_password');
+    try { sessionStorage.setItem('bd-admin-pw', pw); } catch(e) {}
+    authed = true;
+    return true;
+  } catch(e) {
+    adminPw = null;
+    errEl.textContent = '⚠ ' + e.message;
+    return false;
+  }
+}
+
+function adminSignOut() {
+  adminPw = null; authed = false;
+  try { sessionStorage.removeItem('bd-admin-pw'); } catch(e) {}
+  render();
+}
 let records = [];
 let currentFilter = 'pending';
 let selected = null;
@@ -199,7 +235,7 @@ async function loadGuestbook() {
   const listEl = document.getElementById('gb-list');
   listEl.innerHTML = '<div class="empty">Loading...</div>';
   try {
-    const { data } = await db.from('guestbook').select('*').order('created_at', { ascending: false });
+    const { data } = await adminApi('list', { table: 'guestbook' });
     const entries = data || [];
     const verified = entries.filter(e => e.verified).length;
     document.getElementById('gb-total').textContent = entries.length;
@@ -237,7 +273,8 @@ async function loadGuestbook() {
 
 async function deleteEntry(id) {
   if (!confirm('Remove this entry from the wall? This cannot be undone.')) return;
-  await db.from('guestbook').delete().eq('id', id);
+  try { await adminApi('delete_guestbook', { id }); }
+  catch(e) { alert('Remove failed: ' + e.message); }
   loadGuestbook();
 }
 
@@ -256,9 +293,8 @@ function renderLogin() {
   </div>`;
 }
 
-function login() {
-  if (document.getElementById('pw').value === ADMIN_PW) { authed = true; render(); }
-  else document.getElementById('err').textContent = '⚠ Incorrect password';
+async function login() {
+  if (await adminLogin(document.getElementById('pw').value, document.getElementById('err'))) render();
 }
 
 function renderApp() {
@@ -278,7 +314,7 @@ function renderApp() {
         </nav>
         <div class="sidebar-footer">
           <a href="https://market.doginaldogs.com" target="_blank" style="display:block;text-align:center;font-size:10px;letter-spacing:2px;color:var(--gold);text-decoration:none;margin-bottom:10px;">🐕 Marketplace</a>
-          <button class="logout-btn" onclick="authed=false;render()">Sign Out</button>
+          <button class="logout-btn" onclick="adminSignOut()">Sign Out</button>
         </div>
       </div>
       <div class="main">
@@ -290,6 +326,16 @@ function renderApp() {
           <div class="stat"><div class="stat-val" style="color:var(--green)">—</div><div class="stat-lbl">Approved</div></div>
         </div>
         <div id="table-wrap"><div class="empty">Loading...</div></div>
+        <div id="guestbook-section">
+          <div class="page-title" style="display:block">Garage <span>Guestbook</span></div>
+          <div class="page-sub" style="display:block">Remove spam or unwanted posts from the wall</div>
+          <div class="stats">
+            <div class="stat"><div class="stat-val" id="gb-total">—</div><div class="stat-lbl">Total</div></div>
+            <div class="stat"><div class="stat-val" id="gb-verified" style="color:var(--gold)">—</div><div class="stat-lbl">Verified</div></div>
+            <div class="stat"><div class="stat-val" id="gb-unverified">—</div><div class="stat-lbl">Guests</div></div>
+          </div>
+          <div id="gb-list"></div>
+        </div>
       </div>
     </div>
 
@@ -306,8 +352,13 @@ function renderApp() {
 }
 
 async function loadRecords() {
-  const { data } = await db.from('doginal_verifications').select('*').order('submitted_at', { ascending: false });
-  records = data || [];
+  try { records = (await adminApi('list', { table: 'doginal_verifications' })).data || []; }
+  catch(e) {
+    records = [];
+    const tw = document.getElementById('table-wrap');
+    if (tw) tw.innerHTML = `<div class="table-wrap"><div class="empty">⚠ Could not load: ${escapeHtml(e.message)}</div></div>`;
+    return;
+  }
 
   const pending = records.filter(r => r.status === 'pending').length;
   const approved = records.filter(r => r.status === 'approved').length;
@@ -404,12 +455,8 @@ async function approveRecord() {
   const trait = document.getElementById('modal-trait').value;
   const notes = document.getElementById('modal-notes').value;
 
-  await db.from('doginal_verifications').update({
-    status: 'approved',
-    trait: trait || null,
-    admin_notes: notes,
-    approved_at: new Date().toISOString()
-  }).eq('id', selected.id);
+  try { await adminApi('approve_verification', { id: selected.id, trait, notes }); }
+  catch(e) { alert('Approve failed: ' + e.message); return; }
 
   closeModal();
   loadRecords();
@@ -419,10 +466,8 @@ async function rejectRecord() {
   if (!selected) return;
   const notes = document.getElementById('modal-notes').value;
 
-  await db.from('doginal_verifications').update({
-    status: 'rejected',
-    admin_notes: notes
-  }).eq('id', selected.id);
+  try { await adminApi('reject_verification', { id: selected.id, notes }); }
+  catch(e) { alert('Reject failed: ' + e.message); return; }
 
   closeModal();
   loadRecords();
@@ -433,10 +478,8 @@ async function saveNotes() {
   const trait = document.getElementById('modal-trait').value;
   const notes = document.getElementById('modal-notes').value;
 
-  await db.from('doginal_verifications').update({
-    trait: trait || null,
-    admin_notes: notes
-  }).eq('id', selected.id);
+  try { await adminApi('update_verification', { id: selected.id, trait, notes }); }
+  catch(e) { alert('Save failed: ' + e.message); return; }
 
   closeModal();
   loadRecords();

@@ -2,14 +2,16 @@
 // Builder Dogs Admin + Upload Worker
 //
 // Two jobs:
-//   1. POST /            → password-protected admin actions (JSON)
+//   1. POST /            → password-protected admin actions (JSON):
+//      reads and moderates custom requests, market listings,
+//      holder verifications and the guestbook
 //   2. POST /upload      → public reference-image upload (multipart)
 //      validates the real file bytes server-side, then stores it
 //      via the service_role key. The Storage bucket is locked so
 //      the browser CANNOT upload directly — only this Worker can.
 //
 // Secrets required (set in Cloudflare dashboard):
-//   ADMIN_PASSWORD       — your strong admin password
+//   ADMIN_PASSWORD       — your strong admin password (12+ characters)
 //   SUPABASE_URL         — https://hhscynnazxzwdicobpkl.supabase.co
 //   SUPABASE_SERVICE_KEY — the service_role secret key
 //
@@ -148,11 +150,24 @@ export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
 
-    // CORS preflight
+    // CORS preflight — ALWAYS answer first, before any other logic,
+    // so the browser is allowed to send the real request.
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
+    // Everything else runs inside a guard so that even an unexpected
+    // error still comes back WITH CORS headers (otherwise the browser
+    // reports a misleading "No Access-Control-Allow-Origin" error).
+    try {
+      return await route(request, env, origin);
+    } catch (err) {
+      return json({ error: 'Server error', detail: String(err && err.message || err) }, 500, origin);
+    }
+  }
+};
+
+async function route(request, env, origin) {
     if (request.method !== 'POST') {
       return json({ error: 'Method not allowed' }, 405, origin);
     }
@@ -177,82 +192,102 @@ export default {
 
     const { password, action, params } = payload || {};
 
+    // ── Refuse to run admin actions until a strong password is set ──
+    if (!env.ADMIN_PASSWORD || env.ADMIN_PASSWORD.length < 12) {
+      return json({ error: 'Admin password not configured' }, 503, origin);
+    }
+
     // ── Authenticate every request ──
     if (!passwordMatches(password || '', env.ADMIN_PASSWORD)) {
+      // Slow down password guessing
+      await new Promise(r => setTimeout(r, 1000));
       return json({ error: 'Unauthorized' }, 401, origin);
     }
 
-    // ── Route allowed actions only ──
-    try {
-      switch (action) {
+    return adminAction(action, params || {}, env, origin);
+}
 
-        // Approve a verification
-        case 'approve_verification': {
-          const { id, trait, notes } = params || {};
-          if (!id) return json({ error: 'Missing id' }, 400, origin);
-          const r = await supabase(env, 'PATCH',
-            `doginal_verifications?id=eq.${encodeURIComponent(id)}`,
-            { status: 'approved', trait: trait || null, admin_notes: notes || null, approved_at: new Date().toISOString() }
-          );
-          return json({ ok: r.ok, data: r.data }, r.ok ? 200 : 500, origin);
-        }
-
-        // Reject a verification
-        case 'reject_verification': {
-          const { id, notes } = params || {};
-          if (!id) return json({ error: 'Missing id' }, 400, origin);
-          const r = await supabase(env, 'PATCH',
-            `doginal_verifications?id=eq.${encodeURIComponent(id)}`,
-            { status: 'rejected', admin_notes: notes || null }
-          );
-          return json({ ok: r.ok, data: r.data }, r.ok ? 200 : 500, origin);
-        }
-
-        // Save notes / trait without changing status
-        case 'update_verification': {
-          const { id, trait, notes } = params || {};
-          if (!id) return json({ error: 'Missing id' }, 400, origin);
-          const r = await supabase(env, 'PATCH',
-            `doginal_verifications?id=eq.${encodeURIComponent(id)}`,
-            { trait: trait || null, admin_notes: notes || null }
-          );
-          return json({ ok: r.ok, data: r.data }, r.ok ? 200 : 500, origin);
-        }
-
-        // Delete a guestbook entry (moderation)
-        case 'delete_guestbook': {
-          const { id } = params || {};
-          if (!id) return json({ error: 'Missing id' }, 400, origin);
-          const r = await supabase(env, 'DELETE',
-            `guestbook?id=eq.${encodeURIComponent(id)}`
-          );
-          return json({ ok: r.ok }, r.ok ? 200 : 500, origin);
-        }
-
-        // Update custom request status / notes
-        case 'update_custom_request': {
-          const { id, status, notes } = params || {};
-          if (!id) return json({ error: 'Missing id' }, 400, origin);
-          const body = {};
-          if (status) body.status = status;
-          if (notes !== undefined) body.admin_notes = notes;
-          const r = await supabase(env, 'PATCH',
-            `custom_requests?id=eq.${encodeURIComponent(id)}`,
-            body
-          );
-          return json({ ok: r.ok, data: r.data }, r.ok ? 200 : 500, origin);
-        }
-
-        // Verify the admin password (for login screen)
-        case 'verify_password': {
-          return json({ ok: true }, 200, origin);
-        }
-
-        default:
-          return json({ error: 'Unknown action' }, 400, origin);
-      }
-    } catch(err) {
-      return json({ error: 'Server error' }, 500, origin);
-    }
-  }
+// ── Admin actions ────────────────────────────────────────────────
+// Every read and write of private data goes through here, using the
+// service key that only this Worker holds. Only these tables and
+// these fields can be touched.
+const LIST_TABLES = {
+  custom_requests:       'created_at',
+  market_listings:       'created_at',
+  doginal_verifications: 'submitted_at',
+  guestbook:             'created_at',
 };
+const CUSTOM_STATUSES  = ['pending', 'quoted', 'approved', 'completed', 'declined'];
+const LISTING_STATUSES = ['pending', 'approved', 'rejected'];
+
+const validId = id => (typeof id === 'string' || typeof id === 'number') && /^[A-Za-z0-9-]{1,64}$/.test(String(id));
+const text = (v, max) => (v == null || v === '') ? null : String(v).slice(0, max);
+
+async function adminAction(action, p, env, origin) {
+  const done = r => json({ ok: r.ok, data: r.data }, r.ok ? 200 : 502, origin);
+  const needId = () => validId(p.id) ? null : json({ error: 'Missing or invalid id' }, 400, origin);
+  const byId = table => `${table}?id=eq.${encodeURIComponent(p.id)}`;
+
+  switch (action) {
+
+    // Login check for the admin pages
+    case 'verify_password':
+      return json({ ok: true }, 200, origin);
+
+    // Read a full table (admin only)
+    case 'list': {
+      const order = LIST_TABLES[p.table];
+      if (!order) return json({ error: 'Unknown table' }, 400, origin);
+      return done(await supabase(env, 'GET', `${p.table}?select=*&order=${order}.desc&limit=1000`));
+    }
+
+    // ── Custom requests ──
+    case 'update_custom_request': {
+      const bad = needId(); if (bad) return bad;
+      const body = {};
+      if (p.status !== undefined) {
+        if (!CUSTOM_STATUSES.includes(p.status)) return json({ error: 'Invalid status' }, 400, origin);
+        body.status = p.status;
+      }
+      if (p.notes !== undefined) body.admin_notes = text(p.notes, 5000);
+      return done(await supabase(env, 'PATCH', byId('custom_requests'), body));
+    }
+
+    // ── Market listings ──
+    case 'set_listing_status': {
+      const bad = needId(); if (bad) return bad;
+      if (!LISTING_STATUSES.includes(p.status)) return json({ error: 'Invalid status' }, 400, origin);
+      return done(await supabase(env, 'PATCH', byId('market_listings'), { status: p.status }));
+    }
+    case 'delete_listing': {
+      const bad = needId(); if (bad) return bad;
+      return done(await supabase(env, 'DELETE', byId('market_listings')));
+    }
+
+    // ── Holder verifications ──
+    case 'approve_verification': {
+      const bad = needId(); if (bad) return bad;
+      return done(await supabase(env, 'PATCH', byId('doginal_verifications'),
+        { status: 'approved', trait: text(p.trait, 100), admin_notes: text(p.notes, 5000), approved_at: new Date().toISOString() }));
+    }
+    case 'reject_verification': {
+      const bad = needId(); if (bad) return bad;
+      return done(await supabase(env, 'PATCH', byId('doginal_verifications'),
+        { status: 'rejected', admin_notes: text(p.notes, 5000) }));
+    }
+    case 'update_verification': {
+      const bad = needId(); if (bad) return bad;
+      return done(await supabase(env, 'PATCH', byId('doginal_verifications'),
+        { trait: text(p.trait, 100), admin_notes: text(p.notes, 5000) }));
+    }
+
+    // ── Guestbook moderation ──
+    case 'delete_guestbook': {
+      const bad = needId(); if (bad) return bad;
+      return done(await supabase(env, 'DELETE', byId('guestbook')));
+    }
+
+    default:
+      return json({ error: 'Unknown action' }, 400, origin);
+  }
+}

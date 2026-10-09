@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Builder Dogs — Custom Requests Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     --bg: #0a0a0a;
@@ -140,11 +139,6 @@
 <div id="root"></div>
 
 <script>
-const { createClient } = window.supabase;
-const db = createClient(
-  'https://hhscynnazxzwdicobpkl.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI'
-);
 
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
@@ -169,8 +163,50 @@ function safeUrl(url) {
   return '';
 }
 
-const ADMIN_PW = 'builderdogs2024';
-let authed = false;
+// ── Admin API: every private read/write goes through the Worker. ──
+// The password is checked there (never stored in this page) and kept
+// only for this browser tab, so closing the tab signs you out.
+const ADMIN_API = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
+let adminPw = null;
+try { adminPw = sessionStorage.getItem('bd-admin-pw'); } catch(e) {}
+let authed = !!adminPw;
+
+async function adminApi(action, params) {
+  const resp = await fetch(ADMIN_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: adminPw, action, params: params || {} })
+  });
+  let data = {};
+  try { data = await resp.json(); } catch(e) {}
+  if (resp.status === 401) {
+    if (authed) { adminSignOut(); throw new Error('Session expired. Please sign in again.'); }
+    throw new Error('Incorrect password');
+  }
+  if (!resp.ok || data.error) throw new Error(data.error || ('Request failed (' + resp.status + ')'));
+  return data;
+}
+
+async function adminLogin(pw, errEl) {
+  errEl.textContent = 'Checking…';
+  adminPw = pw;
+  try {
+    await adminApi('verify_password');
+    try { sessionStorage.setItem('bd-admin-pw', pw); } catch(e) {}
+    authed = true;
+    return true;
+  } catch(e) {
+    adminPw = null;
+    errEl.textContent = '⚠ ' + e.message;
+    return false;
+  }
+}
+
+function adminSignOut() {
+  adminPw = null; authed = false;
+  try { sessionStorage.removeItem('bd-admin-pw'); } catch(e) {}
+  render();
+}
 let requests = [];
 let currentFilter = 'all';
 let selected = null;
@@ -208,14 +244,9 @@ function renderLogin() {
     </div>`;
 }
 
-function login() {
+async function login() {
   const pw = document.getElementById('pw').value;
-  if (pw === ADMIN_PW) {
-    authed = true;
-    render();
-  } else {
-    document.getElementById('login-err').textContent = '⚠ Incorrect password';
-  }
+  if (await adminLogin(pw, document.getElementById('login-err'))) render();
 }
 
 // ── DASHBOARD ──
@@ -236,7 +267,7 @@ function renderDashboard() {
           <div class="nav-item" data-filter="declined">✕ Declined</div>
         </nav>
         <div class="sidebar-footer">
-          <button class="btn-logout" onclick="authed=false;render()">Sign Out</button>
+          <button class="btn-logout" onclick="adminSignOut()">Sign Out</button>
         </div>
       </div>
       <div class="main">
@@ -266,12 +297,14 @@ function renderDashboard() {
 
 // ── LOAD DATA ──
 async function loadRequests() {
-  const { data, error } = await db.from('custom_requests').select('*').order('created_at', { ascending: false });
+  let data = null, error = null;
+  try { data = (await adminApi('list', { table: 'custom_requests' })).data; }
+  catch(e) { error = e; }
   if (error) {
     const tc = document.getElementById('table-container');
     if (tc) tc.innerHTML = `<div style="padding:24px;color:#f87171;font-size:14px;">
       ⚠ Could not load requests: ${escapeHtml(error.message || 'unknown error')}<br>
-      <span style="color:var(--muted);font-size:12px;">This usually means the database read permission (RLS) needs to allow reading custom_requests.</span></div>`;
+      <span style="color:var(--muted);font-size:12px;">Check that the admin Worker is deployed and its secrets are set.</span></div>`;
     console.error('loadRequests error:', error);
     requests = [];
   } else {
@@ -384,7 +417,9 @@ async function saveRequest() {
   const status = document.getElementById('modal-status').value;
   const notes = document.getElementById('modal-notes').value;
   
-  await db.from('custom_requests').update({ status, admin_notes: notes }).eq('id', selected.id);
+  try {
+    await adminApi('update_custom_request', { id: selected.id, status, notes });
+  } catch(e) { alert('Save failed: ' + e.message); return; }
   closeModal();
   loadRequests();
 }
