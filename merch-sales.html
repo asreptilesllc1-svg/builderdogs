@@ -176,7 +176,7 @@ function render(){
 }
 
 document.getElementById('note').textContent = ITEMS.length
-  ? `From eBay sold listings, ${fmtDate(S.meta.from)} to ${fmtDate(S.meta.updated)}. Dimmed rows sold through Best Offer: eBay hides the accepted price, so the listed asking price is shown and left out of the totals.`
+  ? `From eBay sold listings, ${fmtDate(ITEMS.map(x=>x.d).sort()[0])} to ${fmtDate(ITEMS.map(x=>x.d).sort().slice(-1)[0])}. Dimmed rows sold through Best Offer: eBay hides the accepted price, so the listed asking price is shown and left out of the totals.`
   : 'No merch sales tracked yet.';
 renderSummary();
 render();
