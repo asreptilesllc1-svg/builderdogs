@@ -871,6 +871,11 @@ populateSelects();
 renderGallery();
 initDecks();
 refreshDeckPicker();
+// Open a card directly from a link, e.g. legends.html?card=V054
+(function(){
+  const id = (new URLSearchParams(location.search).get('card') || '').toUpperCase();
+  if (/^V\d{3}$/.test(id) && byId[id]) openCard(id);
+})();
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal({target:{id:'modal-bg'}}); });
 </script>
 </body>
