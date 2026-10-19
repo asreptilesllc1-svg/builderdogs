@@ -180,6 +180,7 @@
   .tool .fig { text-align: right; line-height: 1; }
   .tool .fig b { font-family: var(--display); font-weight: 400; color: var(--gold); font-size: 30px; display: block; }
   .tool .fig small { color: var(--faint); font-size: 15px; }
+  .tool-wide { grid-column: 1 / -1; }
   .tool .go { grid-column: 1 / -1; color: var(--orange); font-weight: 700; margin-top: 8px; }
 
   /* ── Merch ── */
@@ -355,6 +356,12 @@
           <p>What Doginal Dogs pins, keychains, figures and apparel have actually sold for on eBay.</p>
           <span class="go">See merch prices</span>
         </a>
+        <a class="tool tool-wide" href="sets-sales.html">
+          <h3>Set &amp; lot prices</h3>
+          <div class="fig"><b id="set-price">—</b><small>typical 92-card set</small></div>
+          <p>Complete sets, card lots and card + merch bundles, tracked on their own so they never skew a single card's value.</p>
+          <span class="go">See set prices</span>
+        </a>
       </div>
     </div>
   </section>
@@ -432,6 +439,7 @@
         <a href="inventory.html">My collection</a>
         <a href="market.html">Market</a>
         <a href="merch-sales.html">Merch prices</a>
+        <a href="sets-sales.html">Set prices</a>
         <a href="custom.html">Custom orders</a>
         <a href="https://shop.builderdogs.com" target="_blank" rel="noopener">Shop</a>
         <a href="https://x.com/BooMetaX" target="_blank" rel="noopener">@BooMetaX</a>
@@ -505,6 +513,14 @@
   document.getElementById('top-sub').textContent =
     `The cards that have sold for the most on eBay since ${P.fmtDate(S.meta.from)}.`;
   document.getElementById('top-cards').hidden = false;
+
+  // Typical complete-set price (a triple set counts as three sets)
+  const per = (S.bundles || []).filter(x => x.k !== 'best_offer' && x.c === 'Complete sets' && x.n && x.n % 92 === 0)
+    .map(x => x.p / (x.n / 92)).sort((a, b) => a - b);
+  if (per.length) {
+    const m = Math.floor(per.length / 2);
+    document.getElementById('set-price').textContent = P.money(per.length % 2 ? per[m] : (per[m - 1] + per[m]) / 2);
+  }
 
   // Merch count
   if (Array.isArray(S.merch)) document.getElementById('merch-count').textContent = S.merch.length;

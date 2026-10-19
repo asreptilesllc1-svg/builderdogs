@@ -279,6 +279,17 @@
   .toast-act { background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:6px; padding:5px 12px; font-family:inherit; font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
   /* ── Change (reason) dialog ── */
   .chg-modal { max-width:460px; }
+  .bh-sets { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:6px; justify-content:center; }
+  .bh-sets .bh-sub { text-align:right; }
+  .set-btn { background:transparent; border:1px solid var(--border2); color:var(--white); border-radius:8px; padding:9px 14px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+  .set-btn:hover { border-color:var(--orange); color:var(--orange); }
+  .set-vers { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .set-ready { font-size:13px; border-radius:9px; padding:10px 12px; margin-bottom:14px; background:var(--surface2); color:var(--muted2); line-height:1.45; }
+  .set-ready.ok { color:var(--white); border:1px solid rgba(34,197,94,0.35); }
+  .set-ready.no { border:1px solid rgba(248,113,113,0.35); }
+  .set-ready b { color:var(--white); }
+  .htag.set { border-color:rgba(245,200,66,0.45); color:var(--gold); }
+  @media (max-width:600px){ .bh-sets { margin-left:0; align-items:flex-start; } .bh-sets .bh-sub { text-align:left; } }
   .chg-card { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
   .chg-card img { width:46px; height:64px; object-fit:cover; border-radius:5px; background:var(--surface2); }
   .chg-card .cn { font-weight:600; font-size:15px; } .chg-card .cm { font-size:12px; color:var(--muted); }
@@ -435,6 +446,37 @@
   <div class="table-wrap" id="stats-wrap" style="display:none;"></div>
   <div id="master-wrap" style="display:none;"></div>
 
+</div>
+
+<!-- FULL SET DIALOG -->
+<div class="modal-bg" id="set-bg" onclick="if(event.target.id==='set-bg')closeSet()">
+  <div class="modal chg-modal" role="dialog" aria-modal="true" aria-labelledby="set-title">
+    <span class="modal-close" onclick="closeSet()">×</span>
+    <h2 id="set-title">Remove a full set</h2>
+    <div class="chg-sub" id="set-sub">Takes one of every regular card (all 92) out of your collection in one step.</div>
+    <div class="set-vers" id="set-vers"></div>
+    <div class="set-ready" id="set-ready"></div>
+    <div class="chg-reasons" id="set-reasons"></div>
+    <div class="chg-fields">
+      <div class="field" id="set-qty-field">
+        <label>Sets</label>
+        <div class="chg-qty"><button onclick="setQty(-1)">−</button><span id="set-qty">1</span><button onclick="setQty(1)">+</button></div>
+      </div>
+      <div class="field" id="set-price-field">
+        <label>Sold for, total <span class="opt">optional</span></label>
+        <input id="set-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00">
+      </div>
+    </div>
+    <div class="field">
+      <label>Note <span class="opt">optional</span></label>
+      <input id="set-note" maxlength="200" placeholder="e.g. eBay triple set sale">
+    </div>
+    <div class="form-msg" id="set-msg"></div>
+    <div class="modal-actions">
+      <button class="btn" style="flex:1" onclick="closeSet()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" id="set-save" onclick="saveSet()">Remove 1 set</button>
+    </div>
+  </div>
 </div>
 
 <!-- CHANGE (reason) DIALOG -->
@@ -909,8 +951,10 @@ function renderStats(){
   const byReason = r => sum(flow.filter(e=>e.reason===r), e=>Math.abs(e.delta));
   const inTotal = sum(flow.filter(e=>e.delta>0), e=>e.delta);
   const outTotal = sum(flow.filter(e=>e.delta<0), e=>-e.delta);
-  const spent = sum(flow.filter(e=>e.reason==='bought' && e.price!=null), e=>e.price*e.delta);
-  const earned = sum(flow.filter(e=>e.reason==='sold' && e.price!=null), e=>e.price*-e.delta);
+  // Full-set entries store their exact total once (batch_total); single cards use price × qty.
+  const batchTotal = r => { const seen = new Set(); return sum(flow.filter(e=>e.batch_id && e.reason===r && e.batch_total!=null && !seen.has(e.batch_id) && seen.add(e.batch_id)), e=>Number(e.batch_total)); };
+  const spent = sum(flow.filter(e=>!e.batch_id && e.reason==='bought' && e.price!=null), e=>e.price*e.delta) + batchTotal('bought');
+  const earned = sum(flow.filter(e=>!e.batch_id && e.reason==='sold' && e.price!=null), e=>e.price*-e.delta) + batchTotal('sold');
   const corrections = live.filter(e=>e.reason==='correction').length;
   const M = n => '$' + n.toFixed(2);
 
@@ -921,7 +965,7 @@ function renderStats(){
 
   // per-card frequency
   const pc = {};
-  flow.forEach(e=>{
+  flow.filter(e=>!e.batch_id).forEach(e=>{
     const k = e.card_id+'|'+e.variant;
     pc[k] = pc[k] || { card_id:e.card_id, variant:e.variant, pulled:0, bought:0, otherIn:0, out:0 };
     if(e.reason==='pulled') pc[k].pulled += e.delta;
@@ -938,8 +982,31 @@ function renderStats(){
   }).join('');
 
   // history log (all entries incl. undone / starting / corrections)
-  const hist = events.filter(inPeriod);
+  // A full-set change shows as one row instead of 92.
+  const hist = [], seenBatch = new Set();
+  events.filter(inPeriod).forEach(e=>{
+    if(!e.batch_id){ hist.push(e); return; }
+    if(seenBatch.has(e.batch_id)) return;
+    seenBatch.add(e.batch_id);
+    hist.push(Object.assign({}, e, { _cards: events.filter(x=>x.batch_id===e.batch_id).length }));
+  });
   const histRows = hist.slice(0, histShown).map(e=>{
+    if(e.batch_id){
+      const d = new Date(e.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const sets = Math.abs(e.delta);
+      const total = e.batch_total!=null ? ` · $${Number(e.batch_total).toFixed(2)} total` : '';
+      const tags = '<span class="htag set">Full set</span>' + (e.voided ? '<span class="htag undone">Undone</span>' : '')
+        + (e.edited_at ? `<span class="htag" title="${esc(e.edit_note||'')}">Edited</span>` : '');
+      const acts = e.voided ? '' : `<button class="hbtn" onclick="openEditBatch('${e.batch_id}')">Edit</button><button class="hbtn" onclick="confirmUndoBatch('${e.batch_id}')">Undo</button>`;
+      return `<div class="h-row${e.voided?' voided':''}">
+        <span class="h-date">${d}</span>
+        <span class="h-card">${esc(e.batch_label||'Set')}${sets>1?' ×'+sets:''} <span class="vtag ${e.variant}">${e._cards} cards</span></span>
+        <span class="hq ${e.delta>0?'in':'out'}">${e.delta>0?'+':'−'}${e._cards*sets}</span>
+        <span class="h-why">${REASON_LABEL[e.reason]}${total}${e.note?`<span class="h-note">${esc(e.note)}</span>`:''}</span>
+        <span class="h-tags">${tags}</span>
+        <span class="h-acts">${acts}</span>
+      </div>`;
+    }
     const c = byId[e.card_id];
     const d = new Date(e.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const qty = `<span class="hq ${e.delta>0?'in':'out'}">${e.delta>0?'+':'−'}${Math.abs(e.delta)}</span>`;
@@ -983,12 +1050,13 @@ function renderStats(){
 
 function exportHistoryCSV(){
   if(!events.length){ alert('No history yet.'); return; }
-  const headers = ['date','card_id','card_name','version','change','reason','price_each','note','edited','edit_note','undone'];
+  const headers = ['date','card_id','card_name','version','change','reason','price_each','note','edited','edit_note','undone','full_set','set_total'];
   const lines = [headers.join(',')];
   events.forEach(e=>{
     const c = byId[e.card_id] || {};
     const vals = [e.created_at, e.card_id, c.name||'', VERSION_LABEL[e.variant]||e.variant, e.delta, REASON_LABEL[e.reason]||e.reason,
-      e.price==null?'':e.price, e.note||'', e.edited_at?'yes':'', e.edit_note||'', e.voided?'yes':'']
+      e.price==null?'':e.price, e.note||'', e.edited_at?'yes':'', e.edit_note||'', e.voided?'yes':'',
+      e.batch_id ? (e.batch_label||'Set') + ' ' + e.batch_id.slice(0,8) : '', e.batch_total==null?'':e.batch_total]
       .map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`);
     lines.push(vals.join(','));
   });
@@ -1179,6 +1247,128 @@ async function refreshMine(){
   if(viewMode==='stats') renderStats();
 }
 
+/* ══════════════ FULL SETS ══════════════
+   Remove a complete 92-card base or holo set in one step. Logged as one
+   history entry (undo/edit as a whole) with the sale total stored once. */
+const REGULAR_IDS = CARDS.filter(c => !c.fullArt).map(c => c.id).sort();
+const SET_NAME = { base:'Base set', holo:'Holo set' };
+let setDlg = null;
+
+function setsHeld(q, v){
+  if(!REGULAR_IDS.length) return 0;
+  return Math.min(...REGULAR_IDS.map(id => q[id+'|'+v] || 0));
+}
+function setShort(q, v, n){ return REGULAR_IDS.filter(id => (q[id+'|'+v] || 0) < n); }
+
+function openSet(){
+  if(!session || !myHandle){ toast('Sign in to update your collection.', true); return; }
+  const q = myQtyMap();
+  const v = setsHeld(q,'base') >= 1 || setsHeld(q,'holo') < 1 ? 'base' : 'holo';
+  setDlg = { mode:'log', variant:v, reason:lastReason('out'), qty:1 };
+  document.getElementById('set-price').value = '';
+  document.getElementById('set-note').value = '';
+  renderSet();
+  document.getElementById('set-bg').classList.add('show');
+}
+function openEditBatch(batchId){
+  const evs = events.filter(e => e.batch_id === batchId && !e.voided); if(!evs.length) return;
+  const e = evs[0];
+  setDlg = { mode:'edit', batchId, variant:e.variant, reason:e.reason, qty:Math.abs(e.delta), dir: e.delta>0 ? 'in' : 'out' };
+  document.getElementById('set-price').value = e.batch_total != null ? e.batch_total : '';
+  document.getElementById('set-note').value = e.note || '';
+  renderSet();
+  document.getElementById('set-bg').classList.add('show');
+}
+function closeSet(){ document.getElementById('set-bg').classList.remove('show'); setDlg = null; }
+function setVariant(v){ setDlg.variant = v; setDlg.qty = 1; renderSet(); }
+function setReason(r){ setDlg.reason = r; renderSet(); }
+function setQty(d){
+  const max = Math.max(1, setsHeld(myQtyMap(), setDlg.variant));
+  setDlg.qty = Math.max(1, Math.min(max, setDlg.qty + d)); renderSet();
+}
+function renderSet(){
+  const q = myQtyMap(), v = setDlg.variant, edit = setDlg.mode === 'edit';
+  const held = setsHeld(q, v);
+  document.getElementById('set-title').textContent = edit ? `Edit ${SET_NAME[v].toLowerCase()} entry` : 'Remove a full set';
+  document.getElementById('set-sub').textContent = edit
+    ? `Change the reason, total price, or note. The cards stay as they are; use Undo in your history to reverse it.`
+    : `Takes one of every regular card (all ${REGULAR_IDS.length}) out of your collection in one step.`;
+  const vers = document.getElementById('set-vers');
+  vers.style.display = edit ? 'none' : 'grid';
+  vers.innerHTML = ['base','holo'].map(x =>
+    `<button class="chg-r${x===v?' on':''}" onclick="setVariant('${x}')">${SET_NAME[x]}<span style="margin-left:auto;color:var(--muted2);font-weight:500">${setsHeld(q,x)} held</span></button>`).join('');
+  const ready = document.getElementById('set-ready');
+  if(edit){ ready.style.display = 'none'; }
+  else {
+    ready.style.display = 'block';
+    const short = setShort(q, v, setDlg.qty);
+    if(!short.length){
+      ready.className = 'set-ready ok';
+      ready.innerHTML = `You have <b>${held}</b> complete ${SET_NAME[v].toLowerCase()}${held===1?'':'s'}. Removing ${setDlg.qty} leaves ${held - setDlg.qty}.`;
+    } else {
+      ready.className = 'set-ready no';
+      const names = short.slice(0, 8).map(id => byId[id] ? byId[id].name + ' ' + id : id).join(', ');
+      ready.innerHTML = `Not a full ${SET_NAME[v].toLowerCase()} yet. You're missing <b>${short.length}</b> card${short.length===1?'':'s'}: ${esc(names)}${short.length>8?'…':''}`;
+    }
+  }
+  const dir = edit ? setDlg.dir : 'out';
+  document.getElementById('set-reasons').innerHTML = REASONS[dir].map(([k,ic,l]) =>
+    `<button class="chg-r${setDlg.reason===k?' on':''}" onclick="setReason('${k}')"><span class="ic">${ic}</span>${l}</button>`).join('');
+  document.getElementById('set-qty').textContent = setDlg.qty;
+  const qf = document.getElementById('set-qty-field');
+  qf.style.opacity = edit ? 0.45 : 1; qf.style.pointerEvents = edit ? 'none' : 'auto';
+  document.getElementById('set-price-field').style.visibility = ['sold','bought'].includes(setDlg.reason) ? 'visible' : 'hidden';
+  document.getElementById('set-msg').className = 'form-msg';
+  const btn = document.getElementById('set-save');
+  btn.textContent = edit ? 'Save changes' : `Remove ${setDlg.qty} set${setDlg.qty===1?'':'s'} (${REGULAR_IDS.length * setDlg.qty} cards)`;
+  btn.disabled = !edit && setShort(q, v, setDlg.qty).length > 0;
+}
+function setError(m){ const el = document.getElementById('set-msg'); el.textContent = '⚠ ' + m; el.className = 'form-msg err'; }
+
+async function saveSet(){
+  const btn = document.getElementById('set-save');
+  const raw = document.getElementById('set-price').value;
+  const total = (['sold','bought'].includes(setDlg.reason) && raw !== '') ? Math.round(parseFloat(raw)*100)/100 : null;
+  if(total != null && (isNaN(total) || total < 0)){ setError('Enter a valid price.'); return; }
+  const note = document.getElementById('set-note').value.trim() || null;
+  btn.disabled = true;
+  try {
+    if(setDlg.mode === 'edit'){
+      const { error } = await db.rpc('edit_collection_batch', { p_batch_id: setDlg.batchId, p_reason: setDlg.reason, p_total: total, p_note: note });
+      if(error) throw error;
+      closeSet(); await refreshMine(); toast('Set entry updated.');
+    } else {
+      const { variant, qty, reason } = setDlg;
+      const { data, error } = await db.rpc('log_set_change', {
+        p_card_ids: REGULAR_IDS, p_variant: variant, p_sets: qty, p_reason: reason,
+        p_total: total, p_note: note, p_label: SET_NAME[variant] });
+      if(error) throw error;
+      try { localStorage.setItem('ddl-last-reason-out', reason); } catch(e){}
+      const bid = data && data.batch_id;
+      closeSet(); await refreshMine();
+      toast(`Removed ${qty} ${SET_NAME[variant].toLowerCase()}${qty===1?'':'s'} (${REGULAR_IDS.length*qty} cards) · ${REASON_LABEL[reason]}`, false, bid ? 'Undo' : null, () => undoBatch(bid));
+    }
+  } catch(e){
+    console.error(e);
+    const m = (e.message || '');
+    setError(/log_set_change|edit_collection_batch|function/i.test(m) && /not find|does not exist|schema cache/i.test(m)
+      ? 'Full-set tools aren\'t switched on yet. Run collection_sets.sql in Supabase.' : (m || 'Could not save.'));
+  } finally { btn.disabled = false; }
+}
+async function undoBatch(batchId){
+  try {
+    const { error } = await db.rpc('undo_collection_batch', { p_batch_id: batchId });
+    if(error) throw error;
+    await refreshMine(); toast('Undone. The whole set is back in your collection count.');
+  } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not undo.'), true); }
+}
+function confirmUndoBatch(batchId){
+  const evs = events.filter(e => e.batch_id === batchId); if(!evs.length) return;
+  const e = evs[0];
+  if(confirm(`Undo "${REASON_LABEL[e.reason]}" for this ${(e.batch_label||'set').toLowerCase()} (${evs.length} cards × ${Math.abs(e.delta)})? Every card's count will be reversed and the entry marked as undone.`)) undoBatch(batchId);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && setDlg) closeSet(); });
+
 /* ══════════════ BINDER ══════════════
    Every card in set order. Tap +/− right on the tile to update your collection. */
 let binderFilter = 'all';
@@ -1239,6 +1429,10 @@ function renderBinderHead(q){
     <div class="bh-stat"><div class="bh-lbl">Cards</div><div class="bh-num">${cardsOwned}<span>/111</span></div><div class="bh-bar"><i style="width:${pct(cardsOwned,111)}%"></i></div></div>
     <div class="bh-stat"><div class="bh-lbl">Master set</div><div class="bh-num">${versOwned}<span>/203</span></div><div class="bh-bar"><i style="width:${pct(versOwned,203)}%"></i></div></div>
     ${val ? `<div class="bh-stat"><div class="bh-lbl">Collection value</div><div class="bh-num">${DDL_PRICE.money(val.typical+val.estimated)}</div><div class="bh-sub">Range ${DDL_PRICE.money(val.conservative)}–${DDL_PRICE.money(val.high)}</div></div>` : ''}
+    <div class="bh-sets">
+      <button class="set-btn" onclick="openSet()">Remove a full set</button>
+      <div class="bh-sub">Complete sets: ${setsHeld(q,'base')} base · ${setsHeld(q,'holo')} holo</div>
+    </div>
   </div>`;
 }
 function renderBinder(){
