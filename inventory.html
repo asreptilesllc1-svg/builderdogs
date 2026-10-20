@@ -289,6 +289,61 @@
   .set-ready.no { border:1px solid rgba(248,113,113,0.35); }
   .set-ready b { color:var(--white); }
   .htag.set { border-color:rgba(245,200,66,0.45); color:var(--gold); }
+  .set-btn.primary { background:var(--orange); border-color:var(--orange); color:#0a0a0a; }
+  .set-btn.primary:hover { background:#ea6a0f; color:#0a0a0a; }
+  .bh-btns { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+  /* Sale builder */
+  .modal.sale-modal { max-width:980px; padding:22px; }
+  .sale-cols { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:18px; margin-top:12px; }
+  .sale-panel { background:var(--bg); border:1px solid var(--border); border-radius:12px; display:flex; flex-direction:column; min-height:0; }
+  .sale-panel h3 { font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); padding:12px 14px 0; display:flex; justify-content:space-between; gap:8px; }
+  .sale-tools { display:flex; flex-wrap:wrap; gap:8px; padding:10px 14px; border-bottom:1px solid var(--border); }
+  .sale-tools .search { flex:1 1 100%; }
+  .sale-tools .chip { padding:5px 11px; font-size:11px; }
+  .sale-list { overflow-y:auto; max-height:52vh; }
+  .sp-row { display:grid; grid-template-columns:34px 1fr auto auto; gap:10px; align-items:center; padding:8px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:14px; }
+  .sp-row img, .sc-row img { width:34px; height:48px; object-fit:cover; border-radius:4px; background:var(--surface2); }
+  .sp-name { font-weight:600; line-height:1.2; }
+  .sp-meta { font-size:12px; color:var(--muted); }
+  .sp-price { font-family:'Oswald',sans-serif; font-size:15px; text-align:right; white-space:nowrap; }
+  .sp-price.est { color:var(--muted2); font-style:italic; }
+  .sp-add { background:var(--surface2); border:1px solid var(--border2); color:var(--white); border-radius:6px; padding:6px 10px; font-family:inherit; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .sp-add:hover { border-color:var(--orange); color:var(--orange); }
+  .sp-add.in { border-color:rgba(245,200,66,0.4); color:var(--gold); }
+  .sc-row { display:grid; grid-template-columns:34px 1fr auto auto auto auto; gap:10px; align-items:center; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:14px; }
+  .sc-qty { display:flex; align-items:center; gap:4px; }
+  .sc-qty button { width:28px; height:28px; border-radius:6px; border:1px solid var(--border2); background:var(--surface2); color:var(--white); font-weight:700; cursor:pointer; }
+  .sc-qty span { min-width:22px; text-align:center; font-family:'Oswald',sans-serif; }
+  .sc-qty .max { width:auto; padding:0 7px; font-size:11px; letter-spacing:0.5px; }
+  .sc-price { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+  .sc-price input { width:84px; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:'Oswald',sans-serif; font-size:15px; padding:5px 8px; text-align:right; }
+  .src { font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); }
+  .src.sold { color:var(--green); } .src.est { color:var(--gold); } .src.none { color:#f87171; } .src.you { color:var(--blue); }
+  .sc-line { font-family:'Oswald',sans-serif; min-width:64px; text-align:right; }
+  .sc-x { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:0 2px; }
+  .sc-x:hover { color:#f87171; }
+  .sale-empty { color:var(--muted); font-size:14px; padding:26px 16px; text-align:center; line-height:1.5; }
+  .sale-foot { border-top:1px solid var(--border); padding:12px 14px; display:grid; gap:10px; }
+  .sf-tot { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .sf-tot .big { font-family:'Oswald',sans-serif; font-size:26px; font-weight:600; }
+  .sf-tot .mk { font-size:13px; color:var(--muted2); }
+  .sf-adj { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .sf-adj .lbl { font-size:12px; color:var(--muted2); text-transform:uppercase; letter-spacing:1px; margin-right:2px; }
+  .sf-adj input { width:96px; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; color:var(--white); font-family:'Oswald',sans-serif; font-size:15px; padding:6px 8px; }
+  .sf-reasons { display:flex; gap:6px; flex-wrap:wrap; }
+  .sf-reasons .chg-r { padding:8px 10px; font-size:13px; }
+  .sf-acts { display:flex; gap:8px; flex-wrap:wrap; }
+  .sf-acts .btn { flex:1 1 auto; }
+  .sf-acts .btn-primary { flex:2 1 auto; }
+  @media (max-width:760px){
+    .modal.sale-modal { padding:16px; }
+    .sale-cols { grid-template-columns:1fr; }
+    .sale-list { max-height:38vh; }
+    .sc-row { grid-template-columns:34px 1fr auto; }
+    .sc-row .sc-qty { grid-column:2; grid-row:2; } .sc-row .sc-price { grid-column:3; grid-row:1; }
+    .sc-row .sc-line { display:none; } .sc-row .sc-x { grid-column:3; grid-row:2; justify-self:end; }
+  }
   @media (max-width:600px){ .bh-sets { margin-left:0; align-items:flex-start; } .bh-sets .bh-sub { text-align:left; } }
   .chg-card { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
   .chg-card img { width:46px; height:64px; object-fit:cover; border-radius:5px; background:var(--surface2); }
@@ -446,6 +501,55 @@
   <div class="table-wrap" id="stats-wrap" style="display:none;"></div>
   <div id="master-wrap" style="display:none;"></div>
 
+</div>
+
+<!-- SALE BUILDER -->
+<div class="modal-bg" id="sale-bg" onclick="if(event.target.id==='sale-bg')closeSale()">
+  <div class="modal sale-modal" role="dialog" aria-modal="true" aria-labelledby="sale-title">
+    <span class="modal-close" onclick="closeSale()">×</span>
+    <h2 id="sale-title">Build a sale</h2>
+    <div class="chg-sub">Add cards from your collection. Each price starts at the typical eBay sold price, or an estimate when a card hasn't sold yet. Change any price before you save.</div>
+    <div class="sale-cols">
+      <div class="sale-panel">
+        <h3><span>Your cards</span><span id="sp-count"></span></h3>
+        <div class="sale-tools">
+          <input class="search" id="sp-search" placeholder="Search name or number…" oninput="renderSalePick()">
+          <button class="chip on" data-v="" onclick="salePickVer(this)">All</button>
+          <button class="chip" data-v="base" onclick="salePickVer(this)">Base</button>
+          <button class="chip" data-v="holo" onclick="salePickVer(this)">Holo</button>
+          <button class="chip" data-v="fullart" onclick="salePickVer(this)">Full art</button>
+          <button class="chip" id="sp-extras" onclick="saleExtras()" title="Only cards you have more than one of">Extras only</button>
+          <button class="chip" onclick="saleAddShown()">Add 1 of each shown</button>
+        </div>
+        <div class="sale-list" id="sp-list"></div>
+      </div>
+      <div class="sale-panel">
+        <h3><span>In this sale</span><button class="hbtn" onclick="saleClear()">Clear</button></h3>
+        <div class="sale-list" id="sc-list"></div>
+        <div class="sale-foot">
+          <div class="sf-tot"><div><span class="big" id="sf-total">$0.00</span> <span class="mk" id="sf-units"></span></div><span class="mk" id="sf-market"></span></div>
+          <div class="sf-adj">
+            <span class="lbl">Price at</span>
+            <button class="chip" onclick="salePct(1)">Market</button>
+            <button class="chip" onclick="salePct(0.9)">−10%</button>
+            <button class="chip" onclick="salePct(0.8)">−20%</button>
+            <button class="chip" onclick="salePct(0.7)">−30%</button>
+            <span class="lbl" style="margin-left:6px">or total</span>
+            <input id="sf-target" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00">
+            <button class="chip" onclick="saleMatch()">Set total</button>
+          </div>
+          <div class="sf-reasons" id="sf-reasons"></div>
+          <input id="sf-note" class="search" maxlength="200" placeholder="Note (optional), e.g. sold to @buyer on X">
+          <div class="form-msg" id="sale-msg"></div>
+          <div class="sf-acts">
+            <button class="btn" onclick="saleCopy()">Copy list</button>
+            <button class="btn" onclick="saleToInvoice()">Create invoice</button>
+            <button class="btn btn-primary" id="sale-save" onclick="saveSale()">Record sale</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- FULL SET DIALOG -->
@@ -988,20 +1092,22 @@ function renderStats(){
     if(!e.batch_id){ hist.push(e); return; }
     if(seenBatch.has(e.batch_id)) return;
     seenBatch.add(e.batch_id);
-    hist.push(Object.assign({}, e, { _cards: events.filter(x=>x.batch_id===e.batch_id).length }));
+    const bev = events.filter(x=>x.batch_id===e.batch_id);
+    hist.push(Object.assign({}, e, { _cards: bev.length, _units: bev.reduce((t,x)=>t+Math.abs(x.delta),0),
+      _isSet: /set$/i.test(e.batch_label||'') && bev.every(x=>x.delta===e.delta) }));
   });
   const histRows = hist.slice(0, histShown).map(e=>{
     if(e.batch_id){
       const d = new Date(e.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
       const sets = Math.abs(e.delta);
       const total = e.batch_total!=null ? ` · $${Number(e.batch_total).toFixed(2)} total` : '';
-      const tags = '<span class="htag set">Full set</span>' + (e.voided ? '<span class="htag undone">Undone</span>' : '')
+      const tags = `<span class="htag set">${e._isSet ? 'Full set' : 'Multi-card'}</span>` + (e.voided ? '<span class="htag undone">Undone</span>' : '')
         + (e.edited_at ? `<span class="htag" title="${esc(e.edit_note||'')}">Edited</span>` : '');
       const acts = e.voided ? '' : `<button class="hbtn" onclick="openEditBatch('${e.batch_id}')">Edit</button><button class="hbtn" onclick="confirmUndoBatch('${e.batch_id}')">Undo</button>`;
       return `<div class="h-row${e.voided?' voided':''}">
         <span class="h-date">${d}</span>
-        <span class="h-card">${esc(e.batch_label||'Set')}${sets>1?' ×'+sets:''} <span class="vtag ${e.variant}">${e._cards} cards</span></span>
-        <span class="hq ${e.delta>0?'in':'out'}">${e.delta>0?'+':'−'}${e._cards*sets}</span>
+        <span class="h-card">${esc(e.batch_label||'Set')}${e._isSet && sets>1?' ×'+sets:''} <span class="vtag ${e._isSet?e.variant:''}">${e._isSet ? e._cards+' cards' : e._cards+' line'+(e._cards===1?'':'s')}</span></span>
+        <span class="hq ${e.delta>0?'in':'out'}">${e.delta>0?'+':'−'}${e._units}</span>
         <span class="h-why">${REASON_LABEL[e.reason]}${total}${e.note?`<span class="h-note">${esc(e.note)}</span>`:''}</span>
         <span class="h-tags">${tags}</span>
         <span class="h-acts">${acts}</span>
@@ -1273,7 +1379,7 @@ function openSet(){
 function openEditBatch(batchId){
   const evs = events.filter(e => e.batch_id === batchId && !e.voided); if(!evs.length) return;
   const e = evs[0];
-  setDlg = { mode:'edit', batchId, variant:e.variant, reason:e.reason, qty:Math.abs(e.delta), dir: e.delta>0 ? 'in' : 'out' };
+  setDlg = { mode:'edit', batchId, variant:e.variant, reason:e.reason, qty:Math.abs(e.delta), dir: e.delta>0 ? 'in' : 'out', label: e.batch_label || 'Set' };
   document.getElementById('set-price').value = e.batch_total != null ? e.batch_total : '';
   document.getElementById('set-note').value = e.note || '';
   renderSet();
@@ -1289,9 +1395,9 @@ function setQty(d){
 function renderSet(){
   const q = myQtyMap(), v = setDlg.variant, edit = setDlg.mode === 'edit';
   const held = setsHeld(q, v);
-  document.getElementById('set-title').textContent = edit ? `Edit ${SET_NAME[v].toLowerCase()} entry` : 'Remove a full set';
+  document.getElementById('set-title').textContent = edit ? `Edit ${setDlg.label.toLowerCase()} entry` : 'Remove a full set';
   document.getElementById('set-sub').textContent = edit
-    ? `Change the reason, total price, or note. The cards stay as they are; use Undo in your history to reverse it.`
+    ? `Change the reason, total price, or note. A new total spreads across the cards in proportion. The cards stay as they are; use Undo in your history to reverse it.`
     : `Takes one of every regular card (all ${REGULAR_IDS.length}) out of your collection in one step.`;
   const vers = document.getElementById('set-vers');
   vers.style.display = edit ? 'none' : 'grid';
@@ -1359,15 +1465,236 @@ async function undoBatch(batchId){
   try {
     const { error } = await db.rpc('undo_collection_batch', { p_batch_id: batchId });
     if(error) throw error;
-    await refreshMine(); toast('Undone. The whole set is back in your collection count.');
+    await refreshMine(); toast('Undone. Every card in that entry is back in your collection count.');
   } catch(e){ console.error(e); toast('⚠ ' + (e.message || 'Could not undo.'), true); }
 }
 function confirmUndoBatch(batchId){
   const evs = events.filter(e => e.batch_id === batchId); if(!evs.length) return;
-  const e = evs[0];
-  if(confirm(`Undo "${REASON_LABEL[e.reason]}" for this ${(e.batch_label||'set').toLowerCase()} (${evs.length} cards × ${Math.abs(e.delta)})? Every card's count will be reversed and the entry marked as undone.`)) undoBatch(batchId);
+  const e = evs[0], units = evs.reduce((t,x)=>t+Math.abs(x.delta),0);
+  if(confirm(`Undo "${REASON_LABEL[e.reason]}" for this ${(e.batch_label||'set').toLowerCase()} (${units} cards)? Every card's count will be reversed and the entry marked as undone.`)) undoBatch(batchId);
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && setDlg) closeSet(); });
+
+/* ══════════════ SALE BUILDER ══════════════
+   Pick any mix of cards, priced from eBay sold data (or the tier estimate),
+   adjust, copy a list for the buyer, and record it as one sale. */
+const SALE_KEY = 'ddl-sale-draft';
+let sale = null, salePick = { v:'', extras:false };
+
+function marketFor(id, v){
+  if(!window.DDL_PRICE) return { p:null, src:'none' };
+  const r = DDL_PRICE.get(id, v);
+  if(r.typical != null) return { p:Math.round(r.typical*100)/100, src:'sold', n:r.confirmed.length };
+  if(r.estimate) return { p:Math.round(r.estimate.value*100)/100, src:'est' };
+  return { p:null, src:'none' };
+}
+const SRC_LABEL = { sold:'Sold avg', est:'Estimate', none:'No data', you:'Your price' };
+const m2 = n => '$' + (Number(n)||0).toFixed(2);
+
+function loadSaleDraft(){
+  try { const d = JSON.parse(localStorage.getItem(SALE_KEY) || 'null'); if(d && d.lines) return d; } catch(e){}
+  return { lines:[], reason:'sold', target:null };
+}
+function saveSaleDraft(){ try { localStorage.setItem(SALE_KEY, JSON.stringify(sale)); } catch(e){} }
+
+function openSale(){
+  if(!session || !myHandle){ toast('Sign in to update your collection.', true); return; }
+  sale = loadSaleDraft();
+  // drop lines for cards no longer owned; cap quantities at what's owned
+  const q = myQtyMap();
+  sale.lines = sale.lines.filter(l => (q[l.card_id+'|'+l.variant]||0) > 0)
+    .map(l => Object.assign(l, { qty: Math.min(l.qty, q[l.card_id+'|'+l.variant]) }));
+  document.getElementById('sf-note').value = sale.note || '';
+  document.getElementById('sf-target').value = sale.target != null ? sale.target : '';
+  document.getElementById('sale-msg').className = 'form-msg';
+  renderSale();
+  document.getElementById('sale-bg').classList.add('show');
+}
+function closeSale(){ if(sale){ sale.note = document.getElementById('sf-note').value; saveSaleDraft(); } document.getElementById('sale-bg').classList.remove('show'); }
+function renderSale(){ renderSalePick(); renderSaleCart(); }
+
+function salePickVer(btn){
+  salePick.v = btn.dataset.v;
+  document.querySelectorAll('.sale-tools .chip[data-v]').forEach(b => b.classList.toggle('on', b === btn));
+  renderSalePick();
+}
+function saleExtras(){ salePick.extras = !salePick.extras; document.getElementById('sp-extras').classList.toggle('on', salePick.extras); renderSalePick(); }
+
+function pickRows(){
+  const q = myQtyMap();
+  const s = (document.getElementById('sp-search').value || '').trim().toLowerCase();
+  const out = [];
+  CARDS.slice().sort((a,b)=>a.id.localeCompare(b.id)).forEach(c => {
+    if(s && !(c.name.toLowerCase().includes(s) || c.id.toLowerCase().includes(s))) return;
+    versionsOf(c).forEach(([v]) => {
+      const n = q[c.id+'|'+v] || 0;
+      if(!n) return;
+      if(salePick.v && v !== salePick.v) return;
+      if(salePick.extras && n < 2) return;
+      out.push({ c, v, n });
+    });
+  });
+  return out;
+}
+function inSale(id, v){ return sale.lines.find(l => l.card_id === id && l.variant === v); }
+
+function renderSalePick(){
+  const rows = pickRows();
+  document.getElementById('sp-count').textContent = rows.length + ' shown';
+  const el = document.getElementById('sp-list');
+  if(!rows.length){ el.innerHTML = `<div class="sale-empty">No owned cards match. Try another search or version.</div>`; return; }
+  el.innerHTML = rows.map(({c,v,n}) => {
+    const mk = marketFor(c.id, v), line = inSale(c.id, v);
+    const price = mk.p != null ? `<span class="sp-price${mk.src==='est'?' est':''}">${mk.src==='est'?'~':''}${m2(mk.p)}</span>` : `<span class="sp-price est">—</span>`;
+    const extra = salePick.extras ? n - 1 : n;
+    const btn = line
+      ? `<button class="sp-add in" onclick="saleAdd('${c.id}','${v}',1)">+1 · ${line.qty} in</button>`
+      : `<button class="sp-add" onclick="saleAdd('${c.id}','${v}',${salePick.extras ? extra : 1})">+ Add${salePick.extras && extra>1 ? ' '+extra : ''}</button>`;
+    return `<div class="sp-row">
+      ${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+      <div><div class="sp-name">${esc(c.name)} <span class="inv-id">${c.id}</span></div><div class="sp-meta"><span class="vtag ${v}">${VERSION_LABEL[v]}</span> · you have ${n}</div></div>
+      ${price}${btn}</div>`;
+  }).join('');
+}
+
+function saleAdd(id, v, k){
+  const have = myQtyMap()[id+'|'+v] || 0;
+  let l = inSale(id, v);
+  if(!l){ const mk = marketFor(id, v); l = { card_id:id, variant:v, qty:0, price:mk.p, src:mk.src }; sale.lines.push(l); }
+  l.qty = Math.max(1, Math.min(have, l.qty + (k || 1)));
+  sale.target = null; document.getElementById('sf-target').value = '';
+  saveSaleDraft(); renderSale();
+}
+function saleAddShown(){
+  const rows = pickRows();
+  if(rows.length > 60 && !confirm(`Add 1 of each of the ${rows.length} cards shown?`)) return;
+  rows.forEach(({c,v}) => { if(!inSale(c.id, v)){ const mk = marketFor(c.id, v); sale.lines.push({ card_id:c.id, variant:v, qty:1, price:mk.p, src:mk.src }); } });
+  sale.target = null; document.getElementById('sf-target').value = '';
+  saveSaleDraft(); renderSale();
+}
+function saleQty(i, d){
+  const l = sale.lines[i], have = myQtyMap()[l.card_id+'|'+l.variant] || 0;
+  l.qty = d === 'max' ? have : Math.max(1, Math.min(have, l.qty + d));
+  sale.target = null; document.getElementById('sf-target').value = '';
+  saveSaleDraft(); renderSale();
+}
+function salePrice(i, val){
+  const l = sale.lines[i];
+  l.price = val === '' ? null : Math.max(0, Math.round(parseFloat(val)*100)/100);
+  if(isNaN(l.price)) l.price = null;
+  l.src = 'you'; sale.target = null; document.getElementById('sf-target').value = '';
+  saveSaleDraft(); renderSaleTotals(); renderSaleSrc(i);
+}
+function saleRemove(i){ sale.lines.splice(i, 1); sale.target = null; saveSaleDraft(); renderSale(); }
+function saleClear(){ if(sale.lines.length && !confirm('Clear every card from this sale?')) return; sale.lines = []; sale.target = null; document.getElementById('sf-target').value=''; saveSaleDraft(); renderSale(); }
+
+const saleSum = () => sale.lines.reduce((t,l) => t + (l.price||0) * l.qty, 0);
+const marketSum = () => sale.lines.reduce((t,l) => { const mk = marketFor(l.card_id, l.variant); return t + (mk.p||0) * l.qty; }, 0);
+const saleUnits = () => sale.lines.reduce((t,l) => t + l.qty, 0);
+
+function salePct(f){
+  sale.lines.forEach(l => { const mk = marketFor(l.card_id, l.variant); if(mk.p != null){ l.price = Math.round(mk.p * f * 100)/100; l.src = f === 1 ? mk.src : 'you'; } });
+  sale.target = null; document.getElementById('sf-target').value = '';
+  saveSaleDraft(); renderSaleCart();
+}
+function saleMatch(){
+  const t = parseFloat(document.getElementById('sf-target').value);
+  if(isNaN(t) || t < 0 || !sale.lines.length) return;
+  const cur = saleSum(), units = saleUnits();
+  sale.lines.forEach(l => { l.price = Math.round((cur > 0 ? (l.price||0) * t / cur : t / units) * 100) / 100; l.src = 'you'; });
+  sale.target = Math.round(t*100)/100;
+  saveSaleDraft(); renderSaleCart();
+}
+
+function renderSaleSrc(i){
+  const el = document.getElementById('src-'+i); if(!el) return;
+  const l = sale.lines[i]; el.className = 'src ' + l.src; el.textContent = SRC_LABEL[l.src];
+  const ln = document.getElementById('ln-'+i); if(ln) ln.textContent = m2((l.price||0) * l.qty);
+}
+function renderSaleCart(){
+  const el = document.getElementById('sc-list');
+  if(!sale.lines.length){
+    el.innerHTML = `<div class="sale-empty">No cards yet. Tap <b>+ Add</b> next to a card, or use <b>Add 1 of each shown</b> to add a whole filtered list at once.</div>`;
+  } else {
+    const have = myQtyMap();
+    el.innerHTML = sale.lines.map((l,i) => {
+      const c = byId[l.card_id] || { name:l.card_id };
+      return `<div class="sc-row">
+        ${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+        <div><div class="sp-name">${esc(c.name)} <span class="inv-id">${l.card_id}</span></div>
+          <div class="sp-meta"><span class="vtag ${l.variant}">${VERSION_LABEL[l.variant]}</span> · have ${have[l.card_id+'|'+l.variant]||0}</div></div>
+        <div class="sc-qty"><button onclick="saleQty(${i},-1)" aria-label="Fewer">−</button><span>${l.qty}</span><button onclick="saleQty(${i},1)" aria-label="More">+</button><button class="max" onclick="saleQty(${i},'max')">All</button></div>
+        <div class="sc-price"><input type="number" min="0" step="0.01" inputmode="decimal" value="${l.price!=null?l.price.toFixed(2):''}" placeholder="each" aria-label="Price each" onchange="salePrice(${i}, this.value)"><span class="src ${l.src}" id="src-${i}">${SRC_LABEL[l.src]}</span></div>
+        <span class="sc-line" id="ln-${i}">${m2((l.price||0) * l.qty)}</span>
+        <button class="sc-x" onclick="saleRemove(${i})" aria-label="Remove from sale">×</button>
+      </div>`;
+    }).join('');
+  }
+  renderSaleTotals();
+  document.getElementById('sf-reasons').innerHTML = REASONS.out.filter(([k]) => k !== 'lost').map(([k,ic,l]) =>
+    `<button class="chg-r${sale.reason===k?' on':''}" onclick="sale.reason='${k}';saveSaleDraft();renderSaleCart()"><span class="ic">${ic}</span>${l}</button>`).join('');
+}
+function renderSaleTotals(){
+  const units = saleUnits(), total = sale.target != null ? sale.target : saleSum(), mk = marketSum();
+  const none = sale.lines.filter(l => l.price == null).length;
+  document.getElementById('sf-total').textContent = m2(total);
+  document.getElementById('sf-units').textContent = `${units} card${units===1?'':'s'} · ${sale.lines.length} line${sale.lines.length===1?'':'s'}`;
+  document.getElementById('sf-market').textContent = `Market ${m2(mk)}` + (none ? ` · ${none} without a price` : '');
+  const btn = document.getElementById('sale-save');
+  btn.disabled = !sale.lines.length;
+  btn.textContent = sale.lines.length ? `Record ${REASON_LABEL[sale.reason].toLowerCase()} · ${units} card${units===1?'':'s'}` : 'Record sale';
+}
+
+function saleListText(){
+  const rows = sale.lines.map(l => {
+    const c = byId[l.card_id] || { name:l.card_id };
+    const each = l.price != null ? m2(l.price) : 'TBD';
+    return `${c.name} ${l.card_id} ${VERSION_LABEL[l.variant]} x${l.qty} — ${each}${l.qty>1 && l.price!=null ? ' each (' + m2(l.price*l.qty) + ')' : ''}`;
+  });
+  const total = sale.target != null ? sale.target : saleSum();
+  return `Doginal Dogs Legends — Rise of the Pack\n${rows.join('\n')}\nTotal: ${saleUnits()} cards — ${m2(total)}`;
+}
+async function saleCopy(){
+  if(!sale.lines.length) return;
+  const txt = saleListText();
+  try { await navigator.clipboard.writeText(txt); toast('Sale list copied. Paste it in a DM or listing.'); }
+  catch(e){ const t = document.createElement('textarea'); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); toast('Sale list copied.'); } catch(_){ toast('Could not copy. Select the list manually.', true); } t.remove(); }
+}
+
+async function saveSale(){
+  if(!sale.lines.length) return;
+  const btn = document.getElementById('sale-save');
+  const note = document.getElementById('sf-note').value.trim() || null;
+  const priced = sale.reason === 'sold';
+  const items = sale.lines.map(l => ({ card_id:l.card_id, variant:l.variant, qty:l.qty, price: priced ? l.price : null }));
+  const total = priced ? (sale.target != null ? sale.target : Math.round(saleSum()*100)/100) : null;
+  btn.disabled = true;
+  try {
+    const { data, error } = await db.rpc('log_bulk_change', { p_items: items, p_reason: sale.reason, p_total: total, p_note: note, p_label: 'Sale' });
+    if(error) throw error;
+    const units = saleUnits(), why = REASON_LABEL[sale.reason], bid = data && data.batch_id;
+    sale = { lines:[], reason:sale.reason, target:null }; saveSaleDraft();
+    document.getElementById('sf-target').value = ''; document.getElementById('sf-note').value = '';
+    document.getElementById('sale-bg').classList.remove('show');
+    await refreshMine();
+    toast(`Recorded: ${units} card${units===1?'':'s'} · ${why}${total!=null?' · '+m2(total):''}`, false, bid ? 'Undo' : null, () => undoBatch(bid));
+  } catch(e){
+    console.error(e);
+    const m = e.message || '';
+    const el = document.getElementById('sale-msg');
+    el.textContent = '⚠ ' + (/log_bulk_change/.test(m) && /not find|does not exist|schema cache/i.test(m)
+      ? 'The Sale builder isn\'t switched on yet. Run collection_sets.sql in Supabase.' : (m || 'Could not save.'));
+    el.className = 'form-msg err';
+  } finally { btn.disabled = !sale.lines.length; }
+}
+// Hand the current sale to the invoice tool (cards come out only when the invoice is marked paid)
+function saleToInvoice(){
+  if(!sale.lines.length){ toast('Add cards to the sale first.', true); return; }
+  try { localStorage.setItem('ddl-invoice-from-sale', JSON.stringify(sale.lines.map(l => ({ card_id:l.card_id, variant:l.variant, qty:l.qty, price:l.price, src:l.src })))); } catch(e){}
+  closeSale();
+  location.href = 'invoices.html#new-from-sale';
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && document.getElementById('sale-bg').classList.contains('show')) closeSale(); });
 
 /* ══════════════ BINDER ══════════════
    Every card in set order. Tap +/− right on the tile to update your collection. */
@@ -1430,7 +1757,7 @@ function renderBinderHead(q){
     <div class="bh-stat"><div class="bh-lbl">Master set</div><div class="bh-num">${versOwned}<span>/203</span></div><div class="bh-bar"><i style="width:${pct(versOwned,203)}%"></i></div></div>
     ${val ? `<div class="bh-stat"><div class="bh-lbl">Collection value</div><div class="bh-num">${DDL_PRICE.money(val.typical+val.estimated)}</div><div class="bh-sub">Range ${DDL_PRICE.money(val.conservative)}–${DDL_PRICE.money(val.high)}</div></div>` : ''}
     <div class="bh-sets">
-      <button class="set-btn" onclick="openSet()">Remove a full set</button>
+      <div class="bh-btns"><button class="set-btn primary" onclick="openSale()">Build a sale</button><a class="set-btn" href="invoices.html" style="text-decoration:none">Invoices</a><button class="set-btn" onclick="openSet()">Remove a full set</button></div>
       <div class="bh-sub">Complete sets: ${setsHeld(q,'base')} base · ${setsHeld(q,'holo')} holo</div>
     </div>
   </div>`;

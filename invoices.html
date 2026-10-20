@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invoices — Builder Dogs</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="legends-apple-touch.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="ddl-cards.js"></script>
+<script src="ddl-sales.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --border:#262626; --border2:#363636;
+    --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#6f6a62; --muted2:#a39d91;
+    --green:#22c55e; --red:#f87171; --blue:#38bdf8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:17px; line-height:1.45; -webkit-font-smoothing:antialiased; padding-bottom:calc(90px + env(safe-area-inset-bottom)); }
+  a { color:inherit; }
+  button, input, select, textarea { font-family:inherit; font-size:16px; color:inherit; }
+  :focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+
+  .nav { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(10,10,10,0.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+  .logo { font-family:'Black Ops One',sans-serif; font-size:17px; color:var(--orange); text-decoration:none; }
+  .logo span { color:var(--white); }
+  .nav .sp { flex:1; }
+  .nav a.l { color:var(--muted2); text-decoration:none; font-weight:600; font-size:15px; padding:4px 6px; }
+
+  .wrap { max-width:720px; margin:0 auto; padding:18px 16px; }
+  h1 { font-family:'Black Ops One',sans-serif; font-weight:400; font-size:30px; line-height:1.05; }
+  h2 { font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); font-weight:700; margin:22px 0 10px; }
+  .sub { color:var(--muted2); font-size:16px; margin-top:4px; }
+  .row { display:flex; align-items:center; gap:10px; }
+  .row.between { justify-content:space-between; }
+
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:46px; padding:0 18px; border-radius:10px; border:1px solid var(--border2); background:var(--surface2); color:var(--white); font-weight:700; font-size:16px; letter-spacing:0.3px; cursor:pointer; text-decoration:none; }
+  .btn:active { transform:translateY(1px); }
+  .btn.primary { background:var(--orange); border-color:var(--orange); color:#0a0a0a; }
+  .btn.gold { background:var(--gold); border-color:var(--gold); color:#0a0a0a; }
+  .btn.ghost { background:transparent; }
+  .btn.danger { color:var(--red); border-color:rgba(248,113,113,0.35); background:transparent; }
+  .btn.small { min-height:36px; padding:0 12px; font-size:14px; border-radius:8px; }
+  .btn.block { width:100%; }
+  .btn[disabled] { opacity:0.5; pointer-events:none; }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--border2); background:var(--surface); color:var(--muted2); border-radius:20px; padding:6px 14px; font-size:15px; font-weight:600; cursor:pointer; }
+  .chip.on { background:var(--orange); border-color:var(--orange); color:#0a0a0a; }
+
+  /* Invoice list */
+  .inv-list { display:grid; gap:10px; margin-top:12px; }
+  .inv-item { display:grid; grid-template-columns:1fr auto; gap:2px 12px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px; text-decoration:none; cursor:pointer; }
+  .inv-item .who { font-weight:700; font-size:18px; }
+  .inv-item .amt { font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; text-align:right; }
+  .inv-item .meta { color:var(--muted2); font-size:14px; }
+  .badge { font-size:12px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; border-radius:20px; padding:2px 9px; border:1px solid; justify-self:end; }
+  .badge.open { color:var(--gold); border-color:rgba(245,200,66,0.45); }
+  .badge.paid { color:var(--green); border-color:rgba(34,197,94,0.45); }
+  .badge.void { color:var(--muted2); border-color:var(--border2); }
+  .empty { color:var(--muted2); text-align:center; padding:34px 10px; }
+
+  /* Editor */
+  label.f { display:block; font-size:13px; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted2); margin:12px 0 5px; font-weight:600; }
+  .in { width:100%; min-height:46px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:10px 12px; color:var(--white); }
+  textarea.in { min-height:70px; resize:vertical; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .opt { color:var(--muted); text-transform:none; letter-spacing:0; font-weight:500; }
+  .line { display:grid; grid-template-columns:40px 1fr auto; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .line:last-child { border-bottom:0; }
+  .line img, .thumb { width:40px; height:56px; object-fit:cover; border-radius:5px; background:var(--surface2); }
+  .thumb.item { display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .line .t { font-weight:700; line-height:1.2; }
+  .line .m { font-size:13px; color:var(--muted2); }
+  .line .ctl { grid-column:2 / 4; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .qty { display:flex; align-items:center; gap:4px; }
+  .qty button { width:36px; height:36px; border-radius:8px; border:1px solid var(--border2); background:var(--surface2); font-weight:700; font-size:18px; cursor:pointer; }
+  .qty span { min-width:24px; text-align:center; font-family:'Oswald',sans-serif; font-size:18px; }
+  .price { width:96px; min-height:38px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:6px 8px; text-align:right; font-family:'Oswald',sans-serif; font-size:17px; }
+  .src { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .src.sold { color:var(--green); } .src.est { color:var(--gold); } .src.none { color:var(--red); } .src.you { color:var(--blue); }
+  .x { margin-left:auto; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; padding:0 6px; }
+  .picker { margin-top:8px; }
+  .pick-res { max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; margin-top:8px; }
+  .pick-row { display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:center; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .pick-row img { width:34px; height:48px; object-fit:cover; border-radius:4px; background:var(--surface2); }
+  .pay-opt { display:flex; align-items:flex-start; gap:12px; padding:12px; border:1px solid var(--border2); border-radius:12px; margin-top:8px; cursor:pointer; background:var(--surface2); }
+  .pay-opt input[type=checkbox] { width:22px; height:22px; accent-color:var(--orange); margin-top:2px; flex:none; }
+  .pay-opt .pt { font-weight:700; }
+  .pay-opt .pd { font-size:14px; color:var(--muted2); }
+  .pay-opt .in { margin-top:8px; font-size:14px; min-height:40px; }
+  .totals { display:grid; gap:4px; margin-top:10px; }
+  .totals .row { justify-content:space-between; color:var(--muted2); }
+  .totals .row.grand { color:var(--white); font-family:'Oswald',sans-serif; font-size:24px; font-weight:600; border-top:1px solid var(--border); padding-top:8px; margin-top:4px; }
+  .msg { margin-top:12px; padding:10px 12px; border-radius:10px; font-size:15px; display:none; }
+  .msg.err { display:block; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.35); color:var(--red); }
+  .msg.ok { display:block; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.35); color:var(--green); }
+  .msg.info { display:block; background:rgba(245,200,66,0.08); border:1px solid rgba(245,200,66,0.3); color:var(--white); }
+
+  /* Bottom action bar (phone thumb zone) */
+  .bar { position:fixed; left:0; right:0; bottom:0; z-index:45; background:rgba(10,10,10,0.96); backdrop-filter:blur(10px); border-top:1px solid var(--border); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .bar .in-bar { max-width:720px; margin:0 auto; display:flex; gap:10px; align-items:center; }
+  .bar .tot { font-family:'Oswald',sans-serif; font-size:22px; font-weight:600; white-space:nowrap; }
+  .bar .tot small { display:block; font-family:'Barlow Condensed',sans-serif; font-size:13px; color:var(--muted2); font-weight:500; }
+  .bar .btn { flex:1; }
+
+  /* Detail */
+  .detail-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .big-total { font-family:'Oswald',sans-serif; font-size:40px; font-weight:600; line-height:1; margin-top:8px; }
+  .share { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .link-box { margin-top:10px; font-size:14px; color:var(--muted2); word-break:break-all; background:var(--surface2); border-radius:10px; padding:10px 12px; }
+  .acts { display:grid; gap:10px; margin-top:12px; }
+  .method { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .method .chip { text-align:center; padding:10px; border-radius:10px; }
+  .check { display:flex; gap:10px; align-items:flex-start; margin-top:10px; font-size:15px; color:var(--muted2); }
+  .check input { width:20px; height:20px; accent-color:var(--orange); margin-top:2px; }
+
+  .signin { text-align:center; padding:40px 16px; }
+  .signin p { color:var(--muted2); margin:10px 0 18px; }
+  #toast { position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%); background:#1f1f1f; border:1px solid var(--border2); color:var(--white); padding:10px 16px; border-radius:10px; font-size:15px; z-index:60; display:none; max-width:90vw; text-align:center; }
+  #toast.show { display:block; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <span class="sp"></span>
+  <a class="l" href="inventory.html">Inventory</a>
+  <a class="l" href="legends.html">Cards</a>
+</header>
+
+<main class="wrap" id="app"><div class="empty">Loading…</div></main>
+<div class="bar" id="bar" hidden><div class="in-bar" id="bar-in"></div></div>
+<div id="toast" role="status"></div>
+
+<script>
+/* ══════════════ SETUP ══════════════ */
+const SB_URL = 'https://hhscynnazxzwdicobpkl.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI';
+const WORKER = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
+const SITE = 'https://builderdogs.com';
+const db = window.supabase.createClient(SB_URL, SB_KEY);
+const CARDS = (window.DDL_CARDS || []).filter(c => !c.sealed);
+const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const VER = { base:'Base', holo:'Holo', fullart:'Full Art' };
+const METHOD = { shop_pay:'Shop Pay / card', doge:'DOGE', cash:'Cash', other:'Other' };
+const DOGE_RE = /^[A-HJ-NP-Za-km-z1-9]{25,40}$/;
+
+let session = null, myHandle = null, owned = {}, invoices = [], filter = 'open';
+let draft = null;      // invoice being edited
+let current = null;    // invoice being viewed
+
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const money = n => '$' + (Number(n) || 0).toFixed(2);
+const fmtDate = d => new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+const store = { get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+                set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2800); }
+function payLink(inv){ return `${SITE}/pay.html?i=${inv.id}`; }
+
+function marketFor(id, v){
+  if(!window.DDL_PRICE) return { p:null, src:'none' };
+  const r = DDL_PRICE.get(id, v);
+  if(r.typical != null) return { p:Math.round(r.typical*100)/100, src:'sold' };
+  if(r.estimate) return { p:Math.round(r.estimate.value*100)/100, src:'est' };
+  return { p:null, src:'none' };
+}
+const SRC = { sold:'Sold avg', est:'Estimate', none:'No data — set a price', you:'Your price' };
+const cardTitle = (id, v) => `${byId[id] ? byId[id].name : id} ${id} ${VER[v]}`;
+
+/* ══════════════ AUTH + DATA ══════════════ */
+async function boot(){
+  const { data } = await db.auth.getSession();
+  session = data.session;
+  if(!session){ renderSignIn(); return; }
+  const h = await db.from('handle_claims').select('handle').eq('user_id', session.user.id).maybeSingle();
+  myHandle = h.data && h.data.handle;
+  await Promise.all([loadOwned(), loadInvoices()]);
+  route();
+}
+async function loadOwned(){
+  owned = {};
+  const { data } = await db.from('card_inventory').select('card_id,variant,qty,user_id').eq('user_id', session.user.id);
+  (data || []).forEach(r => { const k = r.card_id + '|' + r.variant; owned[k] = (owned[k] || 0) + r.qty; });
+}
+async function loadInvoices(){
+  const { data, error } = await db.from('invoices').select('*').order('created_at', { ascending:false }).limit(300);
+  if(error){ invoices = []; invoices.error = error; return; }
+  invoices = data || [];
+}
+window.addEventListener('hashchange', route);
+function route(){
+  if(!session) return renderSignIn();
+  const h = location.hash;
+  if(h.startsWith('#new')) return openEditor(null, h === '#new-from-sale');
+  if(h.startsWith('#edit/')) { const inv = invoices.find(x => x.id === h.slice(6)); return inv ? openEditor(inv) : (location.hash = ''); }
+  if(h.startsWith('#inv/')) { const inv = invoices.find(x => x.id === h.slice(5)); return inv ? renderDetail(inv) : (location.hash = ''); }
+  renderList();
+}
+function setBar(html){ $('bar').hidden = !html; $('bar-in').innerHTML = html || ''; }
+
+function renderSignIn(){
+  setBar('');
+  $('app').innerHTML = `<div class="signin"><h1>Invoices</h1>
+    <p>Sign in to create invoices and get paid with Shop Pay, DOGE or cash. You use the same account as your card inventory.</p>
+    <a class="btn primary" href="inventory.html">Sign in on the Inventory page</a></div>`;
+}
+
+/* ══════════════ LIST ══════════════ */
+function renderList(){
+  current = null; draft = null;
+  if(invoices.error){
+    const missing = /invoices|schema cache|does not exist/i.test(invoices.error.message || '');
+    $('app').innerHTML = `<h1>Invoices</h1><div class="msg err">${missing ? 'Invoices aren\'t switched on yet. Run invoices.sql in Supabase, then refresh.' : esc(invoices.error.message)}</div>`;
+    setBar(''); return;
+  }
+  const counts = { open:0, paid:0, all:invoices.length };
+  invoices.forEach(i => { if(counts[i.status] != null) counts[i.status]++; });
+  const list = invoices.filter(i => filter === 'all' || i.status === filter);
+  const owedOpen = invoices.filter(i => i.status === 'open').reduce((t,i) => t + Number(i.total), 0);
+  $('app').innerHTML = `
+    <div class="row between"><h1>Invoices</h1><span class="sub">${counts.open ? money(owedOpen) + ' open' : ''}</span></div>
+    <div class="chips" style="margin-top:12px">
+      ${['open','paid','all'].map(f => `<button class="chip${filter===f?' on':''}" onclick="filter='${f}';renderList()">${f[0].toUpperCase()+f.slice(1)} ${counts[f]}</button>`).join('')}
+    </div>
+    <div class="inv-list">
+      ${list.length ? list.map(i => `<a class="inv-item" href="#inv/${i.id}">
+          <span class="who">${esc(i.buyer_handle ? '@' + i.buyer_handle : (i.buyer_name || 'No buyer name'))}</span>
+          <span class="amt">${money(i.total)}</span>
+          <span class="meta">#${i.number} · ${fmtDate(i.created_at)} · ${i.lines.reduce((t,l)=>t+l.qty,0)} item${i.lines.reduce((t,l)=>t+l.qty,0)===1?'':'s'}</span>
+          <span class="badge ${i.status}">${i.status === 'void' ? 'Cancelled' : i.status}</span>
+        </a>`).join('')
+      : `<div class="empty">${filter === 'open' ? 'No open invoices. Tap New invoice to bill a buyer.' : 'Nothing here yet.'}</div>`}
+    </div>`;
+  setBar(`<button class="btn primary" onclick="location.hash='#new'">New invoice</button>`);
+}
+
+/* ══════════════ EDITOR ══════════════ */
+function blankDraft(){
+  const doge = store.get('ddl-doge-address', '');
+  return { id:null, buyer_name:'', buyer_handle:'', buyer_contact:'', note:'', shipping:0, discount:0,
+    pay_shop: store.get('ddl-pay-shop', true), pay_doge: !!doge, pay_cash: store.get('ddl-pay-cash', true), doge_address: doge, lines:[] };
+}
+function openEditor(inv, fromSale){
+  current = null;
+  if(inv){
+    draft = JSON.parse(JSON.stringify(inv));
+    draft.lines.forEach(l => l.src = 'you');
+  } else if(!draft || draft.id){
+    draft = blankDraft();
+    if(fromSale){
+      const lines = store.get('ddl-invoice-from-sale', []);
+      draft.lines = lines.map(l => ({ kind:'card', card_id:l.card_id, variant:l.variant, title:cardTitle(l.card_id, l.variant), qty:l.qty, price:l.price, src:l.src || 'you' }));
+      try { localStorage.removeItem('ddl-invoice-from-sale'); } catch(e){}
+    }
+  }
+  renderEditor();
+}
+function lineSum(){ return draft.lines.reduce((t,l) => t + (Number(l.price)||0) * l.qty, 0); }
+function draftTotal(){ return Math.max(0, lineSum() - (Number(draft.discount)||0)) + (Number(draft.shipping)||0); }
+
+function renderEditor(){
+  const d = draft;
+  $('app').innerHTML = `
+    <div class="row between"><h1>${d.id ? 'Edit invoice #' + d.number : 'New invoice'}</h1>
+      <a class="btn small ghost" href="#${d.id ? 'inv/' + d.id : ''}">Cancel</a></div>
+
+    <h2>Buyer</h2>
+    <div class="card">
+      <div class="grid2">
+        <div><label class="f" for="e-handle">X handle</label><input class="in" id="e-handle" placeholder="@buyer" value="${esc(d.buyer_handle ? '@'+d.buyer_handle.replace(/^@+/,'') : '')}" autocapitalize="off" autocomplete="off"></div>
+        <div><label class="f" for="e-name">Name <span class="opt">optional</span></label><input class="in" id="e-name" value="${esc(d.buyer_name)}"></div>
+      </div>
+      <label class="f" for="e-contact">Private notes <span class="opt">only you see this: email, address…</span></label>
+      <input class="in" id="e-contact" value="${esc(d.buyer_contact)}" maxlength="160">
+    </div>
+
+    <h2>Items</h2>
+    <div class="card">
+      <div id="e-lines"></div>
+      <div class="picker">
+        <input class="in" id="e-search" placeholder="Add a card you own: name or number" oninput="renderPicker()" autocomplete="off">
+        <div class="pick-res" id="e-pick" hidden></div>
+        <button class="btn small ghost" style="margin-top:10px" onclick="addItem()">+ Add other item (merch, slab…)</button>
+      </div>
+    </div>
+
+    <h2>Shipping & discount</h2>
+    <div class="card grid2">
+      <div><label class="f" for="e-ship">Shipping</label><input class="in" id="e-ship" type="number" min="0" step="0.01" inputmode="decimal" value="${d.shipping || ''}" placeholder="$0.00" oninput="draft.shipping=this.value;renderTotals()"></div>
+      <div><label class="f" for="e-disc">Discount</label><input class="in" id="e-disc" type="number" min="0" step="0.01" inputmode="decimal" value="${d.discount || ''}" placeholder="$0.00" oninput="draft.discount=this.value;renderTotals()"></div>
+    </div>
+
+    <h2>How they can pay</h2>
+    <label class="pay-opt"><input type="checkbox" id="p-shop" ${d.pay_shop?'checked':''} onchange="draft.pay_shop=this.checked">
+      <div><div class="pt">Shop Pay / card</div><div class="pd">A secure Shopify checkout link is created for the total.</div></div></label>
+    <label class="pay-opt"><input type="checkbox" id="p-doge" ${d.pay_doge?'checked':''} onchange="draft.pay_doge=this.checked;$('e-doge').hidden=!this.checked">
+      <div style="flex:1"><div class="pt">DOGE</div><div class="pd">Buyer sees your address, a QR code and the live DOGE amount.</div>
+      <input class="in" id="e-doge" ${d.pay_doge?'':'hidden'} placeholder="Your DOGE wallet address (starts with D)" value="${esc(d.doge_address || '')}" autocapitalize="off" autocomplete="off" spellcheck="false"></div></label>
+    <label class="pay-opt"><input type="checkbox" id="p-cash" ${d.pay_cash?'checked':''} onchange="draft.pay_cash=this.checked">
+      <div><div class="pt">Cash</div><div class="pd">In person or arranged with you directly.</div></div></label>
+
+    <h2>Note to buyer <span class="opt" style="text-transform:none">optional</span></h2>
+    <textarea class="in" id="e-note" maxlength="500" placeholder="e.g. Ships in a top loader within 2 days.">${esc(d.note || '')}</textarea>
+
+    <div class="totals card" style="margin-top:18px" id="e-totals"></div>
+    <div class="msg" id="e-msg"></div>`;
+  renderLines(); renderTotals();
+  setBar(`<div class="tot" id="bar-tot"></div><button class="btn primary" id="e-save" onclick="saveDraft()">${d.id ? 'Save changes' : 'Create invoice'}</button>`);
+  renderTotals();
+}
+function renderLines(){
+  const el = $('e-lines');
+  if(!draft.lines.length){ el.innerHTML = `<div class="empty" style="padding:14px">No items yet. Search below to add cards.</div>`; return; }
+  el.innerHTML = draft.lines.map((l, i) => {
+    const c = l.kind === 'card' ? byId[l.card_id] : null;
+    const have = l.kind === 'card' ? (owned[l.card_id + '|' + l.variant] || 0) : null;
+    const img = c && c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span class="thumb item">${l.kind==='item'?'📦':''}</span>`;
+    const name = l.kind === 'card'
+      ? `<div class="t">${esc(c ? c.name : l.card_id)} <span class="m">${esc(l.card_id)}</span></div><div class="m">${VER[l.variant]} · you have ${have}</div>`
+      : `<input class="in" style="min-height:38px;padding:6px 10px" value="${esc(l.title)}" placeholder="Item name" oninput="draft.lines[${i}].title=this.value" maxlength="120">`;
+    return `<div class="line">${img}<div>${name}</div><span class="m" id="lt-${i}">${money((Number(l.price)||0)*l.qty)}</span>
+      <div class="ctl">
+        <div class="qty"><button onclick="lineQty(${i},-1)" aria-label="Fewer">−</button><span>${l.qty}</span><button onclick="lineQty(${i},1)" aria-label="More">+</button></div>
+        <input class="price" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Price each" value="${l.price != null && l.price !== '' ? Number(l.price).toFixed(2) : ''}" placeholder="each" oninput="linePrice(${i}, this.value)">
+        <span class="src ${l.src || 'you'}" id="ls-${i}">${l.kind==='card' ? SRC[l.src || 'you'] : 'each'}</span>
+        <button class="x" onclick="draft.lines.splice(${i},1);renderLines();renderTotals()" aria-label="Remove">×</button>
+      </div></div>`;
+  }).join('');
+}
+function lineQty(i, d){
+  const l = draft.lines[i];
+  const max = l.kind === 'card' ? Math.max(1, owned[l.card_id + '|' + l.variant] || 1) : 500;
+  l.qty = Math.max(1, Math.min(max, l.qty + d));
+  renderLines(); renderTotals();
+}
+function linePrice(i, v){
+  const l = draft.lines[i];
+  l.price = v === '' ? null : Math.max(0, parseFloat(v));
+  l.src = 'you';
+  $('lt-'+i).textContent = money((Number(l.price)||0) * l.qty);
+  const s = $('ls-'+i); if(s && l.kind === 'card'){ s.className = 'src you'; s.textContent = SRC.you; }
+  renderTotals();
+}
+function addItem(){ draft.lines.push({ kind:'item', title:'', qty:1, price:null, src:'you' }); renderLines(); renderTotals(); }
+function renderPicker(){
+  const q = $('e-search').value.trim().toLowerCase(), el = $('e-pick');
+  if(!q){ el.hidden = true; return; }
+  const rows = [];
+  CARDS.forEach(c => {
+    if(!(c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))) return;
+    (c.fullArt ? ['fullart'] : ['base','holo']).forEach(v => { const n = owned[c.id + '|' + v] || 0; if(n) rows.push({ c, v, n }); });
+  });
+  el.hidden = false;
+  el.innerHTML = rows.length ? rows.slice(0, 40).map(({c,v,n}) => {
+    const mk = marketFor(c.id, v), inIt = draft.lines.find(l => l.card_id === c.id && l.variant === v);
+    return `<div class="pick-row">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+      <div><div class="t" style="font-weight:700">${esc(c.name)} <span class="m">${c.id}</span></div><div class="m">${VER[v]} · have ${n} · ${mk.p != null ? (mk.src==='est'?'~':'') + money(mk.p) : 'no price data'}</div></div>
+      <button class="btn small" onclick="pickAdd('${c.id}','${v}')">${inIt ? '+1' : 'Add'}</button></div>`;
+  }).join('') : `<div class="empty" style="padding:14px">No cards you own match “${esc(q)}”.</div>`;
+}
+function pickAdd(id, v){
+  const l = draft.lines.find(x => x.kind === 'card' && x.card_id === id && x.variant === v);
+  const have = owned[id + '|' + v] || 0;
+  if(l){ l.qty = Math.min(have, l.qty + 1); }
+  else { const mk = marketFor(id, v); draft.lines.push({ kind:'card', card_id:id, variant:v, title:cardTitle(id, v), qty:1, price:mk.p, src:mk.src }); }
+  renderLines(); renderTotals(); renderPicker();
+}
+function renderTotals(){
+  const sub = lineSum(), disc = Number(draft.discount)||0, ship = Number(draft.shipping)||0, tot = draftTotal();
+  const el = $('e-totals');
+  if(el) el.innerHTML = `<div class="row"><span>Subtotal</span><span>${money(sub)}</span></div>
+    ${disc ? `<div class="row"><span>Discount</span><span>−${money(disc)}</span></div>` : ''}
+    ${ship ? `<div class="row"><span>Shipping</span><span>${money(ship)}</span></div>` : ''}
+    <div class="row grand"><span>Total</span><span>${money(tot)}</span></div>`;
+  const bt = $('bar-tot');
+  if(bt) bt.innerHTML = `${money(tot)}<small>${draft.lines.reduce((t,l)=>t+l.qty,0)} items</small>`;
+}
+function editorError(m){ const e = $('e-msg'); e.className = 'msg err'; e.textContent = m; e.scrollIntoView({ behavior:'smooth', block:'center' }); }
+
+async function saveDraft(){
+  const d = draft;
+  d.buyer_handle = $('e-handle').value.trim().replace(/^@+/, '');
+  d.buyer_name = $('e-name').value.trim();
+  d.buyer_contact = $('e-contact').value.trim();
+  d.note = $('e-note').value.trim();
+  d.doge_address = $('e-doge').value.trim();
+  if(!d.lines.length) return editorError('Add at least one item.');
+  const bad = d.lines.find(l => l.price == null || isNaN(l.price) || (l.kind === 'item' && !String(l.title).trim()));
+  if(bad) return editorError(bad.kind === 'item' && !String(bad.title).trim() ? 'Give each item a name.' : `Set a price for ${bad.kind === 'card' ? cardTitle(bad.card_id, bad.variant) : bad.title}.`);
+  if(!(d.pay_shop || d.pay_doge || d.pay_cash)) return editorError('Choose at least one way to pay.');
+  if(d.pay_doge && !DOGE_RE.test(d.doge_address)) return editorError('That DOGE address doesn\'t look right. Copy it straight from your wallet.');
+  if((Number(d.discount)||0) > lineSum()) return editorError('The discount can\'t be more than the subtotal.');
+  const btn = $('e-save'); btn.disabled = true; btn.textContent = 'Saving…';
+  const payload = {
+    buyer_name:d.buyer_name, buyer_handle:d.buyer_handle, buyer_contact:d.buyer_contact, note:d.note,
+    shipping:Number(d.shipping)||0, discount:Number(d.discount)||0,
+    pay_shop:d.pay_shop, pay_doge:d.pay_doge, pay_cash:d.pay_cash, doge_address: d.pay_doge ? d.doge_address : null,
+    lines: d.lines.map(l => l.kind === 'card'
+      ? { kind:'card', card_id:l.card_id, variant:l.variant, title:l.title || cardTitle(l.card_id, l.variant), qty:l.qty, price:Math.round(Number(l.price)*100)/100 }
+      : { kind:'item', title:String(l.title).trim(), qty:l.qty, price:Math.round(Number(l.price)*100)/100 })
+  };
+  try {
+    const { data, error } = await db.rpc('save_invoice', { p_id: d.id, p_invoice: payload });
+    if(error) throw error;
+    if(d.pay_doge) store.set('ddl-doge-address', d.doge_address);
+    store.set('ddl-pay-shop', d.pay_shop); store.set('ddl-pay-cash', d.pay_cash);
+    await loadInvoices();
+    const inv = invoices.find(x => x.id === data.id);
+    let shopNote = '';
+    if(inv && inv.pay_shop && !inv.shop_url){ shopNote = await makeShopLink(inv, true); }
+    draft = null;
+    location.hash = '#inv/' + data.id;
+    toast(d.id ? 'Invoice updated.' : `Invoice #${data.number} created.` + (shopNote ? ' ' + shopNote : ''));
+  } catch(e){
+    btn.disabled = false; btn.textContent = d.id ? 'Save changes' : 'Create invoice';
+    editorError(/save_invoice/.test(e.message||'') && /not find|schema cache/i.test(e.message||'') ? 'Invoices aren\'t switched on yet. Run invoices.sql in Supabase.' : (e.message || 'Could not save.'));
+  }
+}
+
+/* ══════════════ SHOP PAY ══════════════ */
+async function workerCall(path, invoiceId){
+  const { data } = await db.auth.getSession();
+  const token = data.session && data.session.access_token;
+  const r = await fetch(WORKER + path, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token }, body: JSON.stringify({ invoice_id: invoiceId }) });
+  const js = await r.json().catch(() => ({}));
+  if(!r.ok) throw new Error(js.error || ('Request failed (' + r.status + ')'));
+  return js;
+}
+async function makeShopLink(inv, quiet){
+  try {
+    await workerCall('/shopify/invoice', inv.id);
+    await loadInvoices();
+    return 'Shop Pay link ready.';
+  } catch(e){
+    if(!quiet) throw e;
+    return 'Shop Pay link not created: ' + e.message;
+  }
+}
+
+/* ══════════════ DETAIL ══════════════ */
+function renderDetail(inv){
+  current = inv; draft = null;
+  const units = inv.lines.reduce((t,l)=>t+l.qty,0);
+  const methods = [inv.pay_shop && 'Shop Pay / card', inv.pay_doge && 'DOGE', inv.pay_cash && 'Cash'].filter(Boolean).join(' · ');
+  const shopState = !inv.pay_shop ? '' : inv.shop_url
+    ? `<div class="m" style="margin-top:8px">Shop Pay checkout link is ready. <button class="btn small ghost" onclick="checkShop()">Check Shopify payment</button></div>`
+    : `<div class="msg info">No Shop Pay link yet. <button class="btn small" style="margin-left:6px" onclick="retryShop()">Create Shop Pay link</button></div>`;
+  $('app').innerHTML = `
+    <a class="btn small ghost" href="#">← All invoices</a>
+    <div class="detail-head" style="margin-top:14px">
+      <div><h1>#${inv.number} · ${esc(inv.buyer_handle ? '@' + inv.buyer_handle : (inv.buyer_name || 'No buyer'))}</h1>
+        <div class="sub">${fmtDate(inv.created_at)} · ${units} item${units===1?'':'s'} · ${methods}</div></div>
+      <span class="badge ${inv.status}">${inv.status === 'void' ? 'Cancelled' : inv.status}</span>
+    </div>
+    <div class="big-total">${money(inv.total)}</div>
+    ${inv.status === 'paid' ? `<div class="msg ok">Paid ${inv.paid_at ? fmtDate(inv.paid_at) : ''} by ${METHOD[inv.paid_method] || 'other'}.${inv.sale_batch_id ? ' Cards removed from your inventory and logged as one sale.' : ' Not recorded in your inventory.'}</div>` : ''}
+
+    ${inv.status === 'open' ? `
+    <h2>Send to buyer</h2>
+    <div class="card">
+      <div class="share">
+        <button class="btn primary" onclick="shareInv()">Share link</button>
+        <button class="btn" onclick="copyText(payLink(current), 'Link copied.')">Copy link</button>
+      </div>
+      <div class="link-box">${esc(payLink(inv))}</div>
+      <a class="btn small ghost" style="margin-top:8px" href="${esc(payLink(inv))}" target="_blank" rel="noopener">Preview what the buyer sees</a>
+      ${shopState}
+    </div>` : ''}
+
+    <h2>Items</h2>
+    <div class="card">
+      ${inv.lines.map(l => { const c = l.kind==='card' ? byId[l.card_id] : null; return `<div class="line">
+        ${c && c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span class="thumb item">📦</span>'}
+        <div><div class="t">${esc(l.title)}</div><div class="m">${l.qty} × ${money(l.price)}</div></div>
+        <span>${money(l.qty * l.price)}</span></div>`; }).join('')}
+      <div class="totals">
+        <div class="row"><span>Subtotal</span><span>${money(inv.subtotal)}</span></div>
+        ${Number(inv.discount) ? `<div class="row"><span>Discount</span><span>−${money(inv.discount)}</span></div>` : ''}
+        ${Number(inv.shipping) ? `<div class="row"><span>Shipping</span><span>${money(inv.shipping)}</span></div>` : ''}
+        <div class="row grand"><span>Total</span><span>${money(inv.total)}</span></div>
+      </div>
+    </div>
+    ${inv.buyer_contact ? `<h2>Private notes</h2><div class="card m">${esc(inv.buyer_contact)}</div>` : ''}
+    ${inv.note ? `<h2>Note to buyer</h2><div class="card m">${esc(inv.note)}</div>` : ''}
+
+    ${inv.status === 'open' ? `
+    <h2>Got paid?</h2>
+    <div class="card">
+      <div class="method" id="d-method">
+        ${['shop_pay','doge','cash','other'].map(m => `<button class="chip${m===(inv.pay_doge&&!inv.pay_shop?'doge':inv.pay_shop?'shop_pay':'cash')?' on':''}" data-m="${m}" onclick="pickMethod(this)">${METHOD[m]}</button>`).join('')}
+      </div>
+      ${inv.lines.some(l=>l.kind==='card') ? `<label class="check"><input type="checkbox" id="d-record" checked> Remove these cards from my inventory and log the sale</label>` : ''}
+      <div class="acts"><button class="btn gold block" id="d-paid" onclick="markPaid()">Mark as paid</button></div>
+    </div>
+    <div class="acts" style="margin-top:14px">
+      <a class="btn block" href="#edit/${inv.id}">Edit invoice</a>
+      <button class="btn danger block" onclick="voidInv()">Cancel invoice</button>
+    </div>` : `
+    <div class="acts" style="margin-top:16px"><button class="btn block" onclick="reopenInv()">${inv.status === 'paid' ? 'Undo paid (puts cards back)' : 'Reopen invoice'}</button></div>`}
+    <div class="msg" id="d-msg"></div>`;
+  setBar(inv.status === 'open' ? `<div class="tot">${money(inv.total)}<small>#${inv.number} · open</small></div><button class="btn primary" onclick="shareInv()">Share link</button>` : '');
+}
+function pickMethod(b){ document.querySelectorAll('#d-method .chip').forEach(x => x.classList.toggle('on', x === b)); }
+function detailMsg(m, cls){ const e = $('d-msg'); e.className = 'msg ' + (cls || 'err'); e.textContent = m; e.scrollIntoView({ behavior:'smooth', block:'center' }); }
+async function copyText(t, ok){
+  try { await navigator.clipboard.writeText(t); toast(ok); }
+  catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast(ok); } catch(_){ toast('Copy failed. Press and hold the link to copy.'); } a.remove(); }
+}
+async function shareInv(){
+  const inv = current, url = payLink(inv);
+  const text = `Invoice #${inv.number} from Builder Dogs: ${money(inv.total)}`;
+  if(navigator.share){ try { await navigator.share({ title:`Invoice #${inv.number}`, text, url }); return; } catch(e){ if(e.name === 'AbortError') return; } }
+  copyText(url, 'Link copied. Paste it in a DM to your buyer.');
+}
+async function retryShop(){
+  try { toast('Creating Shop Pay link…'); await makeShopLink(current, false); renderDetail(invoices.find(x => x.id === current.id)); toast('Shop Pay link ready.'); }
+  catch(e){ detailMsg(e.message); }
+}
+async function checkShop(){
+  try {
+    const r = await workerCall('/shopify/status', current.id);
+    if(r.paid){
+      pickMethod(document.querySelector('#d-method .chip[data-m="shop_pay"]'));
+      detailMsg(`Shopify order ${r.order || ''} is paid. Tap "Mark as paid" to record it.`, 'ok');
+    } else detailMsg(r.status === 'COMPLETED' ? `Order ${r.order || ''} created; payment status: ${r.financial || 'pending'}.` : 'Not paid on Shopify yet.', 'info');
+  } catch(e){ detailMsg(e.message); }
+}
+async function markPaid(){
+  const m = document.querySelector('#d-method .chip.on'); if(!m) return detailMsg('Choose how they paid.');
+  const rec = $('d-record') ? $('d-record').checked : false;
+  const btn = $('d-paid'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const { error } = await db.rpc('mark_invoice_paid', { p_id: current.id, p_method: m.dataset.m, p_record: rec });
+    if(error) throw error;
+    await Promise.all([loadInvoices(), loadOwned()]);
+    renderDetail(invoices.find(x => x.id === current.id));
+    toast(rec ? 'Paid. Cards removed and sale logged.' : 'Marked as paid.');
+  } catch(e){
+    btn.disabled = false; btn.textContent = 'Mark as paid';
+    detailMsg((e.message || 'Could not save.') + (/Not enough/.test(e.message||'') ? ' Fix your inventory count, or untick "Remove these cards" to mark it paid anyway.' : ''));
+  }
+}
+async function reopenInv(){
+  if(current.status === 'paid' && !confirm('Undo paid? If the sale was logged, the cards go back into your inventory.')) return;
+  const { error } = await db.rpc('reopen_invoice', { p_id: current.id });
+  if(error) return detailMsg(error.message);
+  await Promise.all([loadInvoices(), loadOwned()]);
+  renderDetail(invoices.find(x => x.id === current.id)); toast('Invoice reopened.');
+}
+async function voidInv(){
+  if(!confirm('Cancel this invoice? The buyer link will show it as cancelled. You can reopen it later.')) return;
+  const { error } = await db.rpc('void_invoice', { p_id: current.id });
+  if(error) return detailMsg(error.message);
+  await loadInvoices(); location.hash = ''; toast('Invoice cancelled.');
+}
+
+boot();
+</script>
+</body>
+</html>
