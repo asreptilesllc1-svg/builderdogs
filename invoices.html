@@ -246,7 +246,7 @@ function renderList(){
 function blankDraft(){
   const doge = store.get('ddl-doge-address', '');
   return { id:null, buyer_name:'', buyer_handle:'', buyer_contact:'', note:'', shipping:0, discount:0,
-    pay_shop: store.get('ddl-pay-shop', true), pay_doge: !!doge, pay_cash: store.get('ddl-pay-cash', true), doge_address: doge, lines:[] };
+    pay_shop: store.get('ddl-pay-shop', false), pay_doge: store.get('ddl-pay-doge', true), pay_cash: store.get('ddl-pay-cash', false), doge_address: doge, lines:[] };
 }
 function openEditor(inv, fromSale){
   current = null;
@@ -411,7 +411,7 @@ async function saveDraft(){
     const { data, error } = await db.rpc('save_invoice', { p_id: d.id, p_invoice: payload });
     if(error) throw error;
     if(d.pay_doge) store.set('ddl-doge-address', d.doge_address);
-    store.set('ddl-pay-shop', d.pay_shop); store.set('ddl-pay-cash', d.pay_cash);
+    store.set('ddl-pay-shop', d.pay_shop); store.set('ddl-pay-cash', d.pay_cash); store.set('ddl-pay-doge', d.pay_doge);
     await loadInvoices();
     const inv = invoices.find(x => x.id === data.id);
     let shopNote = '';

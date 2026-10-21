@@ -446,6 +446,7 @@ function renderManage(){
 
     <h2>Store settings</h2>
     <div class="panel" id="settings">
+      ${!(mine.pay_shop || (mine.pay_doge && mine.doge_address) || mine.pay_cash) ? `<div class="msg err" style="display:block;margin:0 0 10px">Buyers can't check out yet. Add your DOGE wallet address below and tap Save settings to open the store.</div>` : ''}
       <label class="toggle"><input type="checkbox" id="st-open" ${mine.open?'checked':''}> Store is open</label>
       <label class="f">Shipping options</label>
       <div id="st-ship">${mine.shipping.map((s,k) => shipRow(s, k)).join('')}</div>
