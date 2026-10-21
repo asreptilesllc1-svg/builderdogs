@@ -234,7 +234,7 @@ function renderList(){
       ${list.length ? list.map(i => `<a class="inv-item" href="#inv/${i.id}">
           <span class="who">${esc(i.buyer_handle ? '@' + i.buyer_handle : (i.buyer_name || 'No buyer name'))}</span>
           <span class="amt">${money(i.total)}</span>
-          <span class="meta">#${i.number} · ${fmtDate(i.created_at)} · ${i.lines.reduce((t,l)=>t+l.qty,0)} item${i.lines.reduce((t,l)=>t+l.qty,0)===1?'':'s'}</span>
+          <span class="meta">#${i.number} · ${fmtDate(i.created_at)} · ${i.lines.reduce((t,l)=>t+l.qty,0)} item${i.lines.reduce((t,l)=>t+l.qty,0)===1?'':'s'}${i.source==='shop' ? ' · <b style="color:var(--orange)">Store order</b>' + (i.status==='open' && i.expires_at && new Date(i.expires_at) < new Date() ? ' · hold ended' : '') : ''}</span>
           <span class="badge ${i.status}">${i.status === 'void' ? 'Cancelled' : i.status}</span>
         </a>`).join('')
       : `<div class="empty">${filter === 'open' ? 'No open invoices. Tap New invoice to bill a buyer.' : 'Nothing here yet.'}</div>`}
@@ -457,7 +457,8 @@ function renderDetail(inv){
     <a class="btn small ghost" href="#">← All invoices</a>
     <div class="detail-head" style="margin-top:14px">
       <div><h1>#${inv.number} · ${esc(inv.buyer_handle ? '@' + inv.buyer_handle : (inv.buyer_name || 'No buyer'))}</h1>
-        <div class="sub">${fmtDate(inv.created_at)} · ${units} item${units===1?'':'s'} · ${methods}</div></div>
+        <div class="sub">${fmtDate(inv.created_at)} · ${units} item${units===1?'':'s'} · ${methods}${inv.source==='shop' ? ' · Store order' : ''}</div>
+        ${inv.source==='shop' && inv.status==='open' && inv.expires_at ? `<div class="sub" style="color:${new Date(inv.expires_at) < new Date() ? 'var(--red)' : 'var(--gold)'}">${new Date(inv.expires_at) < new Date() ? 'Hold ended' : 'Cards held until'} ${new Date(inv.expires_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>` : ''}</div>
       <span class="badge ${inv.status}">${inv.status === 'void' ? 'Cancelled' : inv.status}</span>
     </div>
     <div class="big-total">${money(inv.total)}</div>
@@ -488,7 +489,8 @@ function renderDetail(inv){
         <div class="row grand"><span>Total</span><span>${money(inv.total)}</span></div>
       </div>
     </div>
-    ${inv.buyer_contact ? `<h2>Private notes</h2><div class="card m">${esc(inv.buyer_contact)}</div>` : ''}
+    ${inv.buyer_contact || inv.buyer_address ? `<h2>${inv.source==='shop' ? 'Ship to' : 'Private notes'}</h2><div class="card m" style="white-space:pre-wrap">${inv.buyer_name ? esc(inv.buyer_name) + '\n' : ''}${inv.buyer_address ? esc(inv.buyer_address) + '\n' : ''}${esc(inv.buyer_contact || '')}${inv.shipping_method ? '\nShipping: ' + esc(inv.shipping_method) : ''}</div>
+      ${inv.buyer_address ? `<button class="btn small ghost" style="margin-top:8px" onclick="copyText([current.buyer_name, current.buyer_address].filter(Boolean).join('\\n'), 'Address copied.')">Copy address</button>` : ''}` : ''}
     ${inv.note ? `<h2>Note to buyer</h2><div class="card m">${esc(inv.note)}</div>` : ''}
 
     ${inv.status === 'open' ? `

@@ -68,6 +68,7 @@
 <div id="toast" role="status"></div>
 <script>
 const SB_URL = 'https://hhscynnazxzwdicobpkl.supabase.co';
+const WORKER = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI';
 const byId = Object.fromEntries((window.DDL_CARDS || []).map(c => [c.id, c]));
 const $ = id => document.getElementById(id);
@@ -95,6 +96,16 @@ async function load(){
     const inv = await r.json();
     if(!r.ok || !inv || !inv.id) return fail('We couldn\'t find this invoice. Ask the seller to send the link again.');
     render(inv);
+    // Store orders: create the Shop Pay checkout on first open
+    if(inv.shop_pending && !load.triedShop){
+      load.triedShop = true;
+      try {
+        const w = await fetch(WORKER + '/shopify/invoice', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ invoice_id: inv.id }) });
+        if(w.ok) return load();
+      } catch(e){}
+      const el = document.getElementById('shop-wait');
+      if(el) el.innerHTML = '<p class="m">Shop Pay checkout isn\'t available right now. Use another option below, or message the seller.</p>';
+    }
   } catch(e){ fail('Couldn\'t load the invoice. Check your connection and refresh.'); }
 }
 function fail(m){ $('app').innerHTML = `<div class="top"><a class="brand" href="/">BUILDER<span>DOGS</span></a></div><h1>Invoice</h1><p class="sub" style="margin-top:10px">${esc(m)}</p>`; }
@@ -108,8 +119,15 @@ function render(inv){
   const xLink = inv.seller_handle ? `https://x.com/${encodeURIComponent(inv.seller_handle)}` : null;
 
   let pay = '';
+  const isNew = new URLSearchParams(location.search).get('new') === '1';
+  const expires = inv.expires_at ? new Date(inv.expires_at) : null;
+  const expired = inv.source === 'shop' && expires && expires < new Date();
   if(inv.status === 'open'){
+    if(inv.source === 'shop' && expires) pay += expired
+      ? `<div class="state void" style="text-align:left;font-size:16px;font-weight:600">Your hold on these cards ended ${expires.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}. Some may have sold. Message the seller before paying.</div>`
+      : `<div class="card" style="border-color:rgba(245,200,66,0.4)"><b>${isNew ? 'Order placed! ' : ''}Your cards are reserved until ${expires.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}.</b><div class="m">Pay below to complete your order. Bookmark this page to come back to it.</div></div>`;
     pay += `<h2>Pay</h2>`;
+    if(inv.shop_pending) pay += `<div class="card pay" id="shop-wait"><h3>Shop Pay or card</h3><p class="m">Preparing secure checkout…</p></div>`;
     if(shopUrl) pay += `<div class="card pay"><h3>Shop Pay or card</h3>
         <p class="m">Secure checkout through Shopify.</p>
         <a class="btn shop" style="margin-top:12px" href="${esc(shopUrl)}" rel="noopener">Pay ${money(inv.total)} with Shop Pay or card</a></div>`;
@@ -126,7 +144,7 @@ function render(inv){
         <p class="fine">The DOGE amount follows the live price, so send it soon after opening this page. After you send it, message ${xLink ? `<a href="${xLink}" target="_blank" rel="noopener">${esc(seller)}</a>` : 'the seller'} on X with your transaction ID.</p></div>`;
     if(inv.pay_cash) pay += `<div class="card pay"><h3>Cash</h3>
         <p class="m">Pay in person or arrange it with ${xLink ? `<a href="${xLink}" target="_blank" rel="noopener">${esc(seller)}</a> on X` : 'the seller'}.</p></div>`;
-    if(!shopUrl && !(inv.pay_doge && inv.doge_address) && !inv.pay_cash) pay += `<div class="card"><p class="m">Payment options are being set up. Check back shortly or message the seller.</p></div>`;
+    if(!shopUrl && !inv.shop_pending && !(inv.pay_doge && inv.doge_address) && !inv.pay_cash) pay += `<div class="card"><p class="m">Payment options are being set up. Check back shortly or message the seller.</p></div>`;
   }
 
   $('app').innerHTML = `
@@ -146,7 +164,7 @@ function render(inv){
       <div style="margin-top:8px">
         <div class="tot-row"><span>Subtotal</span><span>${money(inv.subtotal)}</span></div>
         ${Number(inv.discount) ? `<div class="tot-row"><span>Discount</span><span>−${money(inv.discount)}</span></div>` : ''}
-        ${Number(inv.shipping) ? `<div class="tot-row"><span>Shipping</span><span>${money(inv.shipping)}</span></div>` : ''}
+        ${Number(inv.shipping) ? `<div class="tot-row"><span>Shipping${inv.shipping_method ? ' · ' + esc(inv.shipping_method) : ''}</span><span>${money(inv.shipping)}</span></div>` : ''}
         <div class="tot-row grand"><span>Total</span><span>${money(inv.total)}</span></div>
       </div>
     </div>

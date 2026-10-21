@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buy Doginal Dogs Legends Cards — Builder Dogs</title>
+<meta name="description" content="Buy Doginal Dogs Legends Rise of the Pack singles: base, holo and full art cards. Add to cart and pay with Shop Pay, card or DOGE.">
+<link rel="canonical" href="https://builderdogs.com/cards.html">
+<meta property="og:title" content="Buy Doginal Dogs Legends Cards — Builder Dogs">
+<meta property="og:description" content="Rise of the Pack singles: base, holo and full art. Shop Pay, card or DOGE.">
+<meta property="og:url" content="https://builderdogs.com/cards.html">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://builderdogs.com/legends-share.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@BooMetaX">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="ddl-cards.js"></script>
+<script src="ddl-sales.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --border:#262626; --border2:#363636;
+    --orange:#f97316; --gold:#f5c842; --white:#f0ece0; --muted:#6f6a62; --muted2:#a39d91;
+    --green:#22c55e; --red:#f87171; --blue:#38bdf8; --holo:#c8a8f5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--white); font-family:'Barlow Condensed','Arial Narrow',sans-serif; font-size:17px; line-height:1.45; -webkit-font-smoothing:antialiased; padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
+  a { color:inherit; }
+  button, input, select, textarea { font-family:inherit; font-size:16px; color:inherit; }
+  :focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+  [hidden] { display:none !important; }
+
+  .nav { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:10px; padding:12px 16px; background:rgba(10,10,10,0.94); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+  .logo { font-family:'Black Ops One',sans-serif; font-size:17px; color:var(--orange); text-decoration:none; }
+  .logo span { color:var(--white); }
+  .nav .sp { flex:1; }
+  .nav a.l { color:var(--muted2); text-decoration:none; font-weight:600; font-size:15px; padding:4px 6px; }
+  .nav .own { border:1px solid var(--border2); border-radius:8px; padding:5px 10px; background:transparent; color:var(--white); font-weight:600; cursor:pointer; font-size:14px; }
+
+  .wrap { max-width:1160px; margin:0 auto; padding:22px 16px; }
+  h1 { font-family:'Black Ops One',sans-serif; font-weight:400; font-size:clamp(28px,4.5vw,42px); line-height:1.05; }
+  .lede { color:var(--muted2); margin-top:6px; max-width:44em; }
+  h2 { font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--muted2); font-weight:700; margin:22px 0 10px; }
+
+  .tools { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:18px 0 14px; }
+  .search { flex:1 1 220px; min-height:44px; background:var(--surface); border:1px solid var(--border2); border-radius:10px; padding:8px 12px; }
+  .sel { min-height:44px; background:var(--surface); border:1px solid var(--border2); border-radius:10px; padding:8px 10px; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { border:1px solid var(--border2); background:var(--surface); color:var(--muted2); border-radius:20px; padding:7px 14px; font-size:15px; font-weight:600; cursor:pointer; }
+  .chip.on { background:var(--orange); border-color:var(--orange); color:#0a0a0a; }
+  .count { color:var(--muted2); font-size:15px; margin-bottom:10px; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(176px, 1fr)); gap:14px; }
+  .tile { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+  .tile .art { aspect-ratio:5/7; background:var(--surface2); }
+  .tile .art img { width:100%; height:100%; object-fit:cover; display:block; }
+  .tile .info { padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .tile .nm { font-weight:700; font-size:17px; line-height:1.15; }
+  .tile .nm span { color:var(--muted); font-weight:600; font-size:14px; }
+  .vt { font-size:12px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--muted2); }
+  .vt.holo { color:var(--holo); } .vt.fullart { color:var(--orange); }
+  .pr { display:flex; align-items:baseline; justify-content:space-between; gap:6px; margin-top:auto; }
+  .pr b { font-family:'Oswald',sans-serif; font-size:21px; font-weight:600; }
+  .pr small { color:var(--muted2); font-size:13px; }
+  .add { display:flex; gap:6px; }
+  .add select { width:58px; min-height:40px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:0 6px; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; padding:0 16px; border-radius:10px; border:1px solid var(--border2); background:var(--surface2); color:var(--white); font-weight:700; font-size:16px; cursor:pointer; text-decoration:none; }
+  .btn.primary { background:var(--orange); border-color:var(--orange); color:#0a0a0a; }
+  .btn.small { min-height:38px; padding:0 12px; font-size:15px; border-radius:8px; }
+  .btn.block { width:100%; }
+  .btn.ghost { background:transparent; }
+  .btn.in { border-color:rgba(245,200,66,0.5); color:var(--gold); }
+  .btn[disabled] { opacity:0.5; pointer-events:none; }
+  .add .btn { flex:1; min-height:40px; }
+  .empty { color:var(--muted2); text-align:center; padding:44px 16px; grid-column:1/-1; }
+
+  /* Cart bar + drawer */
+  .cartbar { position:fixed; left:0; right:0; bottom:0; z-index:45; background:rgba(10,10,10,0.96); backdrop-filter:blur(10px); border-top:1px solid var(--border); padding:10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .cartbar .in-bar { max-width:1160px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .cartbar .sum { font-family:'Oswald',sans-serif; font-size:22px; font-weight:600; }
+  .cartbar .sum small { display:block; font-family:'Barlow Condensed',sans-serif; color:var(--muted2); font-size:14px; font-weight:500; }
+  .cartbar .btn { margin-left:auto; min-width:160px; }
+  .drawer-bg { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.75); display:none; align-items:flex-end; justify-content:center; }
+  .drawer-bg.show { display:flex; }
+  .drawer { background:var(--surface); border:1px solid var(--border2); border-radius:18px 18px 0 0; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); }
+  @media (min-width:700px){ .drawer-bg { align-items:center; } .drawer { border-radius:18px; } }
+  .drawer h3 { font-family:'Black Ops One',sans-serif; font-weight:400; font-size:24px; display:flex; justify-content:space-between; align-items:center; }
+  .x { background:none; border:none; color:var(--muted2); font-size:26px; cursor:pointer; line-height:1; }
+  .cl { display:grid; grid-template-columns:40px 1fr auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cl img { width:40px; height:56px; object-fit:cover; border-radius:5px; background:var(--surface2); }
+  .cl .t { font-weight:700; line-height:1.2; } .cl .m { color:var(--muted2); font-size:14px; }
+  .qty { display:flex; align-items:center; gap:4px; margin-top:4px; }
+  .qty button { width:32px; height:32px; border-radius:8px; border:1px solid var(--border2); background:var(--surface2); font-weight:700; cursor:pointer; }
+  .qty span { min-width:22px; text-align:center; font-family:'Oswald',sans-serif; }
+  .opt-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border2); border-radius:10px; margin-top:8px; cursor:pointer; }
+  .opt-row input { width:20px; height:20px; accent-color:var(--orange); }
+  .opt-row .p { margin-left:auto; font-family:'Oswald',sans-serif; }
+  .tots { margin-top:12px; }
+  .tots div { display:flex; justify-content:space-between; color:var(--muted2); padding:2px 0; }
+  .tots .g { color:var(--white); font-family:'Oswald',sans-serif; font-size:24px; font-weight:600; border-top:1px solid var(--border); padding-top:8px; margin-top:6px; }
+  label.f { display:block; font-size:13px; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted2); margin:12px 0 5px; font-weight:600; }
+  .in { width:100%; min-height:46px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:10px 12px; }
+  textarea.in { min-height:84px; resize:vertical; }
+  .fine { color:var(--muted); font-size:14px; margin-top:8px; }
+  .msg { margin-top:12px; padding:10px 12px; border-radius:10px; font-size:15px; display:none; }
+  .msg.err { display:block; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.35); color:var(--red); }
+  .msg.ok { display:block; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.35); color:var(--green); }
+  .closed { background:var(--surface); border:1px dashed var(--border2); border-radius:12px; padding:16px; color:var(--muted2); margin-top:14px; }
+
+  /* Owner tools */
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; }
+  .qf { display:grid; grid-template-columns:2fr 1fr 0.8fr 1fr auto; gap:8px; align-items:end; }
+  .qf label { font-size:12px; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted2); font-weight:600; display:block; margin-bottom:4px; }
+  .qf .in, .qf .sel { width:100%; min-height:44px; background:var(--surface2); }
+  .src { font-size:11px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; }
+  .src.sold { color:var(--green); } .src.est { color:var(--gold); } .src.none { color:var(--red); } .src.you { color:var(--blue); }
+  .bulk { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+  .lt { width:100%; border-collapse:collapse; font-size:15px; }
+  .lt th { text-align:left; font-size:12px; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted2); padding:6px 6px; border-bottom:1px solid var(--border); }
+  .lt td { padding:7px 6px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; }
+  .lt input { width:84px; min-height:36px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; padding:4px 8px; text-align:right; font-family:'Oswald',sans-serif; }
+  .lt input.q { width:60px; }
+  .lt .num { text-align:right; }
+  .lt tr.dirty td { background:rgba(245,200,66,0.05); }
+  .scroll { overflow-x:auto; }
+  .ship-row { display:grid; grid-template-columns:1fr 110px auto; gap:8px; margin-top:8px; }
+  .toggle { display:flex; gap:10px; align-items:center; margin-top:10px; }
+  .toggle input { width:20px; height:20px; accent-color:var(--orange); }
+  @media (max-width:760px){
+    .qf { grid-template-columns:1fr 1fr; }
+    .qf .full { grid-column:1 / -1; }
+    .grid { grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+    .tile .nm { font-size:16px; }
+    .cartbar .btn { min-width:0; }
+    .lt .hide-m { display:none; }
+  }
+  #toast { position:fixed; left:50%; bottom:calc(92px + env(safe-area-inset-bottom)); transform:translateX(-50%); background:#1f1f1f; border:1px solid var(--border2); padding:10px 16px; border-radius:10px; display:none; z-index:70; max-width:90vw; text-align:center; }
+  #toast.show { display:block; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="index.html">BUILDER<span>DOGS</span></a>
+  <span class="sp"></span>
+  <a class="l" href="legends.html">Card values</a>
+  <a class="l" href="inventory.html">My collection</a>
+  <button class="own" id="own-btn" hidden onclick="toggleManage()">Manage store</button>
+</header>
+
+<main class="wrap">
+  <section id="store">
+    <h1>Buy Legends cards</h1>
+    <p class="lede" id="lede">Rise of the Pack singles from <b id="seller">our</b> collection. Add cards to your cart, then pay with Shop Pay, card or DOGE.</p>
+    <div class="closed" id="closed" hidden>The store is closed right now. Check back soon.</div>
+    <div class="tools">
+      <input class="search" id="q" placeholder="Search name or number…" oninput="renderGrid()" autocomplete="off">
+      <div class="chips" id="vchips">
+        <button class="chip on" data-v="" onclick="setVer(this)">All</button>
+        <button class="chip" data-v="base" onclick="setVer(this)">Base</button>
+        <button class="chip" data-v="holo" onclick="setVer(this)">Holo</button>
+        <button class="chip" data-v="fullart" onclick="setVer(this)">Full art</button>
+      </div>
+      <select class="sel" id="cls" onchange="renderGrid()" aria-label="Class"><option value="">All classes</option></select>
+      <select class="sel" id="sort" onchange="renderGrid()" aria-label="Sort">
+        <option value="num">Card number</option>
+        <option value="low">Price: low to high</option>
+        <option value="high">Price: high to low</option>
+      </select>
+    </div>
+    <div class="count" id="count"></div>
+    <div class="grid" id="grid"><div class="empty">Loading cards…</div></div>
+  </section>
+
+  <section id="manage" hidden></section>
+</main>
+
+<div class="cartbar" id="cartbar" hidden><div class="in-bar">
+  <div class="sum" id="cart-sum"></div>
+  <button class="btn primary" onclick="openCart()">View cart</button>
+</div></div>
+
+<div class="drawer-bg" id="cart-bg" onclick="if(event.target.id==='cart-bg')closeCart()">
+  <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <h3><span id="cart-title">Your cart</span><button class="x" onclick="closeCart()" aria-label="Close">×</button></h3>
+    <div id="cart-lines"></div>
+    <div id="cart-ship"></div>
+    <div class="tots" id="cart-tots"></div>
+    <div id="checkout">
+      <h2>Your details</h2>
+      <div class="fine" style="margin-top:0">Only the seller sees your email and address.</div>
+      <label class="f" for="b-handle">X handle</label>
+      <input class="in" id="b-handle" placeholder="@yourhandle" autocapitalize="off" autocomplete="off">
+      <label class="f" for="b-name">Name</label>
+      <input class="in" id="b-name" autocomplete="name">
+      <label class="f" for="b-email">Email</label>
+      <input class="in" id="b-email" type="email" autocomplete="email" inputmode="email">
+      <label class="f" for="b-addr">Shipping address</label>
+      <textarea class="in" id="b-addr" autocomplete="street-address" placeholder="Street, city, state, ZIP"></textarea>
+      <div class="msg" id="cart-msg"></div>
+      <button class="btn primary block" style="margin-top:14px;min-height:52px;font-size:18px" id="place" onclick="placeOrder()">Continue to payment</button>
+      <p class="fine" id="hold-note"></p>
+    </div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const SB_URL = 'https://hhscynnazxzwdicobpkl.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI';
+const db = window.supabase.createClient(SB_URL, SB_KEY);
+const CARDS = (window.DDL_CARDS || []).filter(c => !c.sealed);
+const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
+const VER = { base:'Base', holo:'Holo', fullart:'Full Art' };
+const CART_KEY = 'ddl-shop-cart';
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const money = n => '$' + (Number(n) || 0).toFixed(2);
+const store = { get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+                set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2600); }
+const keyOf = (id, v) => id + '|' + v;
+
+let shop = null, items = [], ver = '', cart = store.get(CART_KEY, []), shipIdx = 0;
+let mine = null, owned = {}, session = null;
+
+/* ══════════════ STORE (visitors) ══════════════ */
+async function loadShop(){
+  const { data, error } = await db.rpc('get_shop');
+  if(error || !data){
+    $('grid').innerHTML = `<div class="empty">${error && /get_shop|schema cache/i.test(error.message) ? 'The store isn\'t switched on yet.' : 'Couldn\'t load the store. Check your connection and refresh.'}</div>`;
+    return;
+  }
+  shop = data; items = data.items || [];
+  if(data.seller_handle){ $('seller').textContent = '@' + data.seller_handle + '\'s'; }
+  $('closed').hidden = data.open;
+  shipIdx = Math.min(store.get('ddl-shop-ship', 0), (data.shipping || []).length - 1);
+  // keep the cart honest: drop sold-out cards, cap at what's available
+  const avail = Object.fromEntries(items.map(i => [keyOf(i.card_id, i.variant), i]));
+  const before = cart.reduce((t,l)=>t+l.qty,0);
+  cart = cart.filter(l => avail[keyOf(l.card_id, l.variant)]).map(l => Object.assign(l, { qty: Math.min(l.qty, avail[keyOf(l.card_id, l.variant)].available) }));
+  if(cart.reduce((t,l)=>t+l.qty,0) < before) toast('Some cards in your cart sold out and were removed.');
+  saveCart();
+  renderGrid(); renderCartBar();
+}
+function setVer(b){ ver = b.dataset.v; document.querySelectorAll('#vchips .chip').forEach(x => x.classList.toggle('on', x === b)); renderGrid(); }
+function inCart(id, v){ return cart.find(l => l.card_id === id && l.variant === v); }
+function renderGrid(){
+  const q = $('q').value.trim().toLowerCase(), cl = $('cls').value, sort = $('sort').value;
+  let list = items.filter(i => {
+    const c = byId[i.card_id] || { name:i.title, class:'' };
+    if(ver && i.variant !== ver) return false;
+    if(cl && c.class !== cl) return false;
+    if(q && !((c.name||'').toLowerCase().includes(q) || i.card_id.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  list.sort((a,b) => sort === 'low' ? a.price - b.price : sort === 'high' ? b.price - a.price : (a.card_id + a.variant).localeCompare(b.card_id + b.variant));
+  $('count').textContent = items.length ? `${list.length} of ${items.length} listings` : '';
+  if(!items.length){ $('grid').innerHTML = `<div class="empty">Nothing for sale right now. Check back soon.</div>`; return; }
+  $('grid').innerHTML = list.length ? list.map(i => {
+    const c = byId[i.card_id] || { name:i.title };
+    const have = inCart(i.card_id, i.variant), left = i.available - (have ? have.qty : 0);
+    const opts = Array.from({ length: Math.max(1, Math.min(left, 20)) }, (_, k) => `<option>${k+1}</option>`).join('');
+    return `<article class="tile">
+      <div class="art">${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)} ${VER[i.variant]}" loading="lazy" onerror="this.style.visibility='hidden'">` : ''}</div>
+      <div class="info">
+        <div class="nm">${esc(c.name)} <span>${esc(i.card_id)}</span></div>
+        <div class="vt ${i.variant}">${VER[i.variant]}</div>
+        <div class="pr"><b>${money(i.price)}</b><small>${i.available} available</small></div>
+        <div class="add">
+          ${left > 0 ? `<select id="qs-${i.card_id}-${i.variant}" aria-label="Quantity">${opts}</select>
+          <button class="btn${have?' in':''}" onclick="addToCart('${i.card_id}','${i.variant}')">${have ? 'Add more' : 'Add'}</button>`
+          : `<button class="btn in" disabled>All ${have.qty} in cart</button>`}
+        </div>
+      </div></article>`;
+  }).join('') : `<div class="empty">No cards match. Try another search or version.</div>`;
+}
+function addToCart(id, v){
+  const it = items.find(i => i.card_id === id && i.variant === v); if(!it) return;
+  const n = parseInt(($('qs-' + id + '-' + v) || {}).value || '1', 10);
+  const l = inCart(id, v);
+  if(l) l.qty = Math.min(it.available, l.qty + n);
+  else cart.push({ card_id:id, variant:v, qty:Math.min(it.available, n) });
+  saveCart(); renderGrid(); renderCartBar();
+  toast(`Added ${n} × ${(byId[id]||{name:id}).name} ${VER[v]}`);
+}
+function saveCart(){ store.set(CART_KEY, cart); }
+function priceOf(l){ const it = items.find(i => i.card_id === l.card_id && i.variant === l.variant); return it ? Number(it.price) : 0; }
+const cartSub = () => cart.reduce((t,l) => t + priceOf(l) * l.qty, 0);
+const cartUnits = () => cart.reduce((t,l) => t + l.qty, 0);
+function renderCartBar(){
+  $('cartbar').hidden = !cart.length;
+  $('cart-sum').innerHTML = `${money(cartSub())}<small>${cartUnits()} card${cartUnits()===1?'':'s'} in cart</small>`;
+}
+function openCart(){ renderCart(); $('cart-bg').classList.add('show'); }
+function closeCart(){ $('cart-bg').classList.remove('show'); }
+function cartQty(i, d){
+  const l = cart[i], it = items.find(x => x.card_id === l.card_id && x.variant === l.variant);
+  l.qty += d;
+  if(l.qty < 1) cart.splice(i, 1); else if(it) l.qty = Math.min(it.available, l.qty);
+  saveCart(); renderCart(); renderGrid(); renderCartBar();
+  if(!cart.length) closeCart();
+}
+function renderCart(){
+  $('cart-lines').innerHTML = cart.map((l, i) => {
+    const c = byId[l.card_id] || { name:l.card_id };
+    return `<div class="cl">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+      <div><div class="t">${esc(c.name)} <span class="m">${esc(l.card_id)}</span></div><div class="m">${VER[l.variant]} · ${money(priceOf(l))} each</div>
+        <div class="qty"><button onclick="cartQty(${i},-1)" aria-label="Fewer">−</button><span>${l.qty}</span><button onclick="cartQty(${i},1)" aria-label="More">+</button></div></div>
+      <span style="font-family:'Oswald',sans-serif">${money(priceOf(l) * l.qty)}</span></div>`;
+  }).join('') || '<div class="fine">Your cart is empty.</div>';
+  const ships = (shop && shop.shipping) || [];
+  $('cart-ship').innerHTML = ships.length ? `<h2>Shipping</h2>` + ships.map((s, k) =>
+    `<label class="opt-row"><input type="radio" name="ship" ${k===shipIdx?'checked':''} onchange="shipIdx=${k};store.set('ddl-shop-ship',${k});renderTots()"><span>${esc(s.name)}</span><span class="p">${money(s.price)}</span></label>`).join('') : '';
+  renderTots();
+  const pays = [shop.pay_shop && 'Shop Pay or card', shop.pay_doge && 'DOGE', shop.pay_cash && 'cash'].filter(Boolean);
+  $('hold-note').textContent = `Next you'll pay with ${pays.join(', ').replace(/, ([^,]*)$/, ' or $1')}. Your cards are held for you for ${shop.hold_hours} hours.`;
+  const saved = store.get('ddl-shop-buyer', {});
+  ['handle','name','email','addr'].forEach(k => { if(saved[k] && !$('b-' + k).value) $('b-' + k).value = saved[k]; });
+  $('cart-msg').className = 'msg';
+  $('place').disabled = !cart.length || !shop.open;
+}
+function renderTots(){
+  const ship = shop && shop.shipping && shop.shipping[shipIdx] ? Number(shop.shipping[shipIdx].price) : 0;
+  $('cart-tots').innerHTML = `<div><span>Cards</span><span>${money(cartSub())}</span></div><div><span>Shipping</span><span>${money(ship)}</span></div><div class="g"><span>Total</span><span>${money(cartSub() + ship)}</span></div>`;
+}
+function cartError(m){ const e = $('cart-msg'); e.className = 'msg err'; e.textContent = m; e.scrollIntoView({ behavior:'smooth', block:'center' }); }
+async function placeOrder(){
+  const buyer = { handle:$('b-handle').value.trim(), name:$('b-name').value.trim(), contact:$('b-email').value.trim(), address:$('b-addr').value.trim(), shipping:shipIdx };
+  if(!/^@?[A-Za-z0-9_]{1,15}$/.test(buyer.handle)) return cartError('Enter your X handle so the seller can reach you.');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyer.contact)) return cartError('Enter a valid email.');
+  if(buyer.address.length < 10) return cartError('Enter your full shipping address.');
+  store.set('ddl-shop-buyer', { handle:buyer.handle, name:buyer.name, email:buyer.contact, addr:buyer.address });
+  const btn = $('place'); btn.disabled = true; btn.textContent = 'Reserving your cards…';
+  try {
+    const { data, error } = await db.rpc('shop_checkout', { p_cart: cart.map(l => ({ card_id:l.card_id, variant:l.variant, qty:l.qty })), p_buyer: buyer });
+    if(error) throw error;
+    cart = []; saveCart();
+    location.href = 'pay.html?i=' + data.id + '&new=1';
+  } catch(e){
+    btn.disabled = false; btn.textContent = 'Continue to payment';
+    // refresh stock, update the open cart to what's left, then show why
+    await loadShop();
+    if(cart.length) renderCart(); else closeCart();
+    const m = (e.message || 'Couldn\'t place the order. Try again.');
+    cartError(cart.length && /left of|sold out/.test(m)
+      ? m.replace(/ (Lower the quantity|Remove it) and try again\./, '') + ' Your cart has been updated. Check it and tap Continue.'
+      : m);
+  }
+}
+
+/* ══════════════ MANAGE STORE (owner only) ══════════════ */
+function marketFor(id, v){
+  if(!window.DDL_PRICE) return { p:null, src:'none' };
+  const r = DDL_PRICE.get(id, v);
+  if(r.typical != null) return { p:Math.round(r.typical*100)/100, src:'sold' };
+  if(r.estimate) return { p:Math.round(r.estimate.value*100)/100, src:'est' };
+  return { p:null, src:'none' };
+}
+const SRC = { sold:'Sold avg', est:'Estimate', none:'No data', you:'Your price' };
+const titleOf = (id, v) => `${byId[id] ? byId[id].name : id} ${id} ${VER[v]}`;
+const versionsOf = c => c.fullArt ? ['fullart'] : ['base','holo'];
+let dirty = {};
+
+async function checkOwner(){
+  const { data } = await db.auth.getSession();
+  session = data.session;
+  if(!session) return;
+  const r = await db.rpc('get_my_shop');
+  if(r.error || !r.data) return;
+  mine = r.data;
+  $('own-btn').hidden = false;
+  if(location.hash === '#manage') toggleManage(true);
+}
+async function loadOwned(){
+  owned = {};
+  const { data } = await db.from('card_inventory').select('card_id,variant,qty').eq('user_id', session.user.id);
+  (data || []).forEach(r => { const k = keyOf(r.card_id, r.variant); owned[k] = (owned[k] || 0) + r.qty; });
+}
+const listedQty = (id, v) => { const l = mine.listings.find(x => x.card_id === id && x.variant === v); return l ? l.qty : 0; };
+
+async function toggleManage(force){
+  const show = force === true ? true : $('manage').hidden;
+  $('manage').hidden = !show; $('store').hidden = show; $('cartbar').hidden = show || !cart.length;
+  $('own-btn').textContent = show ? 'View store' : 'Manage store';
+  history.replaceState(null, '', show ? '#manage' : location.pathname);
+  if(show){ await loadOwned(); renderManage(); }
+  else { await loadShop(); }
+}
+async function refreshMine(){ const r = await db.rpc('get_my_shop'); if(r.data) mine = r.data; await loadOwned(); dirty = {}; renderManage(); }
+
+function renderManage(){
+  const ownedCards = CARDS.filter(c => versionsOf(c).some(v => owned[keyOf(c.id, v)] > 0));
+  $('manage').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap">
+      <div><h1>Manage store</h1><p class="lede">List cards from your collection. Prices start at the eBay sold average (or the estimate) and you can change any of them.</p></div>
+      <a class="btn small" href="invoices.html">Orders</a>
+    </div>
+
+    <h2>Quick add</h2>
+    <div class="panel">
+      <div class="qf">
+        <div class="full"><label for="qf-card">Card</label><select class="sel" id="qf-card" onchange="qfCard()">
+          <option value="">Choose a card you own…</option>
+          ${ownedCards.map(c => `<option value="${c.id}">${c.id} · ${esc(c.name)}</option>`).join('')}</select></div>
+        <div><label for="qf-ver">Version</label><select class="sel" id="qf-ver" onchange="qfVer()" disabled><option>—</option></select></div>
+        <div><label for="qf-qty">Qty</label><select class="sel" id="qf-qty" disabled><option>—</option></select></div>
+        <div><label for="qf-price">Price each <span class="src" id="qf-src"></span></label><input class="in" id="qf-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" oninput="$('qf-src').className='src you';$('qf-src').textContent=SRC.you"></div>
+        <div class="full"><button class="btn primary block" id="qf-add" onclick="qfAdd()" disabled>List it</button></div>
+      </div>
+      <div class="bulk">
+        <span class="fine" style="margin:0">Bulk:</span>
+        <select class="sel" id="bk-what" aria-label="What to list">
+          <option value="extras">Extras (keep 1 of each)</option>
+          <option value="extras-holo">Extra holos (keep 1)</option>
+          <option value="extras-base">Extra base (keep 1)</option>
+          <option value="fullart">All full arts I own</option>
+          <option value="all">Everything I own</option>
+        </select>
+        <select class="sel" id="bk-price" aria-label="Price">
+          <option value="1">at market</option><option value="0.9">at −10%</option><option value="0.8">at −20%</option><option value="1.1">at +10%</option>
+        </select>
+        <button class="btn small" onclick="bulkList()">List them</button>
+      </div>
+      <div class="msg" id="qf-msg"></div>
+    </div>
+
+    <h2>Your listings (${mine.listings.length})</h2>
+    <div class="panel">
+      ${mine.listings.length ? `<div class="scroll"><table class="lt"><thead><tr><th>Card</th><th class="num">Listed</th><th class="num hide-m">You own</th><th class="num hide-m">In carts</th><th class="num">Price</th><th class="hide-m">Market</th><th></th></tr></thead><tbody>
+        ${mine.listings.map((l, i) => { const mk = marketFor(l.card_id, l.variant), own = owned[keyOf(l.card_id, l.variant)] || 0; return `<tr id="lr-${i}">
+          <td><b>${esc(byId[l.card_id] ? byId[l.card_id].name : l.card_id)}</b> <span class="vt ${l.variant}">${VER[l.variant]}</span>${own < l.qty ? `<div class="src none">Only ${own} owned</div>` : ''}</td>
+          <td class="num"><input class="q" type="number" min="0" max="500" value="${l.qty}" oninput="markDirty(${i})" aria-label="Listed quantity"></td>
+          <td class="num hide-m">${own}</td><td class="num hide-m">${l.held || ''}</td>
+          <td class="num"><input type="number" min="0" step="0.01" value="${Number(l.price).toFixed(2)}" oninput="markDirty(${i})" aria-label="Price"></td>
+          <td class="hide-m">${mk.p != null ? `<span class="src ${mk.src}">${money(mk.p)}</span>` : '<span class="src none">—</span>'}</td>
+          <td><button class="x" style="font-size:20px" onclick="unlist(${i})" aria-label="Remove listing">×</button></td></tr>`; }).join('')}
+      </tbody></table></div>
+      <div class="bulk"><button class="btn primary small" onclick="saveListings()">Save changes</button>
+        <button class="btn small" onclick="repriceAll(1)">Reprice all to market</button>
+        <button class="btn small ghost" onclick="unlistAll()">Remove all</button></div>`
+      : `<p class="fine">No listings yet. Use Quick add or a bulk option above.</p>`}
+      <div class="msg" id="lt-msg"></div>
+    </div>
+
+    <h2>Store settings</h2>
+    <div class="panel" id="settings">
+      <label class="toggle"><input type="checkbox" id="st-open" ${mine.open?'checked':''}> Store is open</label>
+      <label class="f">Shipping options</label>
+      <div id="st-ship">${mine.shipping.map((s,k) => shipRow(s, k)).join('')}</div>
+      <button class="btn small ghost" style="margin-top:8px" onclick="addShip()">+ Add shipping option</button>
+      <label class="f">How buyers can pay</label>
+      <label class="toggle"><input type="checkbox" id="st-shop" ${mine.pay_shop?'checked':''}> Shop Pay / card</label>
+      <label class="toggle"><input type="checkbox" id="st-doge" ${mine.pay_doge?'checked':''}> DOGE</label>
+      <input class="in" id="st-doge-addr" style="margin-top:8px" placeholder="Your DOGE wallet address" value="${esc(mine.doge_address || store.get('ddl-doge-address',''))}" autocapitalize="off" spellcheck="false">
+      <label class="toggle"><input type="checkbox" id="st-cash" ${mine.pay_cash?'checked':''}> Cash (arranged on X)</label>
+      <label class="f" for="st-hold">Hold cards for a buyer for</label>
+      <select class="sel" id="st-hold">${[2,6,12,24,48,72].map(h => `<option value="${h}" ${h===mine.hold_hours?'selected':''}>${h} hours</option>`).join('')}</select>
+      <label class="f" for="st-note">Note on every order <span style="text-transform:none;color:var(--muted)">optional</span></label>
+      <textarea class="in" id="st-note" maxlength="500" placeholder="e.g. Cards ship in a penny sleeve and top loader within 2 business days.">${esc(mine.note || '')}</textarea>
+      <button class="btn primary" style="margin-top:12px" onclick="saveSettings()">Save settings</button>
+      <div class="msg" id="st-msg"></div>
+    </div>`;
+}
+function shipRow(s, k){ return `<div class="ship-row"><input class="in" value="${esc(s.name)}" placeholder="e.g. Envelope, no tracking" maxlength="60" aria-label="Shipping name"><input class="in" type="number" min="0" step="0.01" value="${Number(s.price).toFixed(2)}" aria-label="Shipping price"><button class="x" onclick="this.parentNode.remove()" aria-label="Remove option">×</button></div>`; }
+function addShip(){ const d = document.createElement('div'); d.innerHTML = shipRow({ name:'', price:0 }); $('st-ship').appendChild(d.firstChild); }
+function qmsg(id, m, ok){ const e = $(id); e.className = 'msg ' + (ok ? 'ok' : 'err'); e.textContent = m; }
+
+function qfCard(){
+  const id = $('qf-card').value, vs = $('qf-ver');
+  if(!id){ vs.disabled = true; vs.innerHTML = '<option>—</option>'; $('qf-qty').disabled = true; $('qf-add').disabled = true; return; }
+  const c = byId[id];
+  const opts = versionsOf(c).filter(v => owned[keyOf(id, v)] > 0);
+  vs.innerHTML = opts.map(v => `<option value="${v}">${VER[v]} (own ${owned[keyOf(id, v)]})</option>`).join('');
+  vs.disabled = false; qfVer();
+}
+function qfVer(){
+  const id = $('qf-card').value, v = $('qf-ver').value;
+  const max = Math.max(1, owned[keyOf(id, v)] || 1), cur = listedQty(id, v);
+  $('qf-qty').innerHTML = Array.from({ length: Math.min(max, 100) }, (_, k) => `<option ${k+1===(cur||1)?'selected':''}>${k+1}</option>`).join('');
+  $('qf-qty').disabled = false;
+  const ex = mine.listings.find(x => x.card_id === id && x.variant === v), mk = marketFor(id, v);
+  $('qf-price').value = ex ? Number(ex.price).toFixed(2) : (mk.p != null ? mk.p.toFixed(2) : '');
+  $('qf-src').className = 'src ' + (ex ? 'you' : mk.src); $('qf-src').textContent = ex ? 'Listed' : SRC[mk.src];
+  $('qf-add').disabled = false;
+  $('qf-add').textContent = ex ? 'Update listing' : 'List it';
+}
+async function qfAdd(){
+  const id = $('qf-card').value, v = $('qf-ver').value, qty = parseInt($('qf-qty').value, 10), price = parseFloat($('qf-price').value);
+  if(isNaN(price) || price < 0) return qmsg('qf-msg', 'Enter a price.');
+  const r = await db.rpc('set_shop_listings', { p_items: [{ card_id:id, variant:v, title:titleOf(id, v), qty, price:Math.round(price*100)/100 }] });
+  if(r.error) return qmsg('qf-msg', r.error.message);
+  await refreshMine(); toast(`Listed ${qty} × ${titleOf(id, v)} at ${money(price)}`);
+  $('qf-card').focus();
+}
+async function bulkList(){
+  const what = $('bk-what').value, f = parseFloat($('bk-price').value), out = [], noPrice = [];
+  CARDS.forEach(c => versionsOf(c).forEach(v => {
+    const n = owned[keyOf(c.id, v)] || 0; if(!n) return;
+    let q = 0;
+    if(what === 'extras') q = n - 1;
+    else if(what === 'extras-holo') q = v === 'holo' ? n - 1 : 0;
+    else if(what === 'extras-base') q = v === 'base' ? n - 1 : 0;
+    else if(what === 'fullart') q = v === 'fullart' ? n : 0;
+    else if(what === 'all') q = n;
+    if(q <= 0) return;
+    const mk = marketFor(c.id, v);
+    if(mk.p == null){ noPrice.push(titleOf(c.id, v)); return; }
+    out.push({ card_id:c.id, variant:v, title:titleOf(c.id, v), qty:Math.min(500, q), price:Math.round(mk.p * f * 100)/100 });
+  }));
+  if(!out.length) return qmsg('qf-msg', noPrice.length ? 'None of those cards have a price yet. List them one at a time with Quick add.' : 'Nothing to list for that choice.');
+  const units = out.reduce((t,x)=>t+x.qty,0), value = out.reduce((t,x)=>t+x.qty*x.price,0);
+  if(!confirm(`List ${out.length} cards (${units} copies, ${money(value)} total)? Existing listings for these cards will be updated.${noPrice.length ? `\n\n${noPrice.length} card(s) have no price data and will be skipped.` : ''}`)) return;
+  const r = await db.rpc('set_shop_listings', { p_items: out });
+  if(r.error) return qmsg('qf-msg', r.error.message);
+  await refreshMine(); qmsg('qf-msg', `Listed ${out.length} cards (${units} copies).` + (noPrice.length ? ` Skipped ${noPrice.length} with no price data.` : ''), true);
+}
+function markDirty(i){ dirty[i] = true; $('lr-' + i).classList.add('dirty'); }
+async function saveListings(){
+  const rows = Object.keys(dirty).map(i => {
+    const l = mine.listings[i], tr = $('lr-' + i), ins = tr.querySelectorAll('input');
+    return { card_id:l.card_id, variant:l.variant, title:l.title, qty:Math.max(0, parseInt(ins[0].value || '0', 10)), price:Math.round(parseFloat(ins[1].value || '0') * 100) / 100 };
+  });
+  if(!rows.length) return qmsg('lt-msg', 'No changes to save.', true);
+  const r = await db.rpc('set_shop_listings', { p_items: rows });
+  if(r.error) return qmsg('lt-msg', r.error.message);
+  await refreshMine(); toast('Listings saved.');
+}
+async function unlist(i){
+  const l = mine.listings[i];
+  const r = await db.rpc('set_shop_listings', { p_items: [{ card_id:l.card_id, variant:l.variant, title:l.title, qty:0 }] });
+  if(r.error) return qmsg('lt-msg', r.error.message);
+  await refreshMine(); toast('Listing removed.');
+}
+async function unlistAll(){
+  if(!confirm(`Remove all ${mine.listings.length} listings from the store? Your collection isn't changed.`)) return;
+  const r = await db.rpc('set_shop_listings', { p_items: mine.listings.map(l => ({ card_id:l.card_id, variant:l.variant, title:l.title, qty:0 })) });
+  if(r.error) return qmsg('lt-msg', r.error.message);
+  await refreshMine(); toast('All listings removed.');
+}
+async function repriceAll(f){
+  const rows = [], skip = [];
+  mine.listings.forEach(l => { const mk = marketFor(l.card_id, l.variant); if(mk.p == null) skip.push(l.title); else rows.push({ card_id:l.card_id, variant:l.variant, title:l.title, qty:l.qty, price:Math.round(mk.p * f * 100)/100 }); });
+  if(!rows.length) return qmsg('lt-msg', 'No listings have market data to reprice.');
+  if(!confirm(`Set ${rows.length} listing prices to the current market price?${skip.length ? ` ${skip.length} without data keep their price.` : ''}`)) return;
+  const r = await db.rpc('set_shop_listings', { p_items: rows });
+  if(r.error) return qmsg('lt-msg', r.error.message);
+  await refreshMine(); toast('Prices updated to market.');
+}
+async function saveSettings(){
+  const ship = [...document.querySelectorAll('#st-ship .ship-row')].map(r => { const i = r.querySelectorAll('input'); return { name:i[0].value.trim(), price:Math.round(parseFloat(i[1].value || '0') * 100) / 100 }; });
+  const doge = $('st-doge-addr').value.trim();
+  const r = await db.rpc('save_shop_settings', { p: { open:$('st-open').checked, shipping:ship, pay_shop:$('st-shop').checked, pay_doge:$('st-doge').checked,
+    pay_cash:$('st-cash').checked, doge_address: doge || null, hold_hours:parseInt($('st-hold').value, 10), note:$('st-note').value } });
+  if(r.error) return qmsg('st-msg', r.error.message);
+  if(doge) store.set('ddl-doge-address', doge);
+  await refreshMine(); qmsg('st-msg', 'Settings saved.', true);
+}
+
+/* ══════════════ BOOT ══════════════ */
+[...new Set(CARDS.map(c => c.class).filter(Boolean))].sort().forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; $('cls').appendChild(o); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCart(); });
+loadShop().then(checkOwner);
+</script>
+</body>
+</html>

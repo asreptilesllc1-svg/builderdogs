@@ -1757,7 +1757,7 @@ function renderBinderHead(q){
     <div class="bh-stat"><div class="bh-lbl">Master set</div><div class="bh-num">${versOwned}<span>/203</span></div><div class="bh-bar"><i style="width:${pct(versOwned,203)}%"></i></div></div>
     ${val ? `<div class="bh-stat"><div class="bh-lbl">Collection value</div><div class="bh-num">${DDL_PRICE.money(val.typical+val.estimated)}</div><div class="bh-sub">Range ${DDL_PRICE.money(val.conservative)}–${DDL_PRICE.money(val.high)}</div></div>` : ''}
     <div class="bh-sets">
-      <div class="bh-btns"><button class="set-btn primary" onclick="openSale()">Build a sale</button><a class="set-btn" href="invoices.html" style="text-decoration:none">Invoices</a><button class="set-btn" onclick="openSet()">Remove a full set</button></div>
+      <div class="bh-btns"><button class="set-btn primary" onclick="openSale()">Build a sale</button><a class="set-btn" href="invoices.html" style="text-decoration:none">Invoices</a><a class="set-btn" href="cards.html#manage" style="text-decoration:none">Store</a><button class="set-btn" onclick="openSet()">Remove a full set</button></div>
       <div class="bh-sub">Complete sets: ${setsHeld(q,'base')} base · ${setsHeld(q,'holo')} holo</div>
     </div>
   </div>`;

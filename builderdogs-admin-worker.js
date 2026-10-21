@@ -12,7 +12,8 @@
 //
 //   3. POST /shopify/invoice → create a Shopify checkout link (Shop Pay)
 //      POST /shopify/status  → check whether that checkout was paid
-//      Only the store owner (signed in to builderdogs.com) can use these.
+//      Only the store owner (signed in to builderdogs.com) can use these,
+//      except that a fresh Buy Cards order may request its own Shop Pay link once.
 //
 // Secrets required (set in Cloudflare dashboard):
 //   ADMIN_PASSWORD       — your strong admin password (12+ characters)
@@ -355,16 +356,28 @@ const money2 = n => (Math.round(Number(n) * 100) / 100).toFixed(2);
 
 async function handleShopify(path, request, env, origin) {
   if (!env.SHOPIFY_SHOP || !env.OWNER_USER_ID) return json({ error: 'Shop Pay isn\'t set up yet.' }, 503, origin);
-  const owner = await signedInOwner(request, env);
-  if (!owner) return json({ error: 'Sign in as the store owner to use Shop Pay invoices.' }, 401, origin);
-
   let body;
   try { body = await request.json(); } catch (e) { return json({ error: 'Invalid JSON' }, 400, origin); }
   const id = body && body.invoice_id;
   if (!/^[0-9a-f-]{36}$/i.test(String(id || ''))) return json({ error: 'Missing invoice id' }, 400, origin);
 
-  const found = await supabase(env, 'GET', `invoices?id=eq.${id}&user_id=eq.${owner.id}&select=*`);
-  const inv = found.ok && Array.isArray(found.data) ? found.data[0] : null;
+  let owner = await signedInOwner(request, env);
+  let inv = null;
+  if (owner) {
+    const found = await supabase(env, 'GET', `invoices?id=eq.${id}&user_id=eq.${owner.id}&select=*`);
+    inv = found.ok && Array.isArray(found.data) ? found.data[0] : null;
+  } else if (path === '/shopify/invoice') {
+    // A buyer who just checked out on the Buy Cards page (not signed in) may
+    // request the Shop Pay link once, for a fresh store order only.
+    const found = await supabase(env, 'GET', `invoices?id=eq.${id}&user_id=eq.${env.OWNER_USER_ID}&source=eq.shop&status=eq.open&shop_url=is.null&select=*`);
+    inv = found.ok && Array.isArray(found.data) ? found.data[0] : null;
+    if (!inv || !inv.pay_shop || Date.now() - new Date(inv.created_at).getTime() > 30 * 60 * 1000) {
+      return json({ error: 'Sign in as the store owner to use Shop Pay invoices.' }, 401, origin);
+    }
+    owner = { id: env.OWNER_USER_ID };
+  } else {
+    return json({ error: 'Sign in as the store owner to use Shop Pay invoices.' }, 401, origin);
+  }
   if (!inv) return json({ error: 'Invoice not found.' }, 404, origin);
 
   if (path === '/shopify/status') {
