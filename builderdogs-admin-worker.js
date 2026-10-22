@@ -25,6 +25,11 @@
 //   SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET — from your Dev Dashboard app
 //     (or SHOPIFY_ADMIN_TOKEN if you have an older shpat_ admin token)
 //
+//   4. GET /shopify/install  → one-time "Connect Shopify" (store owner approves)
+//      GET /shopify/callback → Shopify sends the approval back; the permanent
+//      store key is saved privately in Supabase (table shop_secrets) and used
+//      for checkout links. Nobody ever has to copy the key by hand.
+//
 // The service_role key bypasses RLS and is NEVER sent to the browser.
 // ══════════════════════════════════════════════════
 
@@ -170,6 +175,9 @@ export default {
     // error still comes back WITH CORS headers (otherwise the browser
     // reports a misleading "No Access-Control-Allow-Origin" error).
     try {
+      const path = new URL(request.url).pathname;
+      if (request.method === 'GET' && path === '/shopify/install') return await shopifyInstall(request, env);
+      if (request.method === 'GET' && path === '/shopify/callback') return await shopifyCallback(request, env);
       return await route(request, env, origin);
     } catch (err) {
       return json({ error: 'Server error', detail: String(err && err.message || err) }, 500, origin);
@@ -315,6 +323,13 @@ let shopifyToken = null, shopifyTokenExp = 0;   // cached per Worker instance
 async function shopifyAccessToken(env) {
   if (env.SHOPIFY_ADMIN_TOKEN) return env.SHOPIFY_ADMIN_TOKEN;
   if (shopifyToken && Date.now() < shopifyTokenExp) return shopifyToken;
+  // The key saved by "Connect Shopify" (permanent until the app is uninstalled)
+  const saved = await supabase(env, 'GET', 'shop_secrets?id=eq.1&select=access_token,shop');
+  const row = saved.ok && Array.isArray(saved.data) ? saved.data[0] : null;
+  if (row && row.access_token && row.shop === `${env.SHOPIFY_SHOP}.myshopify.com`) {
+    shopifyToken = row.access_token; shopifyTokenExp = Date.now() + 10 * 60 * 1000;   // re-check every 10 min
+    return shopifyToken;
+  }
   if (!env.SHOPIFY_CLIENT_ID || !env.SHOPIFY_CLIENT_SECRET) throw new Error('Shopify is not connected yet.');
   const res = await fetch(`https://${env.SHOPIFY_SHOP}.myshopify.com/admin/oauth/access_token`, {
     method: 'POST',
@@ -322,7 +337,7 @@ async function shopifyAccessToken(env) {
     body: new URLSearchParams({ grant_type: 'client_credentials', client_id: env.SHOPIFY_CLIENT_ID, client_secret: env.SHOPIFY_CLIENT_SECRET }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.access_token) throw new Error('Shopify login failed' + (data.error ? ': ' + data.error : '') + '.');
+  if (!res.ok || !data.access_token) throw new Error('Shopify isn\'t connected yet. Open the Connect Shopify link once (see setup steps).' + (data.error ? ' (' + data.error + ')' : ''));
   shopifyToken = data.access_token;
   shopifyTokenExp = Date.now() + (Math.max(300, (data.expires_in || 86399)) - 120) * 1000;
   return shopifyToken;
@@ -355,6 +370,10 @@ async function signedInOwner(request, env) {
 const money2 = n => (Math.round(Number(n) * 100) / 100).toFixed(2);
 
 async function handleShopify(path, request, env, origin) {
+  try { return await handleShopifyInner(path, request, env, origin); }
+  catch (e) { return json({ error: String(e && e.message || e) }, 502, origin); }
+}
+async function handleShopifyInner(path, request, env, origin) {
   if (!env.SHOPIFY_SHOP || !env.OWNER_USER_ID) return json({ error: 'Shop Pay isn\'t set up yet.' }, 503, origin);
   let body;
   try { body = await request.json(); } catch (e) { return json({ error: 'Invalid JSON' }, 400, origin); }
@@ -416,4 +435,76 @@ async function handleShopify(path, request, env, origin) {
     { shop_url: out.draftOrder.invoiceUrl, shop_draft_id: out.draftOrder.id, updated_at: new Date().toISOString() });
   if (!upd.ok) return json({ error: 'Saved in Shopify but could not update the invoice.' }, 502, origin);
   return json({ ok: true, shop_url: out.draftOrder.invoiceUrl, shopify_total: out.draftOrder.totalPriceSet && out.draftOrder.totalPriceSet.shopMoney.amount }, 200, origin);
+}
+
+// ── One-time "Connect Shopify" (authorization code grant) ─────────
+// Works for your own live store (no developer organization needed).
+const SHOPIFY_SCOPES = 'write_draft_orders,read_draft_orders,read_orders';
+const enc = new TextEncoder();
+async function hmacHex(secret, msg) {
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
+  return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0;
+}
+function page(title, body, ok) {
+  return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title>
+<style>body{margin:0;background:#0a0a0a;color:#f0ece0;font:18px/1.5 system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+.c{max-width:460px;background:#141414;border:1px solid #2a2a2a;border-radius:14px;padding:24px}h1{font-size:24px;margin:0 0 8px;color:${ok ? '#22c55e' : '#f87171'}}a{color:#f97316}</style></head>
+<body><div class="c"><h1>${title}</h1>${body}</div></body></html>`, { status: ok ? 200 : 400, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
+}
+function shopDomain(env) { return `${env.SHOPIFY_SHOP}.myshopify.com`; }
+async function verifyShopifyQuery(url, env) {
+  const p = new URLSearchParams(url.search);
+  const given = p.get('hmac') || '';
+  p.delete('hmac'); p.delete('signature');
+  const msg = [...p.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([k, v]) => `${k}=${v}`).join('&');
+  return safeEqual(await hmacHex(env.SHOPIFY_CLIENT_SECRET, msg), given);
+}
+
+async function shopifyInstall(request, env) {
+  if (!env.SHOPIFY_SHOP || !env.SHOPIFY_CLIENT_ID || !env.SHOPIFY_CLIENT_SECRET) {
+    return page('Not set up yet', '<p>Add SHOPIFY_SHOP, SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET to the Worker secrets first.</p>', false);
+  }
+  const url = new URL(request.url);
+  // If Shopify sent us here after an install, make sure it's really Shopify and your store
+  if (url.searchParams.get('hmac') && (!(await verifyShopifyQuery(url, env)) || url.searchParams.get('shop') !== shopDomain(env))) {
+    return page('Wrong store', '<p>This request didn\'t come from your Shopify store.</p>', false);
+  }
+  const ts = String(Date.now());
+  const state = `${ts}.${await hmacHex(env.SHOPIFY_CLIENT_SECRET, 'state:' + ts)}`;
+  const redirect = `${url.origin}/shopify/callback`;
+  const auth = `https://${shopDomain(env)}/admin/oauth/authorize?client_id=${encodeURIComponent(env.SHOPIFY_CLIENT_ID)}`
+    + `&scope=${encodeURIComponent(SHOPIFY_SCOPES)}&redirect_uri=${encodeURIComponent(redirect)}&state=${encodeURIComponent(state)}`;
+  return Response.redirect(auth, 302);
+}
+
+async function shopifyCallback(request, env) {
+  const url = new URL(request.url), q = url.searchParams;
+  if (!env.SHOPIFY_CLIENT_SECRET) return page('Not set up yet', '<p>Worker secrets are missing.</p>', false);
+  if (q.get('shop') !== shopDomain(env)) return page('Wrong store', '<p>That approval came from a different store.</p>', false);
+  if (!(await verifyShopifyQuery(url, env))) return page('Couldn\'t verify Shopify', '<p>The approval signature didn\'t match. Start again from the Connect Shopify link.</p>', false);
+  const [ts, sig] = String(q.get('state') || '').split('.');
+  if (!ts || !sig || !safeEqual(await hmacHex(env.SHOPIFY_CLIENT_SECRET, 'state:' + ts), sig) || Date.now() - Number(ts) > 10 * 60 * 1000) {
+    return page('Link expired', '<p>That approval took too long or was reused. Open the Connect Shopify link again.</p>', false);
+  }
+  const res = await fetch(`https://${shopDomain(env)}/admin/oauth/access_token`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ client_id: env.SHOPIFY_CLIENT_ID, client_secret: env.SHOPIFY_CLIENT_SECRET, code: q.get('code') }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.access_token) return page('Shopify said no', `<p>Shopify didn't return a key${data.error ? ' (' + String(data.error).replace(/[<>&"]/g, '') + ')' : ''}. Open the Connect Shopify link again.</p>`, false);
+  const scopes = String(data.scope || '');
+  if (!scopes.includes('write_draft_orders')) return page('Missing permission', '<p>The app needs the <b>write_draft_orders</b> permission. Add it to the app version in the Dev Dashboard, release, and connect again.</p>', false);
+  const saved = await fetch(`${env.SUPABASE_URL}/rest/v1/shop_secrets?on_conflict=id`, {
+    method: 'POST',
+    headers: { 'apikey': env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify({ id: 1, shop: shopDomain(env), access_token: data.access_token, scope: scopes, updated_at: new Date().toISOString() }),
+  });
+  if (!saved.ok) return page('Almost there', '<p>Shopify approved, but the key couldn\'t be saved. Run <b>shopify_connect.sql</b> in Supabase, then open the Connect Shopify link again.</p>', false);
+  shopifyToken = data.access_token; shopifyTokenExp = Date.now() + 10 * 60 * 1000;
+  return page('Shopify connected ✓', '<p>Shop Pay checkout links are ready. Turn on <b>Shop Pay / card</b> in Manage store and in your invoices.</p><p><a href="https://builderdogs.com/cards.html#manage">Open Manage store</a></p>', true);
 }
