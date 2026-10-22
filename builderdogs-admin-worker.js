@@ -326,12 +326,12 @@ async function shopifyAccessToken(env) {
   // The key saved by "Connect Shopify" (permanent until the app is uninstalled)
   const saved = await supabase(env, 'GET', 'shop_secrets?id=eq.1&select=access_token,shop');
   const row = saved.ok && Array.isArray(saved.data) ? saved.data[0] : null;
-  if (row && row.access_token && row.shop === `${env.SHOPIFY_SHOP}.myshopify.com`) {
+  if (row && row.access_token && row.shop === shopDomain(env)) {
     shopifyToken = row.access_token; shopifyTokenExp = Date.now() + 10 * 60 * 1000;   // re-check every 10 min
     return shopifyToken;
   }
   if (!env.SHOPIFY_CLIENT_ID || !env.SHOPIFY_CLIENT_SECRET) throw new Error('Shopify is not connected yet.');
-  const res = await fetch(`https://${env.SHOPIFY_SHOP}.myshopify.com/admin/oauth/access_token`, {
+  const res = await fetch(`https://${shopDomain(env)}/admin/oauth/access_token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'client_credentials', client_id: env.SHOPIFY_CLIENT_ID, client_secret: env.SHOPIFY_CLIENT_SECRET }),
@@ -346,7 +346,7 @@ async function shopifyAccessToken(env) {
 async function shopifyGraphQL(env, query, variables) {
   const token = await shopifyAccessToken(env);
   const version = env.SHOPIFY_API_VERSION || SHOPIFY_API_VERSION_DEFAULT;
-  const res = await fetch(`https://${env.SHOPIFY_SHOP}.myshopify.com/admin/api/${version}/graphql.json`, {
+  const res = await fetch(`https://${shopDomain(env)}/admin/api/${version}/graphql.json`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Shopify-Access-Token': token },
     body: JSON.stringify({ query, variables }),
@@ -456,7 +456,10 @@ function page(title, body, ok) {
 .c{max-width:460px;background:#141414;border:1px solid #2a2a2a;border-radius:14px;padding:24px}h1{font-size:24px;margin:0 0 8px;color:${ok ? '#22c55e' : '#f87171'}}a{color:#f97316}</style></head>
 <body><div class="c"><h1>${title}</h1>${body}</div></body></html>`, { status: ok ? 200 : 400, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
-function shopDomain(env) { return `${env.SHOPIFY_SHOP}.myshopify.com`; }
+// Accepts "mystore", "mystore.myshopify.com" or "https://mystore.myshopify.com/"
+function shopName(env) { return String(env.SHOPIFY_SHOP || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/\.myshopify\.com$/, ''); }
+function shopDomain(env) { return `${shopName(env)}.myshopify.com`; }
+const escHtml = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
 async function verifyShopifyQuery(url, env) {
   const p = new URLSearchParams(url.search);
   const given = p.get('hmac') || '';
@@ -471,8 +474,12 @@ async function shopifyInstall(request, env) {
   }
   const url = new URL(request.url);
   // If Shopify sent us here after an install, make sure it's really Shopify and your store
-  if (url.searchParams.get('hmac') && (!(await verifyShopifyQuery(url, env)) || url.searchParams.get('shop') !== shopDomain(env))) {
-    return page('Wrong store', '<p>This request didn\'t come from your Shopify store.</p>', false);
+  if (url.searchParams.get('hmac')) {
+    if (!(await verifyShopifyQuery(url, env))) return page('Couldn\'t verify Shopify', '<p>This request didn\'t come from your Shopify app. Check that SHOPIFY_CLIENT_SECRET matches the app\'s Client secret.</p>', false);
+    if (url.searchParams.get('shop') !== shopDomain(env)) {
+      const reported = url.searchParams.get('shop') || '';
+      return page('Wrong store name', `<p>Shopify says your store is <b>${escHtml(reported)}</b>, but the Worker secret <b>SHOPIFY_SHOP</b> is set to <b>${escHtml(shopName(env))}</b>.</p><p>In Cloudflare, change SHOPIFY_SHOP to <b>${escHtml(reported.replace('.myshopify.com', ''))}</b>, deploy, then open the Connect link again.</p>`, false);
+    }
   }
   const ts = String(Date.now());
   const state = `${ts}.${await hmacHex(env.SHOPIFY_CLIENT_SECRET, 'state:' + ts)}`;
@@ -485,7 +492,12 @@ async function shopifyInstall(request, env) {
 async function shopifyCallback(request, env) {
   const url = new URL(request.url), q = url.searchParams;
   if (!env.SHOPIFY_CLIENT_SECRET) return page('Not set up yet', '<p>Worker secrets are missing.</p>', false);
-  if (q.get('shop') !== shopDomain(env)) return page('Wrong store', '<p>That approval came from a different store.</p>', false);
+  if (q.get('shop') !== shopDomain(env)) {
+    const reported = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(q.get('shop') || '') ? q.get('shop') : null;
+    return page('Wrong store name', reported
+      ? `<p>Shopify says your store is <b>${escHtml(reported)}</b>, but the Worker secret <b>SHOPIFY_SHOP</b> is set to <b>${escHtml(shopName(env))}</b>.</p><p>In Cloudflare, change SHOPIFY_SHOP to <b>${escHtml(reported.replace('.myshopify.com', ''))}</b>, deploy, then open the Connect link again.</p>`
+      : '<p>That approval came from a different store.</p>', false);
+  }
   if (!(await verifyShopifyQuery(url, env))) return page('Couldn\'t verify Shopify', '<p>The approval signature didn\'t match. Start again from the Connect Shopify link.</p>', false);
   const [ts, sig] = String(q.get('state') || '').split('.');
   if (!ts || !sig || !safeEqual(await hmacHex(env.SHOPIFY_CLIENT_SECRET, 'state:' + ts), sig) || Date.now() - Number(ts) > 10 * 60 * 1000) {
