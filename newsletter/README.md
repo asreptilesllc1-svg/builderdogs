@@ -32,8 +32,8 @@ Requires Node 18 or newer. Nothing to install.
    - Optional but recommended: add WebP copies next to each JPG/PNG: `name.webp` (full
      size) and `name-800.webp` (800 px wide). The script uses them automatically when they
      exist, and the JPG/PNG remains the fallback. Free ways to make them: `cwebp` from
-     libwebp, Squoosh (squoosh.app), or
-     `python3 -c "from PIL import Image; ..."`.
+     libwebp (`cwebp -q 80 name.jpg -o name.webp` and
+     `cwebp -q 80 -resize 800 0 name.jpg -o name-800.webp`), or Squoosh (squoosh.app) in the browser.
    - Share image: save a 1200×630 `og.jpg` in the folder and keep `image: img/issue-2/og.jpg`.
      If you remove the `image:` line, the first image in the issue is used instead.
 4. Delete the `draft: true` line, then rebuild:
