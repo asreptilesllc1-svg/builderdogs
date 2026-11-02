@@ -6,6 +6,7 @@ week: Week of Oct 26 – Nov 1, 2026
 byline: from BuilderDogs (@BooMetaX)
 date: 2026-11-02
 description: Issue #2 of the BuilderDogs Legends Report: DD Miami (Dec 7-9) and the new Dog Pod studio, @Hofers repeats as King of the Hill, a $212.50 AGS 10 Shiboshi, and the pack diving into Grok Bot.
+image: img/issue-2/og.jpg
 summary: DD Miami is five weeks out, @Hofers is King of the Hill again, an AGS 10 Shiboshi sells for $212.50, and the pack dives into Grok Bot.
 ---
 
@@ -18,6 +19,9 @@ How to start:
 - **Learn:** the official rules at [ddltcg.com/rules](https://ddltcg.com/rules).
 - **Try it:** the free browser beta at [ddltcg.com/play](https://ddltcg.com/play) has a built-in tutorial.
 - **Collect:** the official booster box (24 packs of 10 cards) is $179 on [shop.doginaldogs.com](https://shop.doginaldogs.com/products/doginal-dogs-legends-rise-of-the-pack-booster-box). As of Nov 2, the shop shows it as **not available (sold out)**. Singles trade on eBay, and [builderdogs.com](/legends) tracks what they actually sell for.
+
+![The Doginal Dogs Legends Rise of the Pack booster box, 24 booster packs, on the Legends gold background](img/issue-2/1-booster-box-art.jpg)
+*Image: @DDLTCG. The Rise of the Pack booster box, sold out on the official shop as of Nov 2. [ddltcg.com](https://ddltcg.com/)*
 
 ## Top story: DD Miami is five weeks out
 DD Miami, the next big Doginal Dogs gathering, runs **Dec 7 to 9, 2026** in Miami. The event page lists the **DDL Miami Championship**, "the first DDL championship," with an Apply button ([doginaldogs.com/events-2026/ddmiami-2026](https://doginaldogs.com/events-2026/ddmiami-2026)). Issue #1 covered @DDLTCG's Oct 24 announcement: Dec 9, 11am to 3pm, at Collectors Club, with an online round robin the week before and the top 16 playing in person ([Issue #1](https://builderdogs.com/newsletter/issue-1)).
@@ -60,6 +64,9 @@ Grading means sending a card to a company that checks its condition and seals it
 - **15 sealed Rise of the Pack booster packs:** sold for **$150** on an accepted offer (Nov 1), about $10 a pack. For comparison, the official $179 box works out to about $7.46 a pack. [builderdogs.com/sets-sales](/sets-sales.html)
 
 These are past sales, not price predictions. Most cards have only a few sales, so treat any single sale as a data point, not a value.
+
+![A Rise of the Pack booster pack fanned out with Doginal Dogs Legends cards](img/issue-2/2-rise-of-the-pack-hero.jpg)
+*Image: @DDLTCG. [ddltcg.com](https://ddltcg.com/)*
 
 ## From the garage
 *Boo's own posts this week. Kept separate from the news above.*
