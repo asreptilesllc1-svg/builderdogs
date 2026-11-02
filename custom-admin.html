@@ -162,7 +162,8 @@ function safeUrl(url) {
     if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
     // must end in an allowed image extension (ignore any query string)
     const path = u.pathname.toLowerCase();
-    if (/\.(png|jpe?g|webp|gif)$/.test(path)) return u.href;
+    // no quotes, brackets or backslashes anywhere in the final URL
+    if (/\.(png|jpe?g|webp|gif)$/.test(path) && !/["'<>\\`\s]/.test(u.href)) return u.href;
   } catch(e) {}
   return '';
 }
@@ -172,8 +173,16 @@ function safeUrl(url) {
 // only for this browser tab, so closing the tab signs you out.
 const ADMIN_API = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
 let adminPw = null;
-try { adminPw = sessionStorage.getItem('bd-admin-pw'); } catch(e) {}
+// The password lives only in this variable (memory). It is never written to
+// sessionStorage or the page, so reloading the page signs you out.
+try { sessionStorage.removeItem('bd-admin-pw'); } catch(e) {}  // clear copies saved by older versions
 let authed = !!adminPw;
+
+// One click handler for data-driven buttons (no inline handlers built from data)
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-open-id]');
+  if (b) openModal(b.dataset.openId);
+});
 
 async function adminApi(action, params) {
   const resp = await fetch(ADMIN_API, {
@@ -196,7 +205,6 @@ async function adminLogin(pw, errEl) {
   adminPw = pw;
   try {
     await adminApi('verify_password');
-    try { sessionStorage.setItem('bd-admin-pw', pw); } catch(e) {}
     authed = true;
     return true;
   } catch(e) {
@@ -366,7 +374,7 @@ function renderTable() {
               <td style="color:var(--orange);font-size:12px;">${escapeHtml(r.budget)}</td>
               <td><span class="badge badge-${escapeHtml(r.status)}">${escapeHtml(r.status)}</span></td>
               <td style="color:var(--muted);font-size:12px;">${new Date(r.created_at).toLocaleDateString()}</td>
-              <td><button class="btn-action btn-view" onclick="openModal('${escapeHtml(r.id)}')">View</button></td>
+              <td><button class="btn-action btn-view" data-open-id="${escapeHtml(r.id)}">View</button></td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -391,7 +399,7 @@ function openModal(id) {
     <div class="detail-row"><div class="detail-label">Design</div><div class="detail-val">${escapeHtml(r.design_description)}</div></div>
     <div class="detail-row"><div class="detail-label">Instructions</div><div class="detail-val">${escapeHtml(r.special_instructions) || '—'}</div></div>
     <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-val">${new Date(r.created_at).toLocaleString()}</div></div>
-    ${r.ref_image_url && safeUrl(r.ref_image_url) ? `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-val"><img src="${escapeHtml(safeUrl(r.ref_image_url))}" class="ref-image" onclick="window.open('${escapeHtml(safeUrl(r.ref_image_url))}','_blank')" /></div></div>` : ''}
+    ${r.ref_image_url && safeUrl(r.ref_image_url) ? `<div class="detail-row"><div class="detail-label">Reference</div><div class="detail-val"><a href="${escapeHtml(safeUrl(r.ref_image_url))}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(safeUrl(r.ref_image_url))}" class="ref-image" alt="Reference image" /></a></div></div>` : ''}
     <div style="margin-top:16px;">
       <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Admin Notes</div>
       <textarea class="notes-input" id="modal-notes" placeholder="Add notes, quote details, follow-up info...">${escapeHtml(r.admin_notes || '')}</textarea>

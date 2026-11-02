@@ -146,7 +146,7 @@ const CATS = ['Complete sets','Card lots','Sealed product','Cards + merch'];
 const SET_SIZE = 92;
 let cat = 'all';
 
-const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));  // escapes quotes too, safe in attributes
 const money = n => '$' + (n >= 100 ? Math.round(n).toLocaleString() : n.toFixed(2));
 const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
 const confirmed = x => x.k !== 'best_offer';

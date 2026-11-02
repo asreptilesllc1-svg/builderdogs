@@ -486,7 +486,7 @@ const MAX_COPIES = 3;             // max copies of one card (adjust when rules c
 function curDeck(){ return (decks[currentDeckId] && decks[currentDeckId].cards) || {}; }
 
 /* ══════════════ INIT ══════════════ */
-function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function esc(s){ return s==null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }  // escapes quotes too, safe in attributes
 
 function populateSelects() {
   const classOpts = META.CLASSES.map(c => `<option>${esc(c)}</option>`).join('');

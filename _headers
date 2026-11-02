@@ -1,0 +1,35 @@
+# Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/)
+# Applies to every page and file on builderdogs.com.
+#
+# CSP notes:
+# - script-src keeps 'unsafe-inline' because the site uses inline <script> blocks and
+#   hundreds of inline onclick handlers; a static site can't issue per-request nonces.
+#   Script hosts are still limited to this site and two pinned, SRI-checked CDNs.
+# - img-src allows any https: image because market listings and card data show
+#   images from many hosts (ddltcg.com, Supabase storage, user links).
+# - When you add a new third-party service, add its host to the matching directive.
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https://ice4.somafm.com https://*.somafm.com https://www.wefunkradio.com https://*.wefunkradio.com; connect-src 'self' https://hhscynnazxzwdicobpkl.supabase.co wss://hhscynnazxzwdicobpkl.supabase.co https://builderdogs-admin.asreptilesllc1.workers.dev https://builderdogs-email.asreptilesllc1.workers.dev https://api.coingecko.com https://api.open-meteo.com https://api.zippopotam.us https://cloudflareinsights.com; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Admin and private pages: never cache, never index
+/custom-admin*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+/market-admin*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+/verify-admin*
+  Cache-Control: no-store
+  X-Robots-Tag: noindex, nofollow
+/invoices*
+  X-Robots-Tag: noindex, nofollow
+/invoice*
+  X-Robots-Tag: noindex, nofollow
+/pay*
+  X-Robots-Tag: noindex, nofollow

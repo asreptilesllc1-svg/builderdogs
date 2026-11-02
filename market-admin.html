@@ -76,7 +76,9 @@
 // only for this browser tab, so closing the tab signs you out.
 const ADMIN_API = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
 let adminPw = null;
-try { adminPw = sessionStorage.getItem('bd-admin-pw'); } catch(e) {}
+// The password lives only in this variable (memory). It is never written to
+// sessionStorage or the page, so reloading the page signs you out.
+try { sessionStorage.removeItem('bd-admin-pw'); } catch(e) {}  // clear copies saved by older versions
 let authed = !!adminPw;
 
 async function adminApi(action, params) {
@@ -100,7 +102,6 @@ async function adminLogin(pw, errEl) {
   adminPw = pw;
   try {
     await adminApi('verify_password');
-    try { sessionStorage.setItem('bd-admin-pw', pw); } catch(e) {}
     authed = true;
     return true;
   } catch(e) {
@@ -118,7 +119,15 @@ function adminSignOut() {
 let listings = [];
 let filter = 'pending';
 
-function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function esc(s){ return s==null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }  // escapes quotes too, safe in attributes
+// Only show http(s) image links; anything else is dropped
+function safeImg(u){ try { const x=new URL(u); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch(e){ return ''; } }
+// One click handler for listing buttons (no inline handlers built from data)
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  if(b.dataset.act==='status') setStatus(b.dataset.id, b.dataset.status);
+  else if(b.dataset.act==='delete') delListing(b.dataset.id);
+});
 function cleanHandle(h){ return (h||'').trim().replace(/^@+/,'').replace(/[^A-Za-z0-9_]/g,''); }
 
 function render(){
@@ -187,7 +196,7 @@ function renderList(){
     const wantsRow = l.wants ? `<div class="l-field"><span class="k">Wants</span> <span class="v">${esc(l.wants)}</span></div>` : '';
     const itemLbl = l.category==='merch' ? 'Item' : 'Cards';
     const cardsRow = l.cards ? `<div class="l-field"><span class="k">${itemLbl}</span> <span class="v">${esc(l.cards)}</span></div>` : '';
-    const imgRow = (l.category==='merch' && l.image_url) ? `<div style="margin:10px 0"><img src="${esc(l.image_url)}" style="max-width:180px;max-height:180px;border-radius:8px;border:1px solid var(--border2);cursor:pointer" onclick="window.open('${esc(l.image_url)}','_blank')"></div>` : '';
+    const imgRow = (l.category==='merch' && l.image_url) ? `<div style="margin:10px 0">${safeImg(l.image_url) ? `<a href="${esc(safeImg(l.image_url))}" target="_blank" rel="noopener noreferrer"><img src="${esc(safeImg(l.image_url))}" alt="Listing image" style="max-width:180px;max-height:180px;border-radius:8px;border:1px solid var(--border2);cursor:pointer"></a>` : ''}</div>` : '';
     const catPill = `<span class="pill" style="background:rgba(249,115,22,0.15);color:var(--orange)">${l.category==='merch'?'MERCH':'CARD'}</span>`;
     const detailsRow = l.details ? `<div class="l-field"><span class="k">Details</span> <span class="v">${esc(l.details)}</span></div>` : '';
     return `
@@ -202,9 +211,9 @@ function renderList(){
         ${imgRow}${cardsRow}${priceRow}${wantsRow}${detailsRow}
         <div class="l-field l-handle"><span class="k">Contact</span> <a href="https://x.com/${handle}" target="_blank" rel="noopener">@${esc(handle)}</a></div>
         <div class="l-actions">
-          ${l.status!=='approved' ? `<button class="act act-approve" onclick="setStatus('${l.id}','approved')">✓ Approve</button>` : ''}
-          ${l.status!=='rejected' ? `<button class="act act-reject" onclick="setStatus('${l.id}','rejected')">✕ Reject</button>` : ''}
-          <button class="act act-delete" onclick="delListing('${l.id}')">Delete</button>
+          ${l.status!=='approved' ? `<button class="act act-approve" data-act="status" data-id="${esc(l.id)}" data-status="approved">✓ Approve</button>` : ''}
+          ${l.status!=='rejected' ? `<button class="act act-reject" data-act="status" data-id="${esc(l.id)}" data-status="rejected">✕ Reject</button>` : ''}
+          <button class="act act-delete" data-act="delete" data-id="${esc(l.id)}">Delete</button>
         </div>
       </div>`;
   }).join('');
