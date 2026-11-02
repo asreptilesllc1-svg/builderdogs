@@ -110,7 +110,7 @@
 <header class="hero">
   <p class="hero-eyebrow">▸ eBay sold prices</p>
   <h1>SETS <span>&amp; LOTS</span></h1>
-  <p>Complete sets, card lots and card + merch bundles. These are kept separate, so they never change a single card's value in the <a href="legends.html" style="color:var(--orange);text-decoration:underline;">Legends</a> guide.</p>
+  <p>Complete sets, card lots, sealed packs and card + merch bundles. These are kept separate, so they never change a single card's value in the <a href="legends.html" style="color:var(--orange);text-decoration:underline;">Legends</a> guide.</p>
   <div class="switch"><a href="merch-sales.html">Merch</a><a href="sets-sales.html" class="on">Sets &amp; lots</a></div>
 </header>
 
@@ -139,7 +139,7 @@
 <script>
 const S = window.DDL_SALES || { bundles: [], meta: {} };
 const ITEMS = (S.bundles || []);
-const CATS = ['Complete sets','Card lots','Cards + merch'];
+const CATS = ['Complete sets','Card lots','Sealed product','Cards + merch'];
 const SET_SIZE = 92;
 let cat = 'all';
 
@@ -181,10 +181,10 @@ function render(){
   const rows = list.map(x => `<div class="row${confirmed(x) ? '' : ' asking'}">
       <span class="r-date">${fmtDate(x.d)}</span>
       <span class="r-title">${esc(x.t)}</span>
-      <span class="r-n">${x.n || '—'}</span>
+      <span class="r-n">${x.n || (x.packs ? x.packs + ' packs' : '—')}</span>
       <span class="r-type">${typeLabel(x)}${confirmed(x) ? '' : '<span class="tag-ask">asking</span>'}</span>
       <span class="r-price">${money(x.p)}</span>
-      <span class="r-per">${x.n ? '$' + (x.p / x.n).toFixed(2) : '—'}</span>
+      <span class="r-per">${x.n ? '$' + (x.p / x.n).toFixed(2) : x.packs ? '$' + (x.p / x.packs).toFixed(2) + '/pack' : '—'}</span>
     </div>`).join('');
   document.getElementById('table').innerHTML = head + (rows || `<div class="empty">No sales in this category yet.</div>`);
 }
