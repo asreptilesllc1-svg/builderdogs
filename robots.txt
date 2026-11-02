@@ -1,0 +1,11 @@
+# builderdogs.com
+User-agent: *
+Allow: /
+Disallow: /custom-admin
+Disallow: /market-admin
+Disallow: /verify-admin
+Disallow: /invoice
+Disallow: /invoices
+Disallow: /pay
+
+Sitemap: https://builderdogs.com/sitemap.xml

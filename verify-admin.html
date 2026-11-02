@@ -161,8 +161,16 @@ function escapeHtml(str) {
 // only for this browser tab, so closing the tab signs you out.
 const ADMIN_API = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
 let adminPw = null;
-try { adminPw = sessionStorage.getItem('bd-admin-pw'); } catch(e) {}
+// The password lives only in this variable (memory). It is never written to
+// sessionStorage or the page, so reloading the page signs you out.
+try { sessionStorage.removeItem('bd-admin-pw'); } catch(e) {}  // clear copies saved by older versions
 let authed = !!adminPw;
+
+// One click handler for data-driven buttons (no inline handlers built from data)
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-open-id]'); if (o) return openModal(o.dataset.openId);
+  const d = e.target.closest('[data-del-id]'); if (d) return deleteEntry(d.dataset.delId);
+});
 
 async function adminApi(action, params) {
   const resp = await fetch(ADMIN_API, {
@@ -185,7 +193,6 @@ async function adminLogin(pw, errEl) {
   adminPw = pw;
   try {
     await adminApi('verify_password');
-    try { sessionStorage.setItem('bd-admin-pw', pw); } catch(e) {}
     authed = true;
     return true;
   } catch(e) {
@@ -267,7 +274,7 @@ async function loadGuestbook() {
           <div class="gb-meta">${escapeHtml(e.trade || 'Builder')} · ${escapeHtml(e.trait || '')} · ${new Date(e.created_at).toLocaleString()}</div>
           <div class="gb-msg">${escapeHtml(e.message)}</div>
         </div>
-        ${e.name !== 'BooMetaX' ? `<button class="btn-delete" onclick="deleteEntry('${escapeHtml(e.id)}')">✕ Remove</button>` : '<span style="font-size:10px;color:#333;padding:5px;">📌 Pinned</span>'}
+        ${e.name !== 'BooMetaX' ? `<button class="btn-delete" data-del-id="${escapeHtml(e.id)}">✕ Remove</button>` : '<span style="font-size:10px;color:#333;padding:5px;">📌 Pinned</span>'}
       </div>
     `).join('');
   } catch(err) {
@@ -407,7 +414,7 @@ function renderTable() {
               <td>${r.trait ? `<span class="badge badge-approved">${escapeHtml(r.trait)}</span>` : '<span style="color:#333;font-size:11px;">Not set</span>'}</td>
               <td><span class="badge badge-${escapeHtml(r.status)}">${escapeHtml(r.status)}</span></td>
               <td style="color:var(--muted);font-size:11px;">${new Date(r.submitted_at).toLocaleDateString()}</td>
-              <td><button onclick="openModal('${escapeHtml(r.id)}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">Review</button></td>
+              <td><button data-open-id="${escapeHtml(r.id)}" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;cursor:pointer;">Review</button></td>
             </tr>`).join('')}
         </tbody>
       </table>

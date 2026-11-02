@@ -21,7 +21,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@BooMetaX">
 <meta name="twitter:image" content="https://builderdogs.com/legends-share.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" integrity="sha384-UagCvVPT5XXA0Hx+nJYUAGBFseHT9zBgpJMSebsAxl9lciTwbT+39j5VfRjdP5Tp" crossorigin="anonymous"></script>
 <script src="ddl-cards.js"></script>
 <script src="ddl-sales.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
@@ -644,7 +644,7 @@ let authView = 'signin'; // 'signin' | 'signup'
 let viewMode = 'binder';
 let statScope = 'mine';
 
-function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function esc(s){ return s==null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }  // escapes quotes too, safe in attributes
 function cleanHandle(h){ return (h||'').trim().replace(/^@+/,'').replace(/[^A-Za-z0-9_]/g,''); }
 
 function getDeviceToken(){

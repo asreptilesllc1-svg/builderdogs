@@ -15,7 +15,7 @@
 <meta property="og:description" content="View and pay your Builder Dogs invoice.">
 <meta property="og:image" content="https://builderdogs.com/share.png">
 <script src="ddl-cards.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" integrity="sha384-8FWZA6BGMXhsfO+BLtrJK0We6gg5o1JyO8xQm6peWDEUs17ACA5ziE/NIAkl9z2k" crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --border:#262626; --border2:#363636;
@@ -75,7 +75,7 @@ const WORKER = 'https://builderdogs-admin.asreptilesllc1.workers.dev';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2N5bm5henh6d2RpY29icGtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MDI0NjYsImV4cCI6MjA5MTE3ODQ2Nn0.Pb_PvqfSsnvv8aWHli_L0Us1L7U250QzPzEF2NPgMxI';
 const byId = Object.fromEntries((window.DDL_CARDS || []).map(c => [c.id, c]));
 const $ = id => document.getElementById(id);
-const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));  // escapes quotes too, safe in attributes
 const money = n => '$' + (Number(n) || 0).toFixed(2);
 const fmtDate = d => new Date(d).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
 function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2400); }

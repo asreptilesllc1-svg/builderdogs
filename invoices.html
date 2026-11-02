@@ -10,7 +10,7 @@
 <title>Invoices — Builder Dogs</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0a0a0a">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" integrity="sha384-UagCvVPT5XXA0Hx+nJYUAGBFseHT9zBgpJMSebsAxl9lciTwbT+39j5VfRjdP5Tp" crossorigin="anonymous"></script>
 <script src="ddl-cards.js"></script>
 <script src="ddl-sales.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
@@ -159,7 +159,7 @@ let draft = null;      // invoice being edited
 let current = null;    // invoice being viewed
 
 const $ = id => document.getElementById(id);
-const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; };
+const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));  // escapes quotes too, safe in attributes
 const money = n => '$' + (Number(n) || 0).toFixed(2);
 const fmtDate = d => new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 const store = { get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },

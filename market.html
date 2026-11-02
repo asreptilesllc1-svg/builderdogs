@@ -21,7 +21,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@BooMetaX">
 <meta name="twitter:image" content="https://builderdogs.com/legends-share.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js" integrity="sha384-UagCvVPT5XXA0Hx+nJYUAGBFseHT9zBgpJMSebsAxl9lciTwbT+39j5VfRjdP5Tp" crossorigin="anonymous"></script>
 <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;500;600;700&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -260,7 +260,9 @@ let submitCat = 'card';
 let uploadedImageUrl = null;
 const UPLOAD_ENDPOINT = 'https://builderdogs-admin.asreptilesllc1.workers.dev/upload';
 
-function esc(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+function esc(s){ return s==null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }  // escapes quotes too, safe in attributes
+// Only show http(s) image links; anything else is dropped
+function safeImg(u){ try { const x=new URL(u); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch(e){ return ''; } }
 function cleanHandle(h){ return (h||'').trim().replace(/^@+/,'').replace(/[^A-Za-z0-9_]/g,''); }
 
 async function loadListings(){
@@ -314,7 +316,7 @@ function renderListings(){
       ? `<div class="listing-row"><span class="lbl">${itemLbl}</span><span class="val">${esc(l.cards)}</span></div>` : '';
     const details = l.details ? `<div class="listing-details">${esc(l.details)}</div>` : '';
     const imgHtml = (l.category==='merch' && l.image_url)
-      ? `<img class="listing-img" src="${esc(l.image_url)}" alt="${esc(l.title)}" loading="lazy" onclick="window.open('${esc(l.image_url)}','_blank')">` : '';
+      ? (safeImg(l.image_url) ? `<a href="${esc(safeImg(l.image_url))}" target="_blank" rel="noopener noreferrer"><img class="listing-img" src="${esc(safeImg(l.image_url))}" alt="${esc(l.title)}" loading="lazy"></a>` : '') : '';
     const catTag = l.category==='merch' ? '<span class="type-pill" style="background:rgba(249,115,22,0.15);color:var(--orange);border:1px solid rgba(249,115,22,0.35)">Merch</span>' : '';
     return `
       <div class="listing">
