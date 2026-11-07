@@ -28,8 +28,11 @@
   Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
 /invoices*
+  Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
 /invoice*
+  Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
 /pay*
+  Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow
