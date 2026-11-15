@@ -520,7 +520,7 @@ function cardTile(c, opts={}) {
       </div>`;
   }
   const art = c.image
-    ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
+    ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="${esc(c.name)}" ${opts.eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="placeholder" style="display:none">${esc(c.name[0])}</span>`
     : `<span class="placeholder">${esc(c.name[0])}</span>`;
   const stat = c.type === 'Creature' ? `<span class="card-stat">${c.atk}/${c.hp}</span>` : `<span>${esc(c.type)}</span>`;
   const ownClass = '';
@@ -556,7 +556,7 @@ function renderGallery() {
       (co==='' || (co==='6' ? c.cost>=6 : c.cost===+co));
   });
   const grid = document.getElementById('gallery-grid');
-  grid.innerHTML = out.length ? out.map(c => cardTile(c)).join('')
+  grid.innerHTML = out.length ? out.map((c, i) => cardTile(c, { eager: i < 4 })).join('')
     : `<div class="empty-state" style="grid-column:1/-1">No cards match those filters.</div>`;
 }
 
