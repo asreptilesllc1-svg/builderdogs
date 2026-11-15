@@ -92,7 +92,8 @@
   .mobile-menu a:last-child { border-bottom: 0; color: var(--orange); }
 
   /* ── Sold tape ── */
-  .tape { display: flex; background: var(--orange); color: var(--ink); overflow: hidden; font-weight: 700; font-size: 16px; }
+  .tape { display: flex; background: var(--orange); color: var(--ink); overflow: hidden; font-weight: 700; font-size: 16px; min-height: 42px; }
+  .tape[hidden] { display: none; }
   .tape-label { flex: none; background: var(--ink); color: var(--orange); padding: 9px 16px; font-family: var(--display); font-size: 14px; letter-spacing: 0.5px; z-index: 1; }
   .tape-track { flex: 1; overflow: hidden; white-space: nowrap; padding: 9px 0; }
   .tape-inner { display: inline-block; animation: tape 70s linear infinite; }
@@ -122,6 +123,26 @@
   .btn-line { color: var(--cream); border-color: rgba(240,236,224,0.25); }
   .btn-line:hover { border-color: var(--cream); }
   .hero-note { margin-top: 22px; font-size: 16px; color: var(--faint); }
+
+  /* ── Card search ── */
+  .find { position: relative; max-width: 34em; margin: -8px 0 26px; }
+  .find-l { display: block; font-size: 15px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .find-box { display: flex; border: 2px solid var(--orange); border-radius: 6px; background: var(--panel); overflow: hidden; }
+  .find-box input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--cream); font-family: var(--body); font-size: 20px; padding: 13px 14px; outline: none; }
+  .find-box input::placeholder { color: var(--faint); }
+  .find-box button { flex: none; background: var(--orange); color: var(--ink); border: 0; font-family: var(--display); font-size: 15px; padding: 0 18px; cursor: pointer; }
+  .find-box:focus-within { box-shadow: 0 0 0 3px rgba(249,115,22,0.25); }
+  .find-list { position: absolute; z-index: 30; left: 0; right: 0; top: 100%; margin-top: 6px; list-style: none; background: var(--panel-2); border: 1px solid var(--line-hot); border-radius: 8px; box-shadow: 0 16px 40px rgba(0,0,0,0.55); max-height: 420px; overflow-y: auto; }
+  .find-list a { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 9px 12px; text-decoration: none; color: var(--cream); border-bottom: 1px solid var(--line); }
+  .find-list li:last-child a { border-bottom: 0; }
+  .find-list a:hover, .find-list a.on { background: rgba(249,115,22,0.12); }
+  .find-list img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; background: var(--panel); }
+  .find-list .nm { font-weight: 600; font-size: 18px; line-height: 1.2; }
+  .find-list .nm small { color: var(--dim); font-weight: 500; margin-left: 6px; font-size: 15px; }
+  .find-list .sub { display: block; color: var(--dim); font-size: 15px; }
+  .find-list .px { text-align: right; font-weight: 700; font-size: 17px; color: var(--gold); white-space: nowrap; }
+  .find-list .px small { display: block; color: var(--faint); font-weight: 500; font-size: 13px; }
+  .find-list .none { padding: 12px 14px; color: var(--dim); font-size: 16px; }
 
   /* The fanned hand of cards — the page's one big moment */
   .hand { position: relative; height: 480px; }
@@ -282,8 +303,8 @@
       <a href="inventory.html">My collection</a>
       <a href="market.html">Market</a>
       <a href="/newsletter/">Newsletter</a>
+      <a href="/design-shirt">Design a shirt</a>
       <a href="garage.html">Garage</a>
-      <a href="https://shop.builderdogs.com" target="_blank" rel="noopener" class="shop">Shop merch</a>
     </nav>
     <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="mobile-menu">Menu</button>
   </div>
@@ -292,15 +313,13 @@
     <a href="legends.html">Cards &amp; decks</a>
     <a href="inventory.html">My collection</a>
     <a href="market.html">Market</a>
-    <a href="merch-sales.html">Merch prices</a>
     <a href="/newsletter/">Newsletter</a>
     <a href="garage.html">Garage</a>
-    <a href="custom.html">Custom orders</a>
-    <a href="https://shop.builderdogs.com" target="_blank" rel="noopener">Shop merch</a>
+    <a href="/design-shirt">Design a shirt</a>
   </nav>
 </header>
 
-<div class="tape" id="tape" hidden>
+<div class="tape" id="tape">
   <div class="tape-label">Just sold</div>
   <div class="tape-track"><div class="tape-inner" id="tape-inner"></div></div>
 </div>
@@ -311,6 +330,14 @@
       <div>
         <h1>Know what your Legends are worth.</h1>
         <p class="hero-lede">Free tools for <strong>Doginal Dogs Legends</strong> collectors: real eBay sold prices for every card, a private collection tracker, a deck builder and a community market.</p>
+        <div class="find" id="find">
+          <label class="find-l" for="find-q">Look up a card's price</label>
+          <div class="find-box">
+            <input id="find-q" type="search" autocomplete="off" spellcheck="false" placeholder="Card name or number, e.g. Gary or V023" role="combobox" aria-expanded="false" aria-controls="find-list" aria-autocomplete="list">
+            <button type="button" id="find-go" aria-label="Search">Search</button>
+          </div>
+          <ul class="find-list" id="find-list" role="listbox" hidden></ul>
+        </div>
         <div class="btns">
           <a href="inventory.html" class="btn btn-solid">Track my collection</a>
           <a href="cards.html" class="btn btn-line">Buy cards</a>
@@ -356,6 +383,11 @@
           <h3>Card &amp; merch market</h3>
           <p>List cards or merch to sell, trade or find. Every listing is reviewed, and buyers reach you on X.</p>
           <span class="go">Visit the market</span>
+        </a>
+        <a class="tool" href="/design-shirt">
+          <h3>Make your own card shirt</h3>
+          <p>Pick any Legends card, choose a shirt color and see a free live preview. Download it or share it on X.</p>
+          <span class="go">Design a shirt</span>
         </a>
         <a class="tool" href="merch-sales.html">
           <h3>Merch sold prices</h3>
@@ -449,8 +481,9 @@
         <a href="merch-sales.html">Merch prices</a>
         <a href="sets-sales.html">Set prices</a>
         <a href="/newsletter/">Newsletter</a>
+        <a href="/design-shirt">Design a shirt</a>
         <a href="custom.html">Custom orders</a>
-        <a href="https://shop.builderdogs.com" target="_blank" rel="noopener">Shop</a>
+        <a href="https://shop.builderdogs.com" target="_blank" rel="noopener">Shop merch</a>
         <a href="https://x.com/BooMetaX" target="_blank" rel="noopener">@BooMetaX</a>
       </nav>
     </div>
@@ -472,7 +505,7 @@
 
   // Everything below uses the card + sales data; if it didn't load, the
   // page still works and the data sections simply stay hidden.
-  if (!window.DDL_CARDS || !window.DDL_SALES || !window.DDL_PRICE) return;
+  if (!window.DDL_CARDS || !window.DDL_SALES || !window.DDL_PRICE) { const t = document.getElementById('tape'); if (t) t.hidden = true; return; }
 
   const S = DDL_SALES, P = DDL_PRICE;
   const byId = {}; DDL_CARDS.forEach(c => byId[c.id] = c);
@@ -503,7 +536,7 @@
     const hand = document.getElementById('hand');
     hand.innerHTML = order.map(r => `
       <a href="${cardUrl(r.c.id)}" aria-label="${esc(r.c.name)} ${VER[r.v]}, sold for about ${P.money(r.value)}">
-        <img src="${esc(r.c.image)}" alt="" width="236" height="330" onerror="this.style.visibility='hidden'">
+        <img decoding="async" src="${esc(DDL_IMG(r.c,'full'))}" data-orig="${esc(r.c.image)}" alt="${esc(r.c.name)}" width="546" height="743" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">
         <span class="tag"><span>${esc(r.c.name)}</span>${P.money(r.value)}</span>
       </a>`).join('');
     hand.classList.add('deal');
@@ -514,7 +547,7 @@
   rank.innerHTML = ranked.slice(0, 8).map((r, i) => `
     <li><a href="${cardUrl(r.c.id)}">
       <span class="n">${i + 1}</span>
-      <img src="${esc(r.c.image)}" alt="" width="48" height="67" loading="lazy" onerror="this.style.visibility='hidden'">
+      <img decoding="async" src="${esc(DDL_IMG(r.c))}" data-orig="${esc(r.c.image)}" alt="${esc(r.c.name)}" width="360" height="490" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">
       <span><span class="name">${esc(r.c.name)}</span><br>
         <span class="meta">${VER[r.v]}, ${r.c.id}, ${r.n} sale${r.n === 1 ? '' : 's'}</span></span>
       <span class="val">${P.money(r.value)}</span>
@@ -536,11 +569,56 @@
 
   // Sold tape: latest 14 confirmed sales, newest first
   const latest = [...confirmed].sort((a, b) => b.d.localeCompare(a.d)).slice(0, 14);
+  if (!latest.length) document.getElementById('tape').hidden = true;
   if (latest.length) {
     const items = latest.map(s => `<span class="tape-item"><b>${esc(byId[s.id].name)}</b><span class="ver">${VER[s.v]}</span>${P.money(s.p)}</span>`).join('');
     document.getElementById('tape-inner').innerHTML = items + items;
     document.getElementById('tape').hidden = false;
   }
+})();
+
+// ── Card search: instant suggestions from ddl-cards.js; prices only from DDL_SALES / DDL_PRICE ──
+(function () {
+  const C = window.DDL_CARDS || [], S = window.DDL_SALES, P = window.DDL_PRICE;
+  const q = document.getElementById('find-q'), list = document.getElementById('find-list'), go = document.getElementById('find-go');
+  if (!q || !C.length) return;
+  const esc = s => s == null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const VER = { base: 'Base', holo: 'Holo', fullart: 'Full art' };
+  const lastSold = {};
+  if (S && S.sales) S.sales.filter(x => x.k !== 'best_offer').forEach(x => { if (!lastSold[x.id] || x.d > lastSold[x.id].d) lastSold[x.id] = x; });
+  const url = c => '/legends?card=' + encodeURIComponent(c.id);
+  let hits = [], sel = -1;
+  function find(raw) {
+    const t = raw.trim().toLowerCase(); if (!t) return [];
+    const m = t.match(/^#?v?0*(\d{1,3})$/);
+    const out = [];
+    if (m) { const id = 'V' + String(+m[1]).padStart(3, '0'); const c = C.find(x => x.id === id); if (c) out.push(c); }
+    const starts = C.filter(c => c.name.toLowerCase().startsWith(t) && !out.includes(c));
+    const has = C.filter(c => !c.name.toLowerCase().startsWith(t) && (c.name.toLowerCase().includes(t) || c.id.toLowerCase() === t) && !out.includes(c));
+    return out.concat(starts, has).slice(0, 8);
+  }
+  function row(c, i) {
+    const s = lastSold[c.id];
+    const price = s && P ? `<span class="px">${P.money(s.p)}<small>last sold · ${esc(VER[s.v] || s.v)} · ${esc(P.fmtDate(s.d))}</small></span>` : `<span class="px"><small>no confirmed sales yet</small></span>`;
+    const img = c.image ? `<img src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" width="360" height="490" loading="lazy" decoding="async" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : '<span></span>';
+    return `<li role="option" id="find-o${i}"><a href="${url(c)}"${i === sel ? ' class="on"' : ''}>${img}<span><span class="nm">${esc(c.name)}<small>${esc(c.id)}</small></span><span class="sub">${esc(c.class || '')} ${esc(c.type || '')}${c.fullArt ? ' · Full art' : ''}</span></span>${price}</a></li>`;
+  }
+  function show() {
+    hits = find(q.value);
+    if (!q.value.trim()) { list.hidden = true; q.setAttribute('aria-expanded', 'false'); return; }
+    list.innerHTML = hits.length ? hits.map(row).join('') : `<li class="none">No card matches "${esc(q.value.trim())}". Try a name like Gary or a number like V023.</li>`;
+    list.hidden = false; q.setAttribute('aria-expanded', 'true');
+  }
+  function open(i) { const c = hits[i < 0 ? 0 : i]; if (c) location.href = url(c); }
+  q.addEventListener('input', () => { sel = -1; show(); });
+  q.addEventListener('focus', show);
+  q.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!hits.length) return; sel = (sel + (e.key === 'ArrowDown' ? 1 : -1) + hits.length) % hits.length; show(); q.setAttribute('aria-activedescendant', 'find-o' + sel); }
+    else if (e.key === 'Enter') { e.preventDefault(); open(sel); }
+    else if (e.key === 'Escape') { list.hidden = true; q.setAttribute('aria-expanded', 'false'); }
+  });
+  go.addEventListener('click', () => { hits = find(q.value); if (hits.length) open(0); else { show(); q.focus(); } });
+  document.addEventListener('click', e => { if (!document.getElementById('find').contains(e.target)) list.hidden = true; });
 })();
 </script>
 </body>

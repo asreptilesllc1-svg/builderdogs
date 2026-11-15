@@ -884,7 +884,7 @@ function renderTable(){
   const body = groups.map(g=>{
     const c = byId[g.card_id];
     if(!c) return '';
-    const img = c.image ? `<img class="inv-thumb" src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div class="inv-thumb"></div>`;
+    const img = c.image ? `<img decoding="async" width="360" height="490" class="inv-thumb" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : `<div class="inv-thumb"></div>`;
     const pills = variantOrder.filter(v=>g.variants[v]).map(v=>{
       const info = g.variants[v];
       const cardIdJs = g.card_id.replace(/'/g,"\\'");
@@ -1016,7 +1016,7 @@ function renderMaster(){
 
   const grid = cardsInfo.length ? cardsInfo.map(info=>{
     const c = info.card;
-    const img = c.image ? `<img class="master-thumb" src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<div class="master-thumb"></div>`;
+    const img = c.image ? `<img decoding="async" width="360" height="490" class="master-thumb" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : `<div class="master-thumb"></div>`;
     const pills = info.versions.map(v=>{
       const got = info.got.includes(v);
       return `<span class="mv${got?' got':''}">${got?'✓ ':''}${variantLabel[v]}</span>`;
@@ -1268,7 +1268,7 @@ function renderChange(){
   const c = byId[chg.cardId];
   const have = ownedQty(chg.cardId, chg.variant);
   document.getElementById('chg-card').innerHTML =
-    `${c.image?`<img src="${esc(c.image)}" alt="" onerror="this.style.visibility='hidden'">`:''}
+    `${c.image?`<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">`:''}
      <div><div class="cn">${esc(c.name)} <span class="inv-id">${esc(c.id)}</span></div>
      <div class="cm">${VERSION_LABEL[chg.variant]} · you have ${have}</div></div>`;
   document.getElementById('chg-title').textContent =
@@ -1554,7 +1554,7 @@ function renderSalePick(){
       ? `<button class="sp-add in" onclick="saleAdd('${c.id}','${v}',1)">+1 · ${line.qty} in</button>`
       : `<button class="sp-add" onclick="saleAdd('${c.id}','${v}',${salePick.extras ? extra : 1})">+ Add${salePick.extras && extra>1 ? ' '+extra : ''}</button>`;
     return `<div class="sp-row">
-      ${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+      ${c.image ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : '<span></span>'}
       <div><div class="sp-name">${esc(c.name)} <span class="inv-id">${c.id}</span></div><div class="sp-meta"><span class="vtag ${v}">${VERSION_LABEL[v]}</span> · you have ${n}</div></div>
       ${price}${btn}</div>`;
   }).join('');
@@ -1623,7 +1623,7 @@ function renderSaleCart(){
     el.innerHTML = sale.lines.map((l,i) => {
       const c = byId[l.card_id] || { name:l.card_id };
       return `<div class="sc-row">
-        ${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+        ${c.image ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : '<span></span>'}
         <div><div class="sp-name">${esc(c.name)} <span class="inv-id">${l.card_id}</span></div>
           <div class="sp-meta"><span class="vtag ${l.variant}">${VERSION_LABEL[l.variant]}</span> · have ${have[l.card_id+'|'+l.variant]||0}</div></div>
         <div class="sc-qty"><button onclick="saleQty(${i},-1)" aria-label="Fewer">−</button><span>${l.qty}</span><button onclick="saleQty(${i},1)" aria-label="More">+</button><button class="max" onclick="saleQty(${i},'max')">All</button></div>
@@ -1731,7 +1731,7 @@ function binderTile(c, q){
       : `<span class="bv-n${n?' has':''}">${n||''}</span>`;
     return `<div class="bv-row ${v}"><span class="bv-label">${label}</span>${val}${step}</div>`;
   }).join('');
-  const img = c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="this.style.visibility='hidden'">` : '';
+  const img = c.image ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="${esc(c.name)}" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : '';
   return `<div class="b-tile${owned?' owned':''}" id="bt-${c.id}">
     <div class="b-art">${img}${owned?'<span class="b-check">✓</span>':''}</div>
     <div class="b-info">
