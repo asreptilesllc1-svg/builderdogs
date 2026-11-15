@@ -266,7 +266,7 @@ function renderGrid(){
     const have = inCart(i.card_id, i.variant), left = i.available - (have ? have.qty : 0);
     const opts = Array.from({ length: Math.max(1, Math.min(left, 20)) }, (_, k) => `<option>${k+1}</option>`).join('');
     return `<article class="tile">
-      <div class="art">${c.image ? `<img src="${esc(c.image)}" alt="${esc(c.name)} ${VER[i.variant]}" loading="lazy" onerror="this.style.visibility='hidden'">` : ''}</div>
+      <div class="art">${c.image ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="${esc(c.name)} ${VER[i.variant]}" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : ''}</div>
       <div class="info">
         <div class="nm">${esc(c.name)} <span>${esc(i.card_id)}</span></div>
         <div class="vt ${i.variant}">${VER[i.variant]}</div>
@@ -308,7 +308,7 @@ function cartQty(i, d){
 function renderCart(){
   $('cart-lines').innerHTML = cart.map((l, i) => {
     const c = byId[l.card_id] || { name:l.card_id };
-    return `<div class="cl">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<span></span>'}
+    return `<div class="cl">${c.image ? `<img decoding="async" width="360" height="490" src="${esc(DDL_IMG(c))}" data-orig="${esc(c.image)}" alt="" loading="lazy" onerror="if(window.ddlImgErr&&ddlImgErr(this))return;this.style.visibility='hidden'">` : '<span></span>'}
       <div><div class="t">${esc(c.name)} <span class="m">${esc(l.card_id)}</span></div><div class="m">${VER[l.variant]} · ${money(priceOf(l))} each</div>
         <div class="qty"><button onclick="cartQty(${i},-1)" aria-label="Fewer">−</button><span>${l.qty}</span><button onclick="cartQty(${i},1)" aria-label="More">+</button></div></div>
       <span style="font-family:'Oswald',sans-serif">${money(priceOf(l) * l.qty)}</span></div>`;

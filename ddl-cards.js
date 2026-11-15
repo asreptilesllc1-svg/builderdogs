@@ -144,3 +144,15 @@ window.DDL_CARDS = [
   { id:"V110", name:"Spring Trap", class:"Neutral", type:"Trap", cost:2, atk:null, hp:null, rarity:"Rare", tier:"Common/Rare", rarityPct:12.0, keyword:"Trap", text:"When the enemy summons a Creature, negate the summon and return that Creature to their hand.", image:"https://ddltcg.com/card_renders/V110.png", fullArt:false, sealed:false },
   { id:"V111", name:"Tidal Wave", class:"Neutral", type:"Trap", cost:2, atk:null, hp:null, rarity:"Epic", tier:"Common/Rare", rarityPct:5.0, keyword:"Trap", text:"After an enemy Creature attacks your Hero, destroy all Creatures.", image:"https://ddltcg.com/card_renders/V111.png", fullArt:false, sealed:false }
 ];
+
+// Local, compressed card images (WebP). 360 = grid/thumbnail size, full = 546px detail.
+// Falls back to the original ddltcg.com render if a local file is missing.
+window.DDL_IMG = function (c, size) {
+  if (!c || !c.image) return '';
+  return '/img/cards/' + (size === 'full' ? 'full' : '360') + '/' + c.id + '.webp';
+};
+window.ddlImgErr = function (img) {
+  var o = img.getAttribute('data-orig');
+  if (o && img.getAttribute('src') !== o) { img.setAttribute('src', o); return true; }
+  return false;
+};
