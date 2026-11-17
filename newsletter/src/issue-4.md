@@ -61,8 +61,6 @@ A site refresh went live Nov 15. The [home page](https://builderdogs.com/) now h
 These are past sales and list prices, not predictions or advice.
 
 ## From the garage
-**[TODO for user: add your garage note here.]**
-
 On Nov 10, @BooMetaX posted: "Locked in 2x Victorious Gary Promo Cards 🏆 Picking them up in person in Miami this December." ([post](https://x.com/BooMetaX/status/2120358641748292059)). On Nov 14 he spent the morning on "a little @DDLTCG sorting" before heading off to work on vehicles ([post](https://x.com/BooMetaX/status/2121646063689875868)), and he closed the week Nov 15 with: "Another week of showing UP with the @doginaldogs pack in the books." ([post](https://x.com/BooMetaX/status/2122199349987827827))
 
 ## Coming up
