@@ -49,16 +49,13 @@ The card image shows Gary in a Santa hat and beard, riding a sleigh full of pres
 Want to see how good players handle traps? Championship games are open to watch this week at [ddltcg.com/play](https://ddltcg.com/play).
 
 ## Market snapshot (collector info, not investment advice)
-- **builderdogs.com sold-price data was last updated Nov 8, 2026.** That's more than two weeks old. It has **no** eBay sales logged for Nov 16 to 22, so this issue calls no trends and lists no new sale prices.
+- **New sale this week:** a raw Gigatron V071 full-art Giga Rare sold on eBay on **Nov 19 for $36** (auction, 9 bids, plus $6.30 shipping). The listing title said V072, but Gigatron is card V071. That's the only Nov 16 to 22 sale logged so far, so this issue calls no trends.
 - **Official booster box:** back to **$179** and showing as available to buy on the [official shop](https://shop.doginaldogs.com/products/doginal-dogs-legends-rise-of-the-pack-booster-box) (checked Nov 23). Last week it showed $159 and Sold out.
 - **Santa Gary promo:** free with official-shop orders of $299 or more, while supplies last. It isn't sold on its own.
 - **Victorious Gary promo:** the [shop page](https://shop.doginaldogs.com/products/victorious-gary-promo-card) is still up at $99 (checked Nov 23). The Nov 16 entry deadline and the Nov 18 sign-up window have both passed, so don't assume buying one now gets you into this Championship. The card ships in December.
 - Listings and asking prices you'll see on X are not sales.
 
 These are past sales and list prices, not predictions or advice.
-
-## From the garage
-Boo kept the pack busy this week. On Nov 16 he asked, "Whats the ONE @DDLTCG card youre NEVER selling?" ([post](https://x.com/BooMetaX/status/2122391010525290853)) and spent the evening sorting sets ([post](https://x.com/BooMetaX/status/2122491065395486988)). On Nov 18 he cheered on Championship sign-ups ([post](https://x.com/BooMetaX/status/2123118372476874791)), and on Nov 20 he flagged the Black Friday sale and Santa Gary ([post](https://x.com/BooMetaX/status/2123910856220266576)). His Nov 21 poll split the timeline: "RIP IT or KEEP IT SEALED??" ([post](https://x.com/BooMetaX/status/2124205404339257723)). And on Nov 22, National Humane Society Day, he wrote: "Every dog and @doginaldogs deserves a family, not just the ones in suits," and asked people to think about adopting, fostering or donating to their local Humane Society ([post](https://x.com/BooMetaX/status/2124522308463177924)). Thanks also to @lurnmeta for the shoutout on our Issue #4 recap ([Nov 19](https://x.com/lurnmeta/status/2123484047943025075)).
 
 ## Coming up
 - **Mon Nov 23, 10am ET (9am Central):** Championship check-in on Discord. Swiss rounds run all week, and you can watch at [ddltcg.com/play](https://ddltcg.com/play) ([@DDLTCG](https://x.com/DDLTCG/status/2124623975791681784), Nov 22).
