@@ -50,9 +50,15 @@
   </url>
   <url>
     <loc>https://builderdogs.com/newsletter/</loc>
-    <lastmod>2026-11-17</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://builderdogs.com/newsletter/issue-5</loc>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://builderdogs.com/newsletter/issue-4</loc>
